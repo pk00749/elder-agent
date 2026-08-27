@@ -14,6 +14,7 @@
 | v1.0 | 2026-08-23 | Codex | 推倒重来：平台改为 Android；功能缩到 MVP 三功能；引入 DeepSeek Harness + 腾讯云 Agent + COS |
 | v2.0 | 2026-08-24 | Codex | PRD/AGENT.md 分工重排：所有需求迁移到 PRD；AGENT.md 只留实施规范；新增 §3.1.4 Agent 行为约束、§7 安全与隐私、§10 系统质量要求；D1–D4 锁定，新增 D5 |
 | v2.1 | 2026-08-27 | Codex | UI 设计 token 系统化：§4 → §4.1-§4.10（色彩 / 字号 / 间距 / 圆角 / 动效 / 声音 / 权限 / 空态 / Toast / 黄条 / 加载）；§3.1 老人端 4 → 8 子节（新增 §3.1.5 主屏 / §3.1.6 访谈总结 / §3.1.7 今日记录 / §3.1.8 设置）；§3.2 家属端 3 → 9 子节重排（主屏 / Tab / 表单 / 日志 / 绑定全部展开）；§6.1 端点 16 → 20（新增 bind/confirm + bind/pending + diary/flush-pending + bind/elder 修订）；§6.2 错误码新增 REMINDER_TIME_PAST / BIND_CODE_EXPIRED / BIND_ATTEMPT_NOT_FOUND；§10.4 兼容 TTS 粤语男声 + ASR 粤语主识别；§11 待澄清 14 → 31 项（11.15-§I.9 全闭环）；§J3 联动 §I-4 剂量枚举 [PILL\|HALF\|SPOON\|CUSTOM] 收紧为 [PILL\|HALF\|SPOON] 走备注 |
+| v2.1.1 | 2026-08-27 | Codex | 字段表补齐（为开工扫除文档缺口）：§5.4 reminder 加 `channel_priority`；§5.4 medication payload 收紧为 `dosage ∈ [pill\|half\|spoon]` + `note?`；§5.4 appointment payload 加 `advance_remind_min ∈ [30\|60\|120]` 默认 60 + `repeat = none`；§5 新增 `bind_attempt` 数据模型（§3.2.7-§3.2.8 + §A.5 引用落地）；§3.1.7 图标熄灭时区规则明确为"设备本地时区零点"；§11 默认项 11.1 / 11.2 / 11.6 / 11.7 / 11.10 / 11.11 / 11.12 / 11.13 / 11.14 收口为已定 |
 
 
 ---
@@ -313,7 +314,7 @@ MVP 不做客服、医生、群组等其他角色。
 ```
 未亮：灰色描边铃铛/笔图标
 亮起条件：当日存在至少 1 条 status=finalized 的 diary_entry
-熄灭条件：跨过本地零点；或新一天首次进入主屏
+熄灭条件：跨过设备本地时区零点；或新一天首次进入主屏。时区取 `elder_profile.timezone`（§5.2），与 `diary_entry.date`（§5.7）取同一时区，避免跨日区时图标状态错位。
 位置：主屏 A 区右上角 32dp
 点亮反馈：图标颜色动画（300ms 渐入墨绿）+ 单次短震 100ms；不弹 Toast
 ```
@@ -731,6 +732,7 @@ pending_diary(
 | id | UUID | 是 | 主键 |
 | elder_id | UUID | 是 | 关联老人 |
 | type | enum | 是 | `medication` / `appointment` |
+| channel_priority | enum | 否 | `mid` / `high`；默认 `mid`；创建时按 `type` 自动设：`medication → mid`，`appointment → high`（§11.18） |
 | payload | object | 是 | 见下 |
 | status | enum | 是 | `active` / `paused` |
 | created_by | UUID | 是 | 家属 user id（family_user.id） |
@@ -738,10 +740,10 @@ pending_diary(
 | updated_at | ISO datetime | 是 | |
 
 `payload` 内嵌：
-- `medication`：`{ med_name: string, dosage: string, schedule: { time: 'HH:mm', repeat: 'daily' | 'weekdays' | 'custom', weekdays?: number[] }[], note?: string }`
-- `appointment`：`{ hospital: string, department: string, datetime: ISO datetime, note?: string }`
+- `medication`：`{ med_name: string, dosage: { type: enum [pill|half|spoon], note?: string(≤100) }, schedule: { time: 'HH:mm', repeat: 'daily' | 'weekdays' | 'custom', weekdays?: number[] }[], note?: string(≤100) }`
+- `appointment`：`{ hospital: string(1-20), department: string(1-20), datetime: ISO datetime, advance_remind_min: enum [30|60|120] = 60, repeat: enum [none] | null, note?: string(≤100) }`
 
-索引建议：`(elder_id, type, status)`。
+索引建议：`(elder_id, type, status, channel_priority)`。
 
 ### 5.5 `reminder_ack`（提醒应答）
 
@@ -807,6 +809,24 @@ pending_diary(
 - 老人语音（永久）：`elder/{elder_id}/diary/{diary_id}/seg-{n}.m4a`
 - Agent 回复语音（永久）：`elder/{elder_id}/diary/{diary_id}/reply-{n}.m4a`
 - 临时上传（24h 生命周期，见 §11.13）：`tmp/{elder_id}/{uuid}.m4a`
+
+### 5.9 `bind_attempt`（绑定尝试，v2.1.1 新增）
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| id | UUID | 是 | 主键 |
+| bind_code | string | 是 | 临时码（5 分钟有效，§11.13），唯一索引 |
+| family_user_id | UUID | 是 | 发起邀请的家属 user id（→ family_user.id） |
+| elder_device_token | string | 是 | 老人设备 token（用于校验来源，§3.2.7） |
+| status | enum | 是 | `pending` / `confirmed` / `rejected` / `expired` |
+| elder_id | UUID | 否 | 确认后回填，关联 elder_profile.id（→ §5.2） |
+| binding_id | UUID | 否 | 确认后回填，关联 binding.id（→ §5.3） |
+| created_at | ISO datetime | 是 | |
+| responded_at | ISO datetime | 否 | 老人端 accept / reject 时间 |
+
+索引建议：
+- `bind_code`（唯一）
+- `(elder_device_token, status, created_at)` —— 支持 §3.2.7 老人端 10s/次轮询
 
 ---
 
@@ -1044,20 +1064,20 @@ pending_diary(
 
 | # | 项 | 当前默认值 | 状态 |
 |---|----|-----------|------|
-| 11.1 | 离线提醒应答缓存 | Android `Room` 临时表，联网后 POST `/v1/reminders/:id/ack` | 默认 |
-| 11.2 | 通知通道（提醒 / 老人未应答推家属） | **TPush** | 默认 |
+| 11.1 | 离线提醒应答缓存 | Android `Room` 临时表，联网后 POST `/v1/reminders/:id/ack` | 已定（§3.1.1） |
+| 11.2 | 通知通道（提醒 / 老人未应答推家属） | **TPush** | 已定（§11.18 双通道） |
 | 11.3 | 家属能否删日志 | **不能**（只读 + 配置权） | 已定 |
 | 11.4 | 日志保留时长 | **永久** | 已定 |
 | 11.5 | Agent 访谈轮数 | 默认 3–6 轮；硬上限 `MAX_TURNS=8` | 已定 |
-| 11.6 | 多家属解绑 | 仅 `primary` 角色可解绑（`secondary` 无解绑权） | 默认 |
-| 11.7 | 端到端加密 | **否**（服务端可读以支持 Agent 处理） | 默认 |
+| 11.6 | 多家属解绑 | 仅 `primary` 角色可解绑（`secondary` 无解绑权） | 已定（§3.2.8 / §11.25） |
+| 11.7 | 端到端加密 | **否**（服务端可读以支持 Agent 处理） | 已定（§7.3） |
 | 11.8 | 数据导出 | MVP **不做** | 已定 |
 | 11.9 | 商业化 | **永久免费** | 已定 |
-| 11.10 | Android 最低版本 | API 26（Android 8.0） | 默认 |
-| 11.11 | JWT 续签机制 | 单 JWT 7 天有效；过期客户端重新走 `/v1/auth/sms-code` 登录 | 默认 |
-| 11.12 | 客户端位置采集 | MVP 不采集 GPS；时区取系统时区 | 默认 |
-| 11.13 | COS 临时对象生命周期 | 24h | 默认 |
-| 11.14 | 灰度发布策略 | 单户手动开启 | 默认 |
+| 11.10 | Android 最低版本 | API 26（Android 8.0） | 已定（§11.10） |
+| 11.11 | JWT 续签机制 | 单 JWT 7 天有效；过期客户端重新走 `/v1/auth/sms-code` 登录 | 已定（§7.4 / 无 refresh token） |
+| 11.12 | 客户端位置采集 | MVP 不采集 GPS；时区取系统时区 | 已定（§7.5） |
+| 11.13 | COS 临时对象生命周期 | 24h | 已定（§5.8 / §7.6） |
+| 11.14 | 灰度发布策略 | 单户手动开启（`elder_id` 白名单，配置注入见 §8.3） | 已定（§8.3） |
 | 11.15 | TTS 默认音色与语速 | **千问 TTS**（DashScope / CosyVoice），默认音色 **粤语男声** | 已定（§H.15）|
 | 11.16 | 老人端字体档位 sp 值 | **默认 24/32 → 大 28/38 → 特大 32/44**（body/title） | 已定（§H.16 / §I-7）|
 | 11.17 | TTS 失败兜底 | **文字 + Toast + 系统铃声**（绕过静音的闹钟 / 媒体通道） | 已定（§H.17）|
