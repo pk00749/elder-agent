@@ -204,8 +204,122 @@ elder-agent/
 ## 17. 文档同步
 
 - `prd.md` 修订后，涉及的代码改动在同一个 PR 提交，并在 PR 描述里关联。
-- `AGENT.md` 修订在 PR 描述里说明影响的章节号。
-- 不在 `AGENT.md` 里复述 `prd.md` 已有内容；只写引用。
+- `AGENTS.md` 修订在 PR 描述里说明影响的章节号。
+- 不在 `AGENTS.md` 里复述 `prd.md` 已有内容；只写引用。
+
+## 18. 反向条款（Do/Don't）
+
+> 这是给 AI 代理的**强制反向防线**——列在这里的都是已知高踩坑点。违反任一条会被 PR 评审直接打回。
+
+### 数据模型 / PRD 锁定
+
+- **不要修改 `prd.md` §5 数据模型既有字段定义**（`family_user`/`elder_profile`/`binding`/`reminder`/`reminder_ack`/`diary_session`/`diary_entry`/COS key）。仅允许新增字段，不能改字段类型 / 默认值 / 必填。理由：v2.0 契约锁定 + 现网有数据；改既有字段会破坏客户端 SDK + 集成测试。
+- **不要修改 `prd.md` §3.1.4 Agent 行为约束（A1–D3）**：这是 AI 访谈 Agent 必须遵守的硬规则。改动需走 prd.md 修订记录 + 产品评审，不在 PR 范围内自行修改。
+- **不要删除 `services/*/migrations/` 下的迁移脚本**。审计轨迹必须保留；删除会导致回滚失败 + 数据丢失。
+- **不要在 PR 里同时改 `prd.md` 既有章节 + 多服务代码**（违反 §16 一个 commit 一件事）。需要拆 PR。
+
+### 客户端 UI / 设计 token
+
+- **不要硬编码颜色 / 字号 / 间距 / 圆角到客户端代码**——必须从 `Dimens.kt`（或 `colors.xml`/`dimens.xml` 资源）读取。理由：§I-1 不追加品牌色；硬编码会让 prd.md §4 token 表不同步。
+  - 检测命令见 §19
+- **不要在客户端写"136****8888" / "+86" 等明文手机号样式**——统一走 `elder_common.redact.phone_tail(phone)`。理由：§7 日志 `sanitize` 会拦截明文 PII；客户端写死会被合规审计抓到。
+- **不要在客户端引入新的上游 SDK**（千问 / TPush / COS / ASR / TTS）——所有上游调用统一在 `elder_common` 封装（§A.1）。新增上游必须先在 §A.x 增加子节 + 评审。
+- **不要编写超过 500 行的客户端模块**（除非有文档化理由）。理由：与 OpenAI Codex 样例反模式一致；高触碰文件会吸引无关改动。
+
+### 服务端 / 工程规范
+
+- **不要在路由层写 `try/except` 或直接拼 SQL/NoSQL**——必须走 `packages/common` 仓储 + 全局异常处理器（§4 / §10）。理由：破坏错误码统一 + 越权校验丢失。
+- **不要绕开 `require_role` / `require_elder_match` 装饰器**（§9 / §13）。理由：鉴权中间件是路由层唯一的角色校验；裸路由会立刻被 §14 测试拒。
+- **不要使用 `# noqa: E501` / `# type: ignore[error-code]` 绕过 lint**——除非有显式注释 `# <理由>`。理由：CI §15 强制 ruff/mypy 全绿；无理由注释会被打回。
+- **不要写 mock 数据反向测试**（mock 某个被删除逻辑的负向 case）。理由：v2.1 §A.4 紧致 `MedicationDosage.type` 枚举后，`type=custom` 测试已无意义——保留会过期；正向测试覆盖即可。
+- **不要为静态定义值加测试**（常量、`UPPER_SNAKE_CASE` 配置）。理由：和 OpenAI Codex 样例的反模式一致——静态定义不会跑偏，加测试是 noise。
+- **不要在客户端用 `if elder_id == current_user.elder_id`** 形式做越权校验——必须在仓储层做（§10）。理由：路由层 / 业务层越权校验易漏，仓储层是唯一真源。
+
+### 日志 / 隐私
+
+- **不要在日志里写原始音频 URL / ASR 全文 / 用户密码 / 密钥**——必须过 `elder_common.logging.sanitize()`（§7）。理由：prod 容器采集写入 CloudBase，原始 PII 上传合规审计即失败。
+- **不要为日记 / reminder 写告警**——业务事件统一入口 `emit_event(name, **fields)`（§7 末段）。告警字段集中在 `elder_common.logging.events` 常量。
+
+### 工程工具 / CI
+
+- **不要直接跑 `pytest` / `mypy --strict` 全量命令**——日常只跑对应服务的测试 / 类型。理由：全量 lint/test 在 PR 范围外运行是 noise；CI 会兜底。
+- **不要提交 `.env` / 真实 COS key / 真实手机号**——`.env` 加 `.gitignore`（§8）；历史 commit 含敏感信息立刻 `git rm --cached` + 通知 Codex。
+
+## 19. 本地命令速查（AI 代理可直接执行）
+
+> 仓库内主要脚本 / 命令一站式速查；写 PR 前**主动**跑相关命令。
+
+### 测试 / Lint / 类型检查
+
+```bash
+# 跑 v2.1 schema 回归测试（§A.4 / §A.7）
+uv run pytest tests/integration/test_schema_v21.py -v
+
+# 单服务测试（按 §1 服务拆分）
+uv run pytest services/reminder_service/ -v
+
+# 全部集成测试（仅在改 common / core / protocol 后跑；征求评审员同意）
+uv run pytest tests/integration/
+
+# 跳远程 LLM 调用（用 fixture）
+uv run pytest -m "not llm"
+
+# MyPy strict 类型检查
+uv run mypy --strict services/ packages/
+
+# Ruff lint
+uv run ruff check
+
+# Ruff format（写完代码自动跑）
+uv run ruff format
+```
+
+### 客户端 token / 硬编码检查（对应 §A.2 + prd.md §4.1-§4.4）
+
+```bash
+# 颜色硬编码（必须是 #RRGGBB，且不在 Dimens.kt / colors.xml）
+rg -t kotlin -t xml '#[0-9A-Fa-f]{6}' app/src   --glob '!**/Dimens.kt' --glob '!**/colors.xml'
+
+# 字号硬编码（必须匹配 .sp，且不在 Dimens.kt / dimens.xml）
+rg -t kotlin -t xml '[0-9]+\.?sp' app/src   --glob '!**/Dimens.kt' --glob '!**/dimens.xml'
+
+# 间距 / 圆角硬编码
+rg -t kotlin -t xml '[0-9]+\.?dp' app/src   --glob '!**/Dimens.kt' --glob '!**/dimens.xml'
+
+# Token 表一致性检查（参考脚本，§A.2 占位）
+uv run python scripts/check_no_hardcoded_tokens.py app/src
+```
+
+### 数据库迁移
+
+```bash
+# 同步 v2.1 schema（Pydantic 字段收紧 + 新增）
+uv run python -m elder_common.migrate up --to v2_1
+
+# 回退到 v2.0（仅调试用）
+uv run python -m elder_common.migrate down --to v2_0
+
+# 当前版本
+uv run python -m elder_common.migrate current
+```
+
+### 本地基础设施
+
+```bash
+# 起 CloudBase / COS / TPush / ASR / TTS 本地 mock
+docker compose up -d
+
+# 查看 prd.md / AGENTS.md 的 token 表
+$EDITOR prd.md      # §4 节（§4.1 色彩 / §4.2 字号 / §4.3 间距 / §4.4 圆角）
+$EDITOR AGENTS.md   # §A 节（v2.1 集成规范）
+```
+
+### 推送 / 上线前自检（PR 评审清单）
+
+```bash
+# 跑这个组合检查所有 v2.1 改动覆盖
+uv run pytest tests/integration/test_schema_v21.py -v   && uv run mypy --strict services/ packages/   && uv run ruff check   && uv run python scripts/check_no_hardcoded_tokens.py app/src
+```
 
 ---
 
