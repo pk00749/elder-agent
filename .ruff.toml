@@ -10,6 +10,8 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 
 [lint.per-file-ignores]
 "tests/**/*.py" = ["B011"]  # asserts 在测试里 OK
+"services/**/routes/*.py" = ["B008"]  # FastAPI Depends() 是路由参数依赖推荐写法
+"services/**/main.py" = ["B008"]      # FastAPI 装饰器签名
 "mock/**/*.py" = ["B008"]   # FastAPI 装饰器参数依赖
 # str + Enum 是 FastAPI / Pydantic 的常见模式，UP042 不强制 StrEnum
 "packages/common/elder_common/**/*.py" = ["UP042"]
