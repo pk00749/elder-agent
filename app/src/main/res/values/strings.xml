@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">老友</string>
+
+    <!-- 主屏 §3.1.5 -->
+    <string name="home_greeting_morning">早上好</string>
+    <string name="home_greeting_noon">中午好</string>
+    <string name="home_greeting_evening">晚上好</string>
+    <string name="home_no_reminders_today">今日暂无提醒</string>
+    <string name="home_today_records_icon_desc">今日记录</string>
+    <string name="home_diary_button">按住说话写日记</string>
+
+    <!-- 隐藏设置 §3.1.8（PR 1 仅占位入口）-->
+    <string name="hidden_setting_toast">设置即将开放</string>
+
+    <!-- 空态 §4.7 -->
+    <string name="empty_no_reminders">还没有提醒，点上面的 + 加一个</string>
+    <string name="empty_no_diary">今天还没记</string>
+    <string name="empty_no_diary_7d">近7天还没有日志</string>
+
+    <!-- 加载态 §4.10 -->
+    <string name="loading_text">加载中…</string>
+
+    <!-- 网络异常 §4.9 -->
+    <string name="network_error_text">网络好像断了，正在重试…</string>
+    <string name="network_retry_button">重试</string>
+
+    <!-- 错误 Toast §4.8 -->
+    <string name="toast_network_error">网络好像断了，再试一次</string>
+    <string name="toast_save_error">保存失败，再试一次</string>
+    <string name="toast_server_busy">服务器忙，过会儿再试</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 客户端运行时 UI 颜色**禁止**硬编码 hex（AGENTS.md §A.2 / §18 红线），全部从 Dimens.kt 读取。-->
+<!-- 仅 drawable tint 等静态资源允许以颜色资源形式引用。-->
+<resources>
+    <color name="today_record_outline">#FF666666</color>
+</resources>
