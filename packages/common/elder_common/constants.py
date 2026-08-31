@@ -1,0 +1,27 @@
+# 错误码常量（§6.2）。
+from __future__ import annotations
+
+from enum import Enum
+
+
+class ErrorCode(str, Enum):
+    """错误码 —— 与 PRD §6.2 错误码全集一致。
+
+    继承 str 是为了让 JSONResponse 直接序列化为字符串（§6.2 错误响应体）。
+    """
+
+    BAD_REQUEST = "BAD_REQUEST"
+    UNAUTHORIZED = "UNAUTHORIZED"
+    FORBIDDEN = "FORBIDDEN"
+    NOT_FOUND = "NOT_FOUND"
+    CONFLICT = "CONFLICT"
+    VALIDATION_ERROR = "VALIDATION_ERROR"
+    REMINDER_TIME_PAST = "REMINDER_TIME_PAST"
+    BIND_CODE_EXPIRED = "BIND_CODE_EXPIRED"
+    BIND_ATTEMPT_NOT_FOUND = "BIND_ATTEMPT_NOT_FOUND"
+    RATE_LIMITED = "RATE_LIMITED"
+    INTERNAL_ERROR = "INTERNAL_ERROR"
+    UPSTREAM_LLM = "UPSTREAM_LLM"
+    UPSTREAM_ASR = "UPSTREAM_ASR"
+    UPSTREAM_TTS = "UPSTREAM_TTS"
+    UPSTREAM_TIMEOUT = "UPSTREAM_TIMEOUT"

@@ -1,0 +1,73 @@
+# 老友本地开发环境（AGENTS.md §19）
+# CI 也用此文件跑 docker compose up -d 验证 mock infra
+name: elder-agent-dev
+services:
+  mock-upstream:
+    build:
+      context: ./mock
+    container_name: elder-mock-upstream
+    ports:
+      - "8080:8080"
+    networks:
+      - elder-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys;sys.exit(0 if urllib.request.urlopen('http://localhost:8080/health',timeout=2).status==200 else 1)"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+  agent-service:
+    build:
+      context: .
+      dockerfile: services/agent_service/Dockerfile
+    container_name: elder-agent-service
+    environment:
+      ASR_BASE_URL: http://mock-upstream:8080/asr
+      TTS_BASE_URL: http://mock-upstream:8080/tts
+      DSH_BASE_URL: http://mock-upstream:8080/dsh
+      COS_BASE_URL: http://mock-upstream:8080/cos
+      JWT_SECRET: dev-only-jwt-secret-please-change-in-prod-32+
+      MOCK_INFRA: enabled
+    ports:
+      - "8001:8001"
+    depends_on:
+      mock-upstream:
+        condition: service_healthy
+    networks:
+      - elder-net
+  reminder-service:
+    build:
+      context: .
+      dockerfile: services/reminder_service/Dockerfile
+    container_name: elder-reminder-service
+    environment:
+      TPUSH_BASE_URL: http://mock-upstream:8080/tpush
+      COS_BASE_URL: http://mock-upstream:8080/cos
+      JWT_SECRET: dev-only-jwt-secret-please-change-in-prod-32+
+      MOCK_INFRA: enabled
+    ports:
+      - "8002:8002"
+    depends_on:
+      mock-upstream:
+        condition: service_healthy
+    networks:
+      - elder-net
+  account-service:
+    build:
+      context: .
+      dockerfile: services/account_service/Dockerfile
+    container_name: elder-account-service
+    environment:
+      COS_BASE_URL: http://mock-upstream:8080/cos
+      SMS_BASE_URL: http://mock-upstream:8080/sms
+      JWT_SECRET: dev-only-jwt-secret-please-change-in-prod-32+
+      MOCK_INFRA: enabled
+    ports:
+      - "8003:8003"
+    depends_on:
+      mock-upstream:
+        condition: service_healthy
+    networks:
+      - elder-net
+networks:
+  elder-net:
+    driver: bridge

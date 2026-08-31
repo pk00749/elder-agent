@@ -1,0 +1,20 @@
+# 静态检查 + 格式化（AGENTS.md §15 CI 门槛）
+line-length = 100
+target-version = "py311"
+src = ["packages", "services", "tests", "mock"]
+
+[lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "RUF"]
+# 中文括号 / 中文标点不视为歧义（AGENTS.md §6 项目母语）
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[lint.per-file-ignores]
+"tests/**/*.py" = ["B011"]  # asserts 在测试里 OK
+"mock/**/*.py" = ["B008"]   # FastAPI 装饰器参数依赖
+# str + Enum 是 FastAPI / Pydantic 的常见模式，UP042 不强制 StrEnum
+"packages/common/elder_common/**/*.py" = ["UP042"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
