@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- PR 1 仅声明 INTERNET；CAMERA / RECORD_AUDIO / POST_NOTIFICATIONS 按 §4.6 运行时申请 -->
+    <!-- PR 4 权限集（§4.6 表格：麦克风 / 相机 / 通知按 §G.1 决议 29 不二次引导）-->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
     <application
+        android:name=".ElderApplication"
         android:allowBackup="false"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -17,6 +27,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 录音 Service 暂不上（§L.3 方案 D：单轮 60s 内不需要长录音） -->
     </application>
 
 </manifest>

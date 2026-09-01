@@ -2,7 +2,27 @@
 <resources>
     <string name="app_name">老友</string>
 
-    <!-- 主屏 §3.1.5 -->
+    <!-- §B 身份选择 -->
+    <string name="identity_pick_title">你是？</string>
+    <string name="identity_family">我是家人</string>
+    <string name="identity_elder">我是爸妈</string>
+
+    <!-- 登录 §3.2 / §6.1 -->
+    <string name="login_phone_hint">手机号</string>
+    <string name="login_code_hint">验证码</string>
+    <string name="login_send_code">发送验证码</string>
+    <string name="login_resend_in">%1$d 秒后可重发</string>
+    <string name="login_button">登录</string>
+    <string name="login_invalid_code">验证码错误或已过期</string>
+
+    <!-- 通用 -->
+    <string name="common_back">返回</string>
+    <string name="common_cancel">取消</string>
+    <string name="common_confirm">确认</string>
+    <string name="common_save">保存</string>
+    <string name="common_loading">加载中…</string>
+
+    <!-- §3.1.5 主屏 -->
     <string name="home_greeting_morning">早上好</string>
     <string name="home_greeting_noon">中午好</string>
     <string name="home_greeting_evening">晚上好</string>
@@ -10,23 +30,118 @@
     <string name="home_today_records_icon_desc">今日记录</string>
     <string name="home_diary_button">按住说话写日记</string>
 
-    <!-- 隐藏设置 §3.1.8（PR 1 仅占位入口）-->
-    <string name="hidden_setting_toast">设置即将开放</string>
+    <!-- §3.2.1 家属主屏 -->
+    <string name="family_home_bound_title">已绑定 · 爸妈的家</string>
+    <string name="family_home_unbound_title">还没绑定爸妈的手机</string>
+    <string name="family_home_open_camera">打开相机扫码绑定</string>
+    <string name="family_home_logout">退出登录</string>
+    <string name="family_home_tab_reminders">提醒</string>
+    <string name="family_home_tab_diary">日志</string>
+    <string name="family_home_add_reminder">添加提醒</string>
 
-    <!-- 空态 §4.7 -->
+    <!-- §3.2.2 提醒 Tab -->
+    <string name="reminder_list_empty">还没有提醒</string>
+    <string name="reminder_create_medication">服药提醒</string>
+    <string name="reminder_create_appointment">就医提醒</string>
+    <string name="reminder_med_name">药名</string>
+    <string name="reminder_med_dose">剂量</string>
+    <string name="reminder_dose_pill">1 粒</string>
+    <string name="reminder_dose_half">半粒</string>
+    <string name="reminder_dose_spoon">1 勺</string>
+    <string name="reminder_time_label">时间</string>
+    <string name="reminder_repeat_label">重复</string>
+    <string name="reminder_repeat_daily">每天</string>
+    <string name="reminder_repeat_weekdays">周一三五</string>
+    <string name="reminder_repeat_custom">周二四六</string>
+    <string name="reminder_add_time">加一个时间</string>
+    <string name="reminder_hospital">医院</string>
+    <string name="reminder_department">科室</string>
+    <string name="reminder_datetime">日期时间</string>
+    <string name="reminder_advance_label">提前提醒</string>
+    <string name="reminder_advance_30">30 分钟</string>
+    <string name="reminder_advance_60">60 分钟</string>
+    <string name="reminder_advance_120">120 分钟</string>
+    <string name="reminder_note_optional">备注（选填）</string>
+    <string name="reminder_summary_sheet_title">确认创建</string>
+    <string name="reminder_summary_edit">再改改</string>
+
+    <!-- §3.2.5 日志 Tab -->
+    <string name="diary_list_empty_today">今天还没记</string>
+    <string name="diary_list_empty_7d">近7天还没有日志</string>
+    <string name="diary_list_filter_today">今天</string>
+    <string name="diary_list_filter_7d">近7天</string>
+    <string name="diary_detail_play">▶ 听</string>
+    <string name="diary_detail_play_failed">听不了，请稍后再试</string>
+
+    <!-- §3.2.7 / §3.2.8 绑定 -->
+    <string name="bind_qr_scan_title">扫爸妈手机上的二维码</string>
+    <string name="bind_qr_camera_denied">需要相机权限才能扫码</string>
+    <string name="bind_confirm_title">%1$s 想绑定</string>
+    <string name="bind_confirm_subtitle">绑定后，%1$s 可以给您设置提醒、看您记的日志</string>
+    <string name="bind_confirm_accept">同意</string>
+    <string name="bind_confirm_reject">拒绝</string>
+    <string name="bind_pending_queue_empty">没有人在等</string>
+    <string name="bind_qr_my_title">让家人扫这个二维码</string>
+    <string name="bind_qr_expired">二维码已过期，重生成</string>
+    <string name="bind_qr_regenerate">重生成</string>
+
+    <!-- §3.1.1 服药全屏卡 -->
+    <string name="reminder_med_full_title">该吃药啦</string>
+    <string name="reminder_med_full_dose_pill">1 粒</string>
+    <string name="reminder_med_full_dose_half">半粒</string>
+    <string name="reminder_med_full_dose_spoon">1 勺</string>
+    <string name="reminder_full_ack">✓ 知道了</string>
+    <string name="reminder_full_missed_5">5 分钟还没吃药哦，再确认一下</string>
+    <string name="reminder_full_missed_30">30 分钟还没吃，要打电话问问吗</string>
+
+    <!-- §3.1.3 就医全屏卡 -->
+    <string name="reminder_appt_full_title">该去看医生啦</string>
+    <string name="reminder_appt_full_ack">✓ 知道了</string>
+
+    <!-- §3.1.2 访谈写日志 -->
+    <string name="diary_recording_progress">第 %1$d 轮 / 共 %2$d 轮</string>
+    <string name="diary_recording_hold">按住说话</string>
+    <string name="diary_recording_release">松开发送</string>
+    <string name="diary_recording_recording">正在录音… %1$02d:%2$02d</string>
+    <string name="diary_recording_retry">没听清，再说一次</string>
+    <string name="diary_recording_network_failed">网络好像断了，正在重试</string>
+    <string name="diary_recording_mic_denied">需要麦克风权限才能写日记</string>
+
+    <!-- §3.1.6 访谈总结 -->
+    <string name="diary_summary_title">今天记好了 ✓</string>
+    <string name="diary_summary_save">✓ 保存</string>
+    <string name="diary_summary_edit">✎ 改一下</string>
+
+    <!-- §3.1.7 今日记录屏 -->
+    <string name="diary_recent_title">近期日志</string>
+    <string name="diary_recent_today_tab">今天</string>
+    <string name="diary_recent_7d_tab">近7天</string>
+
+    <!-- §3.1.8 老人设置 -->
+    <string name="settings_title">设置</string>
+    <string name="settings_font_size">字体大小</string>
+    <string name="settings_tts_switch">语音播报</string>
+    <string name="settings_volume">媒体音量</string>
+    <string name="settings_generate_qr">生成本机二维码</string>
+    <string name="settings_about">关于</string>
+    <string name="settings_logout">退出登录</string>
+    <string name="settings_logout_confirm">退出后将无法接收提醒\n再装此 App 需要家人重新绑定</string>
+    <string name="settings_font_normal">默认</string>
+    <string name="settings_font_large">大</string>
+    <string name="settings_font_xlarge">特大</string>
+
+    <!-- 空态 / 加载 / 网络 -->
     <string name="empty_no_reminders">还没有提醒，点上面的 + 加一个</string>
     <string name="empty_no_diary">今天还没记</string>
     <string name="empty_no_diary_7d">近7天还没有日志</string>
-
-    <!-- 加载态 §4.10 -->
     <string name="loading_text">加载中…</string>
-
-    <!-- 网络异常 §4.9 -->
     <string name="network_error_text">网络好像断了，正在重试…</string>
     <string name="network_retry_button">重试</string>
 
-    <!-- 错误 Toast §4.8 -->
+    <!-- Toast -->
     <string name="toast_network_error">网络好像断了，再试一次</string>
     <string name="toast_save_error">保存失败，再试一次</string>
     <string name="toast_server_busy">服务器忙，过会儿再试</string>
+    <string name="toast_login_failed">登录失败</string>
+    <string name="toast_unbound_no_diary">未绑定家人，写好的日记会丢失</string>
 </resources>

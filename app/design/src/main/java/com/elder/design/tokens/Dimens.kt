@@ -49,6 +49,8 @@ object FontSize {
         FontLevel.LARGE -> ButtonLargeSp.sp
         FontLevel.XLARGE -> ButtonXLargeSp.sp
     }
+
+    fun caption() = 20.sp
 }
 
 enum class FontLevel { DEFAULT, LARGE, XLARGE }
