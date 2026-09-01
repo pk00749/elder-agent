@@ -8,6 +8,7 @@ from elder_common.logging import configure_logging, get_logger
 from fastapi import FastAPI
 from services.account_service.app.routes.auth import router as auth_router
 from services.account_service.app.routes.bind import router as bind_router
+from services.account_service.app.routes.diary import router as diary_router
 from services.account_service.app.routes.me import router as me_router
 
 logger = get_logger("account-service")
@@ -29,5 +30,5 @@ async def health() -> dict[str, str]:
 # 业务路由（PR 2）
 app.include_router(auth_router)
 app.include_router(bind_router)
+app.include_router(diary_router)
 app.include_router(me_router)
-# /v1/diary/* —— account_service per §8.1；PR 3 起补（依赖 agent_service 的 diary_session 数据）
