@@ -47,7 +47,8 @@ fun ElderHomeScreen(
     onOpenRecent: () -> Unit,
     onStartDiary: () -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenReminder: (String) -> Unit,
+    onOpenBind: () -> Unit = {},
+    onOpenReminder: (String) -> Unit = {},
 ) {
     val snap by ServiceLocator.tokenStore.snapshot.collectAsState(initial = null)
     val elderId = snap?.elderId ?: snap?.userId
@@ -92,8 +93,8 @@ fun ElderHomeScreen(
                     Text(todayText, fontSize = FontSize.body(), color = BrandColor.TextSecondary)
                 }
                 Icon(
-                    Icons.Default.Settings,
-                    contentDescription = stringResource(R.string.home_today_records_icon_desc),
+                Icons.Default.Edit,
+                contentDescription = stringResource(R.string.home_today_records_icon_desc),
                     modifier = Modifier
                         .size(Size.TodayRecordIcon)
                         .clickable { onOpenRecent() },
