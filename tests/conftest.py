@@ -60,3 +60,13 @@ async def reminder_client():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
+
+
+@pytest_asyncio.fixture
+async def agent_client():
+    """agent-service httpx AsyncClient。"""
+    from services.agent_service.app.main import app
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
