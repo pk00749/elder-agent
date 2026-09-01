@@ -23,6 +23,7 @@ import com.elder.android.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 
 @Composable
@@ -68,7 +69,7 @@ private fun BigChoiceButton(text: String, onClick: () -> Unit, primary: Boolean)
         shape = RoundedCornerShape(Corner.Button),
         modifier = Modifier
             .fillMaxWidth()
-            .height(96.dp)
+            .height(Size.PrimaryButtonHeight)
     ) {
         Text(text = text, fontSize = FontSize.body(), textAlign = TextAlign.Center)
     }

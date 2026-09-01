@@ -33,6 +33,7 @@ import com.elder.android.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.di.ServiceLocator
 import com.elder.android.network.dto.ReminderCreateRequest
@@ -102,7 +103,7 @@ fun FamilyReminderCreateScreen(
             enabled = if (isMedication) name.isNotBlank() && time.matches(Regex("^\\d{1,2}:\\d{2}$")) else hospital.isNotBlank() && dept.isNotBlank() && dt.isNotBlank(),
             colors = ButtonDefaults.buttonColors(containerColor = BrandColor.Brand500, contentColor = BrandColor.CardWhite),
             shape = RoundedCornerShape(Corner.Button),
-            modifier = Modifier.fillMaxWidth().height(96.dp),
+            modifier = Modifier.fillMaxWidth().height(Size.PrimaryButtonHeight),
         ) { Text(stringResource(R.string.common_save), fontSize = FontSize.body()) }
     }
 

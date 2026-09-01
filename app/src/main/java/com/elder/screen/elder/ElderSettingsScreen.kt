@@ -35,6 +35,7 @@ import com.elder.android.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.di.ServiceLocator
 import kotlinx.coroutines.launch
@@ -107,7 +108,7 @@ private fun SettingsRow(labelRes: Int, onClick: (() -> Unit)? = null, trailing: 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(Size.SecondaryButtonHeight)
             .clickable(enabled = onClick != null) { onClick?.invoke() }
             .padding(horizontal = Spacing.Lg),
         verticalAlignment = Alignment.CenterVertically,

@@ -34,6 +34,7 @@ import com.elder.android.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.di.ServiceLocator
 import com.elder.android.network.dto.AgentDiaryStartRequest
@@ -91,9 +92,9 @@ fun ElderDiaryRecordScreen(
                 color = BrandColor.TextSecondary,
             )
             Spacer(Modifier.height(Spacing.Lg))
-            // Agent 回复区（§3.1.2 高 200dp）
+            // Agent 回复区（§3.1.2 高 200（设计值））
             Box(
-                modifier = Modifier.fillMaxWidth().height(200.dp),
+                modifier = Modifier.fillMaxWidth().height(Size.AgentReplyAreaHeight),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -111,9 +112,9 @@ fun ElderDiaryRecordScreen(
                 }
             }
             Spacer(Modifier.weight(1f))
-            // 按住说话按钮（§3.1.2 直径 160dp）
+            // 按住说话按钮（§3.1.2 直径 160（设计值））
             val pressModifier = Modifier
-                .size(160.dp)
+                .size(Size.PressButtonSize)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onPress = {
@@ -174,7 +175,7 @@ fun ElderDiaryRecordScreen(
                     disabledContainerColor = if (isHolding) BrandColor.Brand500 else BrandColor.BgGray,
                     disabledContentColor = if (isHolding) BrandColor.CardWhite else BrandColor.TextPrimary,
                 ),
-                shape = RoundedCornerShape(80.dp),
+                shape = RoundedCornerShape(Size.PillCornerRadius),
                 modifier = pressModifier,
             ) {
                 Text(

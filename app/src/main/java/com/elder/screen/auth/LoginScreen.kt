@@ -34,6 +34,7 @@ import com.elder.android.data.TokenStore
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.di.ServiceLocator
 import kotlinx.coroutines.launch
@@ -143,7 +144,7 @@ fun LoginScreen(role: String, onLoggedIn: (TokenStore.Snapshot) -> Unit, onBack:
             shape = RoundedCornerShape(Corner.Button),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(96.dp),
+                .height(Size.PrimaryButtonHeight),
         ) {
             Text(stringResource(R.string.login_button), fontSize = FontSize.body())
         }
@@ -155,7 +156,7 @@ fun LoginScreen(role: String, onLoggedIn: (TokenStore.Snapshot) -> Unit, onBack:
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(Size.BackButtonHeight),
             contentAlignment = Alignment.Center,
         ) {
             TextButton(onClick = onBack) {

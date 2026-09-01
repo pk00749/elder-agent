@@ -32,6 +32,7 @@ import com.elder.android.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.di.ServiceLocator
 import com.elder.android.network.dto.Reminder
@@ -85,7 +86,7 @@ fun FamilyHomeScreen(
                 shape = RoundedCornerShape(Corner.Button),
                 modifier = Modifier
                     .weight(1f)
-                    .height(96.dp),
+                    .height(Size.PrimaryButtonHeight),
             ) { Text(stringResource(R.string.family_home_tab_reminders), fontSize = FontSize.body()) }
             Spacer(modifier = Modifier.padding(start = Spacing.Md))
             Button(
@@ -96,7 +97,7 @@ fun FamilyHomeScreen(
                 shape = RoundedCornerShape(Corner.Button),
                 modifier = Modifier
                     .weight(1f)
-                    .height(96.dp),
+                    .height(Size.PrimaryButtonHeight),
             ) { Text(stringResource(R.string.family_home_tab_diary), fontSize = FontSize.body()) }
         }
         Spacer(modifier = Modifier.height(Spacing.Lg))
@@ -108,7 +109,7 @@ fun FamilyHomeScreen(
             shape = RoundedCornerShape(Corner.Button),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp),
+                .height(Size.SecondaryButtonHeight),
         ) { Text(stringResource(R.string.family_home_open_camera), fontSize = FontSize.body()) }
         Spacer(modifier = Modifier.weight(1f))
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {

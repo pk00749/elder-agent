@@ -31,6 +31,7 @@ import com.elder.android.data.TokenStore
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.di.ServiceLocator
 import com.elder.android.network.dto.FamilyBindAttemptRequest
@@ -79,7 +80,7 @@ fun FamilyBindScreen(onBack: () -> Unit) {
             enabled = bindCode.length == 8,
             colors = ButtonDefaults.buttonColors(containerColor = BrandColor.Brand500, contentColor = BrandColor.CardWhite),
             shape = RoundedCornerShape(Corner.Button),
-            modifier = Modifier.fillMaxWidth().height(96.dp),
+            modifier = Modifier.fillMaxWidth().height(Size.PrimaryButtonHeight),
         ) { Text(stringResource(R.string.bind_confirm_accept), fontSize = FontSize.body()) }
         status?.let {
             Spacer(Modifier.height(Spacing.Md))

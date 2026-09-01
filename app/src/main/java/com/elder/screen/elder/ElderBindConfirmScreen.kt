@@ -34,6 +34,7 @@ import com.elder.android.data.TokenStore
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.di.ServiceLocator
 import com.elder.android.network.dto.ConfirmRequest
@@ -98,7 +99,7 @@ fun ElderBindConfirmScreen(onBack: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(160.dp)
+                .height(Size.QrDisplayHeight)
                 .background(BrandColor.BgGray, RoundedCornerShape(Corner.Card)),
             contentAlignment = Alignment.Center,
         ) {
@@ -114,7 +115,7 @@ fun ElderBindConfirmScreen(onBack: () -> Unit) {
             onClick = { scope.launch { generateCode() } },
             colors = ButtonDefaults.buttonColors(containerColor = BrandColor.Brand500, contentColor = BrandColor.CardWhite),
             shape = RoundedCornerShape(Corner.Button),
-            modifier = Modifier.fillMaxWidth().height(72.dp),
+            modifier = Modifier.fillMaxWidth().height(Size.SecondaryButtonHeight),
         ) { Text(stringResource(R.string.bind_qr_regenerate)) }
         Spacer(Modifier.height(Spacing.Lg))
         if (current != null) {
@@ -155,7 +156,7 @@ fun ElderBindConfirmScreen(onBack: () -> Unit) {
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = BrandColor.BgGray, contentColor = BrandColor.TextPrimary),
                     shape = RoundedCornerShape(Corner.Button),
-                    modifier = Modifier.weight(1f).height(96.dp),
+                    modifier = Modifier.weight(1f).height(Size.PrimaryButtonHeight),
                 ) { Text(stringResource(R.string.bind_confirm_reject), fontSize = FontSize.body()) }
                 Spacer(Modifier.padding(start = Spacing.Md))
                 Button(
@@ -184,7 +185,7 @@ fun ElderBindConfirmScreen(onBack: () -> Unit) {
                     enabled = elderName.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = BrandColor.Brand500, contentColor = BrandColor.CardWhite),
                     shape = RoundedCornerShape(Corner.Button),
-                    modifier = Modifier.weight(1f).height(96.dp),
+                    modifier = Modifier.weight(1f).height(Size.PrimaryButtonHeight),
                 ) { Text(stringResource(R.string.bind_confirm_accept), fontSize = FontSize.body()) }
             }
         }

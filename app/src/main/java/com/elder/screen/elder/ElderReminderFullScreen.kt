@@ -31,6 +31,7 @@ import com.elder.android.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.di.ServiceLocator
 import com.elder.android.network.dto.AckRequest
@@ -118,7 +119,7 @@ fun ElderReminderFullScreen(reminderId: String, onBack: () -> Unit) {
                     containerColor = BrandColor.Brand500, contentColor = BrandColor.CardWhite,
                 ),
                 shape = RoundedCornerShape(Corner.Button),
-                modifier = Modifier.fillMaxWidth().height(96.dp),
+                modifier = Modifier.fillMaxWidth().height(Size.PrimaryButtonHeight),
             ) { Text(stringResource(R.string.reminder_full_ack), fontSize = FontSize.body()) }
             Spacer(Modifier.height(Spacing.Sm))
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {

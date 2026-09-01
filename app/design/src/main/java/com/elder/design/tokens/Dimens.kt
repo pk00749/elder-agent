@@ -88,4 +88,14 @@ object Size {
     val ProgressBarHeight = 8.dp
     // Toast 距底（§4.8）
     val ToastBottomMargin = 96.dp
+    // 主操作按钮（§3.2.3「保存」96dp / §3.1.8 第 6 项设置行 72dp）
+    val PrimaryButtonHeight = 96.dp
+    val SecondaryButtonHeight = 72.dp
+    // §3.1.2 录音/Agent 回复区
+    val AgentReplyAreaHeight = 200.dp
+    val PressButtonSize = 160.dp
+    val PillCornerRadius = 80.dp
+    val BackButtonHeight = 56.dp
+    // §3.2.7 / §3.1.8 第 4 项 二维码显示
+    val QrDisplayHeight = 160.dp
 }
