@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,7 +56,7 @@ fun ElderDiaryRecentScreen(onBack: () -> Unit) {
             Text(stringResource(R.string.diary_recent_title), fontSize = FontSize.title(), color = BrandColor.TextPrimary)
         }
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.Lg)) {
-            listOf("today" to R.string.diary_recent_today_tab, "7d" to R.string.diary_recent_7d_tab).mapForEach { { (key, label) ->
+            listOf("today" to R.string.diary_recent_today_tab, "7d" to R.string.diary_recent_7d_tab).forEach { (key, label) ->
                 Button(
                     onClick = { range = key },
                     colors = ButtonDefaults.buttonColors(
@@ -65,7 +66,7 @@ fun ElderDiaryRecentScreen(onBack: () -> Unit) {
                     shape = RoundedCornerShape(Corner.Button),
                     modifier = Modifier.padding(end = Spacing.Sm),
                 ) { Text(stringResource(label)) }
-            } }
+            }
         }
         Spacer(Modifier.height(Spacing.Md))
         if (diaries.isEmpty()) {

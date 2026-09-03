@@ -165,7 +165,7 @@ fun FamilyReminderCreateScreen(
 @Composable
 private fun DosePicker(current: String, onChange: (String) -> Unit) {
     Row {
-        listOf("pill", "half", "spoon").mapForEach { { dose ->
+        listOf("pill", "half", "spoon").forEach { dose ->
             Button(
                 onClick = { onChange(dose) },
                 colors = ButtonDefaults.buttonColors(
@@ -181,7 +181,7 @@ private fun DosePicker(current: String, onChange: (String) -> Unit) {
 @Composable
 private fun RepeatPicker(current: String, onChange: (String) -> Unit) {
     Row {
-        listOf("daily", "weekdays", "custom").mapForEach { { repeat ->
+        listOf("daily", "weekdays", "custom").forEach { repeat ->
             Button(
                 onClick = { onChange(repeat) },
                 colors = ButtonDefaults.buttonColors(
@@ -196,8 +196,8 @@ private fun RepeatPicker(current: String, onChange: (String) -> Unit) {
 
 @Composable
 private fun AdvancePicker(current: Int, onChange: (Int) -> Unit) {
-    Row {
-        listOf(30, 60, 120).mapForEach { { mins ->
+        Row {
+        listOf(30, 60, 120).forEach { mins ->
             Button(
                 onClick = { onChange(mins) },
                 colors = ButtonDefaults.buttonColors(

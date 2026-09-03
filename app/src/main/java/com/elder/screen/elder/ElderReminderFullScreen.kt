@@ -1,5 +1,5 @@
 // §3.1.1 / §3.1.3 服药 / 就医全屏卡 —— 大字号 + 准备清单 + 知道了
-package com.elder.android.screen.en
+package com.elder.android.screen.elder
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +41,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ElderReminderFullScreen(reminderId: String, onBack: () -> Unit) {
-    var reminder by remember { mutableStateOf<Reminder?() null) }
+    var reminder by remember { mutableStateOf<Reminder?>(null) }
     val scope = rememberCoroutineScope()
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val tts = ServiceLocator.ttsPlayer

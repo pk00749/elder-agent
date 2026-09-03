@@ -56,7 +56,7 @@ fun ElderSettingsScreen(onBack: () -> Unit) {
         }
         SettingsRow(R.string.settings_font_size, trailing = {
             Row {
-                listOf("normal" to R.string.settings_font_normal, "large" to R.string.settings_font_large, "xlarge" to R.string.settings_font_xlarge).mapForEach { { (k, label) ->
+                listOf("normal" to R.string.settings_font_normal, "large" to R.string.settings_font_large, "xlarge" to R.string.settings_font_xlarge).forEach { (k, label) ->
                     Button(
                         onClick = { fontLevel = k },
                         colors = ButtonDefaults.buttonColors(
@@ -65,7 +65,7 @@ fun ElderSettingsScreen(onBack: () -> Unit) {
                         ),
                         modifier = Modifier.padding(end = Spacing.Sm),
                     ) { Text(stringResource(label), fontSize = FontSize.caption()) }
-                } }
+                }
             }
         })
         SettingsRow(R.string.settings_tts_switch, trailing = {

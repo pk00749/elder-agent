@@ -1,6 +1,6 @@
 // §3.1.2 AI 访谈写日志 —— 按住说话 + DSH agent 流
 // MVP：录音 → 上传（mock）→ ASR → turn → finalize → summary
-package com.elder.android.screen.en
+package com.elder.android.screen.elder
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -50,15 +50,15 @@ fun ElderDiaryRecordScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var sessionId by remember { mutableStateOf<String?() null) }
+    var sessionId by remember { mutableStateOf<String?>(null) }
     var maxTurns by remember { mutableStateOf(8) }
     var turnNo by remember { mutableStateOf(0) }
-    var assistantText by remember { mutableStateOf<String?() null) }
-    var assistantAudioUrl by remember { mutableStateOf<String?() null) }
+    var assistantText by remember { mutableStateOf<String?>(null) }
+    var assistantAudioUrl by remember { mutableStateOf<String?>(null) }
     var turnsLeft by remember { mutableStateOf(maxTurns) }
     var isHolding by remember { mutableStateOf(false) }
     var isSending by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?() null) }
+    var error by remember { mutableStateOf<String?>(null) }
     val recorder = remember { ServiceLocator.audioRecorder }
     val tts = remember { ServiceLocator.ttsPlayer }
     val ttsText = assistantText
@@ -154,7 +154,19 @@ fun ElderDiaryRecordScreen(
                                         runCatching { tts.play(context, resp.assistantAudioUrl) }
                                         if (resp.shouldFinalize) {
                                             delay(2_000)
-                                            finalize(onFinalized)
+                                            val sid = sessionId
+                                            if (sid != null) {
+                                                runCatching {
+                                                    ServiceLocator.apiClient.agentApi.finalize(
+                                                        sid,
+                                                        AgentFinalizeRequest(
+                                                            turnNo = turnNo + 1,
+                                                            elderText = "（写好了）",
+                                                            elderAudioCosKey = "tmp/$sid/finalize.m4a",
+                                                        ),
+                                                    )
+                                                }.onSuccess { onFinalized(sid) }
+                                            }
                                         }
                                     } catch (e: Exception) {
                                         error = "网络好像断了，正在重试…"
@@ -192,21 +204,4 @@ fun ElderDiaryRecordScreen(
         }
     }
 
-    suspend fun finalize(cb: (String) -> Unit) {
-        val sid = sessionId ?: return
-        runCatching {
-            ServiceLocator.apiClient.agentApi.finalize(
-                sid,
-                AgentFinalizeRequest(
-                    turnNo = turnNo + 1,
-                    elderText = "（写好了）",
-                    elderAudioCosKey = "tmp/$sid/finalize.m4a",
-                ),
-            )
-        }.onSuccess { cb(sid) }
-    }
 }
-
-private suspend fun kotlinx.coroutines.CoroutineScope.launch(
-    block: suspend kotlinx.coroutines.CoroutineScope.() -> Unit,
-) = kotlinx.coroutines.launch(this, block = block)

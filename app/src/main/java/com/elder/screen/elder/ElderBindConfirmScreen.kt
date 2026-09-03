@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,9 +51,9 @@ import androidx.compose.ui.platform.LocalContext
 fun ElderBindConfirmScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val deviceToken = remember { UUID.randomUUID().toString() } // §3.1.8 第 4 项；客户端生成即可
-    var bindCode by remember { mutableStateOf<String?() null) }
+    var bindCode by remember { mutableStateOf<String?>(null) }
     var pending by remember { mutableStateOf<List<com.elder.android.network.dto.PendingItem>>(emptyList()) }
-    var current by remember { mutableStateOf<com.elder.android.network.dto.PendingItem?() null) }
+    var current by remember { mutableStateOf<com.elder.android.network.dto.PendingItem?>(null) }
     var elderName by remember { mutableStateOf("") }
     var showGenerate by remember { mutableStateOf(true) }
     var expiresAt by remember { mutableStateOf(0L) }
@@ -191,5 +192,3 @@ fun ElderBindConfirmScreen(onBack: () -> Unit) {
         }
     }
 }
-
-private val Key_Hack: Nothing = Unit

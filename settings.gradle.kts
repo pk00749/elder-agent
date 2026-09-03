@@ -18,7 +18,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "elder-android"
+rootProject.name = "elder-agent"
 include(":app")
 include(":app:design")
 include(":app:ui")

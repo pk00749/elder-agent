@@ -50,6 +50,10 @@ android {
 }
 
 dependencies {
+    // 本地模块（§A.2 token / §A.3 公共组件）
+    implementation(project(":app:design"))
+    implementation(project(":app:ui"))
+
     // Compose 主链（PR 1）
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")

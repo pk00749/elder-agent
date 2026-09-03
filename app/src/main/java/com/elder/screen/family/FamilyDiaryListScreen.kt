@@ -37,9 +37,9 @@ import com.elder.android.network.dto.Diary
 
 @Composable
 fun FamilyDiaryListScreen(onBack: () -> Unit) {
-    var range by remember = { mutableStateOf("today") }
-    var diaries by remember = { mutableStateOf<List<Diary>>(emptyList()) }
-    var elderId by remember = { mutableStateOf<String?>(null) }
+    var range by remember { mutableStateOf("today") }
+    var diaries by remember { mutableStateOf<List<Diary>>(emptyList()) }
+    var elderId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         val snap = ServiceLocator.tokenStore.current()
@@ -58,7 +58,7 @@ fun FamilyDiaryListScreen(onBack: () -> Unit) {
             TextButton(onClick = onBack) { Text(stringResource(R.string.common_back)) }
         }
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.Lg)) {
-            listOf("today" to R.string.diary_list_filter_today, "7d" to R.string.diary_list_filter_7d).mapForEach { { (key, label) ->
+            listOf("today" to R.string.diary_list_filter_today, "7d" to R.string.diary_list_filter_7d).forEach { (key, label) ->
                 Button(
                     onClick = { range = key },
                     colors = ButtonDefaults.buttonColors(
@@ -68,7 +68,7 @@ fun FamilyDiaryListScreen(onBack: () -> Unit) {
                     shape = RoundedCornerShape(Corner.Button),
                     modifier = Modifier.padding(end = Spacing.Sm),
                 ) { Text(stringResource(label)) }
-            } }
+            }
         }
         Spacer(Modifier.height(Spacing.Md))
         if (diaries.isEmpty()) {

@@ -22,6 +22,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -93,7 +94,7 @@ private fun ReminderRow(r: Reminder) {
             Text(
                 text = if (r.type == "medication") {
                     val sched = r.payload["schedule"] as? List<*> ?: emptyList<Any>()
-                    val times = sched.join.mapNotNull { (it as? Map<*, *>)?.get("time") }.joinToString("、")
+                    val times = sched.mapNotNull { (it as? Map<*, *>)?.get("time") }.joinToString("、")
                     "每天 $times"
                 } else {
                     val dt = r.payload["datetime"] as? String ?: ""

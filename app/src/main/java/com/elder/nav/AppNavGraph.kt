@@ -103,7 +103,7 @@ fun AppNavGraph() {
             val type = backStack.arguments?.getString("type") ?: "medication"
             FamilyReminderCreateScreen(
                 initialType = type,
-                elderId = ServiceLocator.tokenStore.current()?.elderId ?: "",
+                elderId = ServiceLocator.tokenStore.currentSync()?.elderId ?: "",
                 onBack = { nav.popBackStack() },
                 onSaved = { nav.popBackStack() },
             )

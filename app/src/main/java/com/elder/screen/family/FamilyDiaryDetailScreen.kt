@@ -41,8 +41,8 @@ import com.elder.android.network.dto.DiaryDetailResponse
 @Composable
 fun FamilyDiaryDetailScreen(diaryId: String, onBack: () -> Unit) {
     val context = LocalContext.current
-    var detail by remember = { mutableStateOf<DiaryDetailResponse?>(null) }
-    var error by remember = { mutableStateOf<String?() null) }
+    var detail by remember { mutableStateOf<DiaryDetailResponse?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
     val tts = ServiceLocator.ttsPlayer
 
     LaunchedEffect(diaryId) {

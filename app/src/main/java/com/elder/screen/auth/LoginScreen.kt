@@ -48,6 +48,8 @@ fun LoginScreen(role: String, onLoggedIn: (TokenStore.Snapshot) -> Unit, onBack:
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val isElder = role == "elder"
+    val serverBusyMsg = stringResource(R.string.toast_server_busy)
+    val networkErrorMsg = stringResource(R.string.toast_network_error)
 
     fun submitSendSms() {
         scope.launch {
@@ -59,8 +61,8 @@ fun LoginScreen(role: String, onLoggedIn: (TokenStore.Snapshot) -> Unit, onBack:
             }.onSuccess { canResendAt = System.currentTimeMillis() + 60_000 }
                 .onFailure { e ->
                     error = when ((e as? HttpException)?.code()) {
-                        429 -> stringResource(R.string.toast_server_busy)
-                        else -> stringResource(R.string.toast_network_error)
+                        429 -> serverBusyMsg
+                        else -> networkErrorMsg
                     }
                 }
         }
@@ -113,6 +115,8 @@ fun LoginScreen(role: String, onLoggedIn: (TokenStore.Snapshot) -> Unit, onBack:
             }
         }
         Spacer(modifier = Modifier.height(Spacing.Lg))
+        val invalidCodeMsg = stringResource(R.string.login_invalid_code)
+        val networkErrorMsg = stringResource(R.string.toast_network_error)
         Button(
             onClick = {
                 scope.launch {
@@ -129,9 +133,9 @@ fun LoginScreen(role: String, onLoggedIn: (TokenStore.Snapshot) -> Unit, onBack:
                         onLoggedIn(TokenStore.Snapshot(resp.token, resp.userId, resp.role, elderId))
                     }.onFailure { e ->
                         error = if ((e as? HttpException)?.code() == 401) {
-                            stringResource(R.string.login_invalid_code)
+                            invalidCodeMsg
                         } else {
-                            stringResource(R.string.toast_network_error)
+                            networkErrorMsg
                         }
                     }
                 }

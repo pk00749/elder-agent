@@ -19,6 +19,7 @@ import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.ui.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun LoadingState() {

@@ -34,13 +34,13 @@ import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.di.ServiceLocator
-import com.elder.android.network.dto.FamilyBindAttemptRequest
+import com.elder.android.network.FamilyBindAttemptRequest
 import kotlinx.coroutines.launch
 
 @Composable
 fun FamilyBindScreen(onBack: () -> Unit) {
-    var bindCode by remember = { mutableStateOf("") }
-    var status by remember = { mutableStateOf<String?() null) }
+    var bindCode by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     Column(
