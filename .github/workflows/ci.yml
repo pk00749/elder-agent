@@ -1,0 +1,102 @@
+name: CI
+on:
+  push:
+    branches: [develop, codex/**]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.16"
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/uv
+            .venv
+          key: ${{ runner.os }}-uv-${{ hashFiles('**/uv.lock', '**/pyproject.toml') }}
+
+      - name: Sync dependencies
+        run: uv sync --all-packages --frozen
+
+      - name: Ruff check
+        run: uv run ruff check packages services mock
+
+      - name: Ruff format check
+        run: uv run ruff format --check packages services mock
+
+      - name: MyPy strict (packages)
+        run: uv run mypy --strict packages
+
+      - name: MyPy strict (services per service)
+        run: |
+          for svc in agent reminder account; do
+            echo "=== mypy $svc ==="
+            uv run mypy --strict --explicit-package-bases services/${svc}_service/app
+          done
+
+      - name: MyPy strict (mock)
+        run: uv run mypy --strict --explicit-package-bases mock
+
+  client-token-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check no hardcoded tokens in app/src
+        run: python3 scripts/check_no_hardcoded_tokens.py app/src
+
+  docker-mock-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.16"
+      - name: Set up Python
+        run: uv python install 3.11
+      - name: Sync dependencies
+        run: uv sync --all-packages --frozen
+
+      - name: Start mock infra
+        run: docker compose up -d mock-upstream
+      - name: Wait for healthcheck
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:8080/health; then
+              echo "mock-upstream healthy"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "mock-upstream failed to start"
+          docker compose logs mock-upstream
+          exit 1
+      - name: Smoke test (with mock infra)
+        env:
+          ASR_BASE_URL: http://localhost:8080/asr
+          TTS_BASE_URL: http://localhost:8080/tts
+          DSH_BASE_URL: http://localhost:8080/dsh
+          COS_BASE_URL: http://localhost:8080/cos
+          TPUSH_BASE_URL: http://localhost:8080/tpush
+          SMS_BASE_URL: http://localhost:8080/sms
+        run: MOCK_INFRA=enabled uv run pytest tests/ -q -m external
+      - name: Smoke test (no mock)
+        run: uv run pytest tests/ -q -m "not external"
+      - name: Stop mock infra
+        if: always()
+        run: docker compose down

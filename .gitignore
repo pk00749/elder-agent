@@ -1,0 +1,53 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.env
+.env.local
+.env.*.local
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.egg-info/
+.uv/
+
+# ---- IDE ----
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+
+# ---- Build ----
+build/
+dist/
+
+# ---- Android ----
+.gradle/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.aar
+*.keystore
+*.jks
+
+# ---- Node (compose / frontend if added later) ----
+node_modules/
+
+# ---- Docs / generated ----
+docs/_build/
+.mypy_cache/
+.ruff_cache/

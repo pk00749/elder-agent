@@ -1,0 +1,21 @@
+[project]
+name = "elder-common"
+version = "0.0.1"
+description = "老友服务端公共代码 —— 错误处理 / 配置 / 日志 / 上游 SDK 封装 / COS / 数据迁移"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.5.0",
+    "structlog>=24.4.0",
+    "httpx>=0.27.0",
+    "python-dateutil>=2.9.0",
+    "python-jose[cryptography]>=3.3.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["elder_common"]
