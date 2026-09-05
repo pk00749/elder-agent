@@ -5,10 +5,16 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = false)
-data class SmsCodeRequest(val phone: String)
+data class InitDeviceRequest(
+    @Json(name = "device_token") val deviceToken: String,
+)
 
 @JsonClass(generateAdapter = false)
-data class LoginRequest(val phone: String, val code: String)
+data class InitDeviceResponse(
+    val token: String,
+    @Json(name = "user_id") val userId: String,
+    val role: String,
+)
 
 @JsonClass(generateAdapter = false)
 data class LoginResponse(

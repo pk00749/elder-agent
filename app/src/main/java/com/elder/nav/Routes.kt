@@ -3,9 +3,6 @@ package com.elder.android.nav
 
 sealed class Route(val path: String) {
     data object Identity : Route("identity")
-    data object Login : Route("login/{role}") {
-        fun create(role: String) = "login/$role"
-    }
     data object FamilyHome : Route("family/home")
     data object FamilyReminderList : Route("family/reminders")
     data object FamilyReminderCreate : Route("family/reminders/new/{type}") {

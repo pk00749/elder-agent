@@ -14,11 +14,8 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface AccountApi {
-    @POST("v1/auth/sms-code")
-    suspend fun sendSmsCode(@Body body: SmsCodeRequest)
-
-    @POST("v1/auth/login")
-    suspend fun login(@Body body: LoginRequest): LoginResponse
+    @POST("v1/auth/anonymous-device")
+    suspend fun initDevice(@Body body: InitDeviceRequest): InitDeviceResponse
 
     @POST("v1/bind/code")
     suspend fun createBindCode(@Body body: BindCodeRequest): BindCodeResponse
