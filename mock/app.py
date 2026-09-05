@@ -1,4 +1,5 @@
-# mock-upstream —— 模拟 DSH/ASR/TTS/COS/TPUSH/SMS 全部上游（§A.1 / PR 1 验证）。
+# mock-upstream —— 模拟 DSH/ASR/TTS/COS/TPUSH 全部上游（§A.1 / PR 1 验证）。
+# v2.1.2 MVP-DEFER：SMS 端点保留但不再被调用，v2.x 接 SMS 时直接复用。
 #
 # 所有端点返回固定 mock 响应，供 smoke test 验证 SDK 封装可达。
 # PR 2 起会按需扩 mock 行为（如 ASR 置信度触发重试）。
@@ -105,7 +106,7 @@ async def tpush_send(req: TPushRequest) -> dict[str, str]:
     return {"status": "ok", "message_id": f"mock-{int(time.time())}"}
 
 
-# ---- SMS ----
+# ---- SMS（v2.1.2 MVP-DEFER：保留路由便于 v2.x 接 SMS 时直接复用）----
 @app.post("/sms/send")
 async def sms_send(req: SMSRequest) -> dict[str, str]:
     return {"status": "ok"}

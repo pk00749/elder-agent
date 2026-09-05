@@ -99,3 +99,4 @@ uv run python scripts/create_indexes.py
 - Ruff 全 workspace 一致
 - 任何 `/v1/*` 端点前先看 PRD §6.1
 - 任何数据模型字段先看 PRD §5
+# 3. 跑本地 mock infra（DSH / ASR / TTS / COS / TPush；v2.1.2 MVP 阶段 SMS 已下线）

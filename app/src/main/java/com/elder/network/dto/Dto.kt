@@ -17,13 +17,6 @@ data class InitDeviceResponse(
 )
 
 @JsonClass(generateAdapter = false)
-data class LoginResponse(
-    val token: String,
-    @Json(name = "user_id") val userId: String,
-    val role: String,
-)
-
-@JsonClass(generateAdapter = false)
 data class BindCodeRequest(
     @Json(name = "elder_device_token") val elderDeviceToken: String,
 )
