@@ -87,6 +87,13 @@ jobs:
           docker compose logs mock-upstream
           exit 1
       - name: Smoke test (with mock infra)
+        env:
+          ASR_BASE_URL: http://localhost:8080/asr
+          TTS_BASE_URL: http://localhost:8080/tts
+          DSH_BASE_URL: http://localhost:8080/dsh
+          COS_BASE_URL: http://localhost:8080/cos
+          TPUSH_BASE_URL: http://localhost:8080/tpush
+          SMS_BASE_URL: http://localhost:8080/sms
         run: MOCK_INFRA=enabled uv run pytest tests/ -q -m external
       - name: Smoke test (no mock)
         run: uv run pytest tests/ -q -m "not external"
