@@ -25,14 +25,11 @@ def _reset_storage() -> None:
 
 
 @pytest.fixture(autouse=True)
-def _reset_sms_store() -> None:
-    """每个测试前清空 SMS 验证码池。"""
-    from services.account_service.app.deps import _sms_store
+def _v21x_limiter_placeholder() -> None:
+    """v2.1.2：MVP 阶段 anonymous-device 不限流（services/account_service/app/deps.py）。
 
-    with _sms_store._lock:
-        _sms_store._codes.clear()
-        _sms_store._last_sent.clear()
-        _sms_store._fail_counts.clear()
+    保留 autouse 占位 —— v2.x 接 SMS 后回填 per-IP 限流器重置逻辑。
+    """
     yield
 
 
