@@ -1,4 +1,5 @@
 """diary_entry 仓储（§5.7 / §3.1.6 / §A.6）。"""
+
 from __future__ import annotations
 
 from uuid import UUID
@@ -40,9 +41,7 @@ async def create(payload: DiaryEntryCreate) -> DiaryEntry:
 
 async def get_by_id(entry_id: UUID) -> DiaryEntry | None:
     storage = get_storage()
-    doc = await storage.find_one(
-        CollectionName.DIARY_ENTRIES, {"id": str(entry_id)}
-    )
+    doc = await storage.find_one(CollectionName.DIARY_ENTRIES, {"id": str(entry_id)})
     if doc is None:
         return None
     return DiaryEntry.model_validate(doc)
@@ -51,9 +50,7 @@ async def get_by_id(entry_id: UUID) -> DiaryEntry | None:
 async def find_by_pending_id(pending_id: UUID) -> DiaryEntry | None:
     """§A.6：flush-pending 幂等去重。"""
     storage = get_storage()
-    doc = await storage.find_one(
-        CollectionName.DIARY_ENTRIES, {"pending_id": str(pending_id)}
-    )
+    doc = await storage.find_one(CollectionName.DIARY_ENTRIES, {"pending_id": str(pending_id)})
     if doc is None:
         return None
     return DiaryEntry.model_validate(doc)

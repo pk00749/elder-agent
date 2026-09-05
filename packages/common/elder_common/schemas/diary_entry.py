@@ -1,6 +1,7 @@
 # mypy: disable-error-code="explicit-any"
 # 原因：Pydantic BaseModel 父类签名含 Any
 """diary_entry —— 日志（PRD §5.7 / §3.1.6 / §A.6）。"""
+
 from __future__ import annotations
 
 from datetime import datetime

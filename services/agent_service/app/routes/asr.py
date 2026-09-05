@@ -1,6 +1,7 @@
 # mypy: disable-error-code="explicit-any"
 # 原因：Pydantic BaseModel 父类签名含 Any
 """ASR 路由 —— /v1/agent/asr（PRD §6.1 / §3.1.2）。"""
+
 from __future__ import annotations
 
 from elder_common.auth import Principal, require_role

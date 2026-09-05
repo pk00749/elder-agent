@@ -1,4 +1,5 @@
 """diary_session 仓储（§5.6 / §3.1.2）。"""
+
 from __future__ import annotations
 
 from uuid import UUID
@@ -37,9 +38,7 @@ async def create(payload: SessionCreate) -> Session:
 
 async def get_by_id(session_id: UUID) -> Session | None:
     storage = get_storage()
-    doc = await storage.find_one(
-        CollectionName.DIARY_SESSIONS, {"id": str(session_id)}
-    )
+    doc = await storage.find_one(CollectionName.DIARY_SESSIONS, {"id": str(session_id)})
     if doc is None:
         return None
     return Session.model_validate(doc)
@@ -65,9 +64,7 @@ async def find_active_by_elder(elder_id: UUID) -> Session | None:
 async def append_turn(session_id: UUID, turn: Turn) -> Session | None:
     """§3.1.2：追加一轮 turn。服务端做 turn_no 校验（单调递增）。"""
     storage = get_storage()
-    existing_doc = await storage.find_one(
-        CollectionName.DIARY_SESSIONS, {"id": str(session_id)}
-    )
+    existing_doc = await storage.find_one(CollectionName.DIARY_SESSIONS, {"id": str(session_id)})
     if existing_doc is None:
         return None
     existing = Session.model_validate(existing_doc)
@@ -84,9 +81,7 @@ async def append_turn(session_id: UUID, turn: Turn) -> Session | None:
             }
         },
     )
-    updated_doc = await storage.find_one(
-        CollectionName.DIARY_SESSIONS, {"id": str(session_id)}
-    )
+    updated_doc = await storage.find_one(CollectionName.DIARY_SESSIONS, {"id": str(session_id)})
     if updated_doc is None:
         return None
     return Session.model_validate(updated_doc)

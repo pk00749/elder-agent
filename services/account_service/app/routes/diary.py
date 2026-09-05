@@ -1,4 +1,5 @@
 """日记路由 —— /v1/diary*（PRD §3.2.5 / §3.2.6 / §3.2.9 / §A.6 / §6.1）。"""
+
 from __future__ import annotations
 
 from uuid import UUID
@@ -109,9 +110,7 @@ async def list_diaries(
 ) -> DiaryListResponse:
     """§3.2.5 / §3.2.6 / §3.1.7：按 elder + 日期范围列日志。"""
     await _verify_elder_access(principal, elder_id)
-    items = await entry_repo.list_by_elder_range(
-        elder_id, date_from=date_from, date_to=date_to
-    )
+    items = await entry_repo.list_by_elder_range(elder_id, date_from=date_from, date_to=date_to)
     return DiaryListResponse(diaries=[_diary_to_item(d) for d in items])
 
 
@@ -175,9 +174,7 @@ async def flush_pending(
     for pd in body.pending_diaries:
         existing = await entry_repo.find_by_pending_id(pd.pending_id)
         if existing is not None:
-            synced.append(
-                {"pending_id": str(pd.pending_id), "diary_id": str(existing.id)}
-            )
+            synced.append({"pending_id": str(pd.pending_id), "diary_id": str(existing.id)})
             continue
 
         if _is_cos_key_expired(pd.audio_cos_key):
@@ -201,9 +198,7 @@ async def flush_pending(
                         pending_id=pd.pending_id,
                     )
                 )
-                synced.append(
-                    {"pending_id": str(pd.pending_id), "diary_id": str(entry.id)}
-                )
+                synced.append({"pending_id": str(pd.pending_id), "diary_id": str(entry.id)})
             dropped.append(
                 {
                     "pending_id": str(pd.pending_id),
@@ -240,9 +235,7 @@ async def flush_pending(
                 pending_id=pd.pending_id,
             )
         )
-        synced.append(
-            {"pending_id": str(pd.pending_id), "diary_id": str(entry.id)}
-        )
+        synced.append({"pending_id": str(pd.pending_id), "diary_id": str(entry.id)})
 
     emit_event(
         DIARY_FLUSHED,

@@ -1,4 +1,5 @@
 """Pydantic 模型 —— 严格按 PRD §5 字段定义（AGENTS.md §2 / §3 / §A.4 / §A.7）。"""
+
 from __future__ import annotations
 
 from elder_common.schemas.bind_attempt import (
