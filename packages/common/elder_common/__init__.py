@@ -16,6 +16,7 @@ from elder_common.config import Settings, get_settings
 from elder_common.constants import ErrorCode
 from elder_common.errors import AppError, register_exception_handlers
 from elder_common.events import (
+    AUTH_ANONYMOUS_INIT,
     AUTH_LOGIN,
     AUTH_SMS_SENT,
     BIND_ATTEMPT_CREATED,
@@ -41,6 +42,7 @@ from elder_common.events import (
 from elder_common.logging import emit_event, get_logger, sanitize
 
 __all__ = [
+    "AUTH_ANONYMOUS_INIT",
     "AUTH_LOGIN",
     "AUTH_SMS_SENT",
     "BIND_ATTEMPT_CREATED",

@@ -1,4 +1,9 @@
 # 腾讯 SMS 验证码封装（§A.1）。
+
+# MVP-DEFER（v2.1.2）：MVP 阶段 SMS 端点下线，模块代码保留供 v2.x 接回。
+# 删除 /v1/auth/sms-code 与 /v1/auth/login 路由（见 services/account_service/app/routes/auth.py）。
+# v2.x 接 SMS 时仅需取消路由注释 + 启用 AUTH_SMS_SENT / AUTH_LOGIN 事件即可。
+
 from __future__ import annotations
 
 import random
