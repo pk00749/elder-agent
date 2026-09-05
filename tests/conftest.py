@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import os
+
 import pytest
 import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-
 from elder_common.storage.base import set_storage
 from elder_common.storage.memory import InMemoryStorage
+from httpx import ASGITransport, AsyncClient
 
 
 @pytest.fixture
@@ -24,21 +24,15 @@ def _reset_storage() -> None:
     set_storage(InMemoryStorage())
 
 
-@pytest.fixture
-def sms_store():
-    """dev SMS 验证码池 —— 测试期间共享（reset 由 _reset_sms_store 完成）。"""
-    from services.account_service.app.deps import _sms_store  # type: ignore[attr-defined]
-
-    return _sms_store
-
-
 @pytest.fixture(autouse=True)
-def _reset_sms_store(sms_store: object) -> None:
+def _reset_sms_store() -> None:
     """每个测试前清空 SMS 验证码池。"""
-    store = sms_store  # type: ignore[assignment]
-    store._codes.clear()  # type: ignore[attr-defined]
-    store._last_sent.clear()  # type: ignore[attr-defined]
-    store._fail_counts.clear()  # type: ignore[attr-defined]
+    from services.account_service.app.deps import _sms_store
+
+    with _sms_store._lock:
+        _sms_store._codes.clear()
+        _sms_store._last_sent.clear()
+        _sms_store._fail_counts.clear()
     yield
 
 
