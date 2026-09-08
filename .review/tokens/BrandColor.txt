@@ -1,0 +1,300 @@
+Processing 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/BrandColor.dex'...
+Opened 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/BrandColor.dex', DEX version '038'
+Class #0            -
+  Class descriptor  : 'Lcom/elder/android/design/tokens/BrandColor;'
+  Access flags      : 0x0011 (PUBLIC FINAL)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+  Static fields     -
+    #0              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : '$stable'
+      type          : 'I'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #1              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'Aux500'
+      type          : 'J'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #2              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'BgGray'
+      type          : 'J'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #3              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'Brand500'
+      type          : 'J'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #4              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'CardWhite'
+      type          : 'J'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #5              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'Error500'
+      type          : 'J'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #6              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'INSTANCE'
+      type          : 'Lcom/elder/android/design/tokens/BrandColor;'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #7              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'NetYellow'
+      type          : 'J'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #8              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'TextPrimary'
+      type          : 'J'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #9              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'TextSecondary'
+      type          : 'J'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #10              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'WarmOrange'
+      type          : 'J'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+  Instance fields   -
+  Direct methods    -
+    #0              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : '<clinit>'
+      type          : '()V'
+      access        : 0x10008 (STATIC CONSTRUCTOR)
+      code          -
+      registers     : 2
+      ins           : 0
+      outs          : 2
+      insns size    : 107 16-bit code units
+000330:                                        |[000330] com.elder.android.design.tokens.BrandColor.<clinit>:()V
+000340: 2200 0400                              |0000: new-instance v0, Lcom/elder/android/design/tokens/BrandColor; // type@0004
+000344: 7010 0200 0000                         |0002: invoke-direct {v0}, Lcom/elder/android/design/tokens/BrandColor;.<init>:()V // method@0002
+00034a: 6900 0600                              |0005: sput-object v0, Lcom/elder/android/design/tokens/BrandColor;.INSTANCE:Lcom/elder/android/design/tokens/BrandColor; // field@0006
+00034e: 1800 4a7a 4aff 0000 0000               |0007: const-wide v0, #double 2.11612e-314 // #00000000ff4a7a4a
+000358: 7120 0000 1000                         |000c: invoke-static {v0, v1}, Landroidx/compose/ui/graphics/ColorKt;.Color:(J)J // method@0000
+00035e: 0b00                                   |000f: move-result-wide v0
+000360: 6800 0300                              |0010: sput-wide v0, Lcom/elder/android/design/tokens/BrandColor;.Brand500:J // field@0003
+000364: 1800 6b8e 6bff 0000 0000               |0012: const-wide v0, #double 2.11719e-314 // #00000000ff6b8e6b
+00036e: 7120 0000 1000                         |0017: invoke-static {v0, v1}, Landroidx/compose/ui/graphics/ColorKt;.Color:(J)J // method@0000
+000374: 0b00                                   |001a: move-result-wide v0
+000376: 6800 0100                              |001b: sput-wide v0, Lcom/elder/android/design/tokens/BrandColor;.Aux500:J // field@0001
+00037a: 1800 4545 c4ff 0000 0000               |001d: const-wide v0, #double 2.12006e-314 // #00000000ffc44545
+000384: 7120 0000 1000                         |0022: invoke-static {v0, v1}, Landroidx/compose/ui/graphics/ColorKt;.Color:(J)J // method@0000
+00038a: 0b00                                   |0025: move-result-wide v0
+00038c: 6800 0500                              |0026: sput-wide v0, Lcom/elder/android/design/tokens/BrandColor;.Error500:J // field@0005
+000390: 1800 e6f4 ffff 0000 0000               |0028: const-wide v0, #double 2.12199e-314 // #00000000fffff4e6
+00039a: 7120 0000 1000                         |002d: invoke-static {v0, v1}, Landroidx/compose/ui/graphics/ColorKt;.Color:(J)J // method@0000
+0003a0: 0b00                                   |0030: move-result-wide v0
+0003a2: 6800 0700                              |0031: sput-wide v0, Lcom/elder/android/design/tokens/BrandColor;.NetYellow:J // field@0007
+0003a6: 1800 1a1a 1aff 0000 0000               |0033: const-wide v0, #double 2.11455e-314 // #00000000ff1a1a1a
+0003b0: 7120 0000 1000                         |0038: invoke-static {v0, v1}, Landroidx/compose/ui/graphics/ColorKt;.Color:(J)J // method@0000
+0003b6: 0b00                                   |003b: move-result-wide v0
+0003b8: 6800 0800                              |003c: sput-wide v0, Lcom/elder/android/design/tokens/BrandColor;.TextPrimary:J // field@0008
+0003bc: 1800 6666 66ff 0000 0000               |003e: const-wide v0, #double 2.11702e-314 // #00000000ff666666
+0003c6: 7120 0000 1000                         |0043: invoke-static {v0, v1}, Landroidx/compose/ui/graphics/ColorKt;.Color:(J)J // method@0000
+0003cc: 0b00                                   |0046: move-result-wide v0
+0003ce: 6800 0900                              |0047: sput-wide v0, Lcom/elder/android/design/tokens/BrandColor;.TextSecondary:J // field@0009
+0003d2: 1800 f0f0 f0ff 0000 0000               |0049: const-wide v0, #double 2.12151e-314 // #00000000fff0f0f0
+0003dc: 7120 0000 1000                         |004e: invoke-static {v0, v1}, Landroidx/compose/ui/graphics/ColorKt;.Color:(J)J // method@0000
+0003e2: 0b00                                   |0051: move-result-wide v0
+0003e4: 6800 0200                              |0052: sput-wide v0, Lcom/elder/android/design/tokens/BrandColor;.BgGray:J // field@0002
+0003e8: 1800 ffff ffff 0000 0000               |0054: const-wide v0, #double 2.122e-314 // #00000000ffffffff
+0003f2: 7120 0000 1000                         |0059: invoke-static {v0, v1}, Landroidx/compose/ui/graphics/ColorKt;.Color:(J)J // method@0000
+0003f8: 0b00                                   |005c: move-result-wide v0
+0003fa: 6800 0400                              |005d: sput-wide v0, Lcom/elder/android/design/tokens/BrandColor;.CardWhite:J // field@0004
+0003fe: 1800 3c7a e0ff 0000 0000               |005f: const-wide v0, #double 2.12098e-314 // #00000000ffe07a3c
+000408: 7120 0000 1000                         |0064: invoke-static {v0, v1}, Landroidx/compose/ui/graphics/ColorKt;.Color:(J)J // method@0000
+00040e: 0b00                                   |0067: move-result-wide v0
+000410: 6800 0a00                              |0068: sput-wide v0, Lcom/elder/android/design/tokens/BrandColor;.WarmOrange:J // field@000a
+000414: 0e00                                   |006a: return-void
+      catches       : (none)
+      positions     :
+        0x0007 line=13
+        0x0012 line=14
+        0x001d line=15
+        0x0028 line=16
+        0x0033 line=17
+        0x003e line=18
+        0x0049 line=19
+        0x0054 line=20
+        0x005f line=21
+      locals        :
+
+    #1              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : '<init>'
+      type          : '()V'
+      access        : 0x10002 (PRIVATE CONSTRUCTOR)
+      code          -
+      registers     : 1
+      ins           : 1
+      outs          : 1
+      insns size    : 4 16-bit code units
+000418:                                        |[000418] com.elder.android.design.tokens.BrandColor.<init>:()V
+000428: 7010 0c00 0000                         |0000: invoke-direct {v0}, Ljava/lang/Object;.<init>:()V // method@000c
+00042e: 0e00                                   |0003: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=12
+      locals        :
+        0x0000 - 0x0004 reg=0 this Lcom/elder/android/design/tokens/BrandColor;
+
+  Virtual methods   -
+    #0              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'getAux500-0d7_KjU'
+      type          : '()J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 3
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000258:                                        |[000258] com.elder.android.design.tokens.BrandColor.getAux500-0d7_KjU:()J
+000268: 6100 0100                              |0000: sget-wide v0, Lcom/elder/android/design/tokens/BrandColor;.Aux500:J // field@0001
+00026c: 1000                                   |0002: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=14
+      locals        :
+        0x0000 - 0x0003 reg=2 this Lcom/elder/android/design/tokens/BrandColor;
+
+    #1              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'getBgGray-0d7_KjU'
+      type          : '()J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 3
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000270:                                        |[000270] com.elder.android.design.tokens.BrandColor.getBgGray-0d7_KjU:()J
+000280: 6100 0200                              |0000: sget-wide v0, Lcom/elder/android/design/tokens/BrandColor;.BgGray:J // field@0002
+000284: 1000                                   |0002: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=19
+      locals        :
+        0x0000 - 0x0003 reg=2 this Lcom/elder/android/design/tokens/BrandColor;
+
+    #2              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'getBrand500-0d7_KjU'
+      type          : '()J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 3
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000288:                                        |[000288] com.elder.android.design.tokens.BrandColor.getBrand500-0d7_KjU:()J
+000298: 6100 0300                              |0000: sget-wide v0, Lcom/elder/android/design/tokens/BrandColor;.Brand500:J // field@0003
+00029c: 1000                                   |0002: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=13
+      locals        :
+        0x0000 - 0x0003 reg=2 this Lcom/elder/android/design/tokens/BrandColor;
+
+    #3              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'getCardWhite-0d7_KjU'
+      type          : '()J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 3
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0002a0:                                        |[0002a0] com.elder.android.design.tokens.BrandColor.getCardWhite-0d7_KjU:()J
+0002b0: 6100 0400                              |0000: sget-wide v0, Lcom/elder/android/design/tokens/BrandColor;.CardWhite:J // field@0004
+0002b4: 1000                                   |0002: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=20
+      locals        :
+        0x0000 - 0x0003 reg=2 this Lcom/elder/android/design/tokens/BrandColor;
+
+    #4              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'getError500-0d7_KjU'
+      type          : '()J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 3
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0002b8:                                        |[0002b8] com.elder.android.design.tokens.BrandColor.getError500-0d7_KjU:()J
+0002c8: 6100 0500                              |0000: sget-wide v0, Lcom/elder/android/design/tokens/BrandColor;.Error500:J // field@0005
+0002cc: 1000                                   |0002: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=15
+      locals        :
+        0x0000 - 0x0003 reg=2 this Lcom/elder/android/design/tokens/BrandColor;
+
+    #5              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'getNetYellow-0d7_KjU'
+      type          : '()J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 3
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0002d0:                                        |[0002d0] com.elder.android.design.tokens.BrandColor.getNetYellow-0d7_KjU:()J
+0002e0: 6100 0700                              |0000: sget-wide v0, Lcom/elder/android/design/tokens/BrandColor;.NetYellow:J // field@0007
+0002e4: 1000                                   |0002: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=16
+      locals        :
+        0x0000 - 0x0003 reg=2 this Lcom/elder/android/design/tokens/BrandColor;
+
+    #6              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'getTextPrimary-0d7_KjU'
+      type          : '()J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 3
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0002e8:                                        |[0002e8] com.elder.android.design.tokens.BrandColor.getTextPrimary-0d7_KjU:()J
+0002f8: 6100 0800                              |0000: sget-wide v0, Lcom/elder/android/design/tokens/BrandColor;.TextPrimary:J // field@0008
+0002fc: 1000                                   |0002: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=17
+      locals        :
+        0x0000 - 0x0003 reg=2 this Lcom/elder/android/design/tokens/BrandColor;
+
+    #7              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'getTextSecondary-0d7_KjU'
+      type          : '()J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 3
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000300:                                        |[000300] com.elder.android.design.tokens.BrandColor.getTextSecondary-0d7_KjU:()J
+000310: 6100 0900                              |0000: sget-wide v0, Lcom/elder/android/design/tokens/BrandColor;.TextSecondary:J // field@0009
+000314: 1000                                   |0002: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=18
+      locals        :
+        0x0000 - 0x0003 reg=2 this Lcom/elder/android/design/tokens/BrandColor;
+
+    #8              : (in Lcom/elder/android/design/tokens/BrandColor;)
+      name          : 'getWarmOrange-0d7_KjU'
+      type          : '()J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 3
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000318:                                        |[000318] com.elder.android.design.tokens.BrandColor.getWarmOrange-0d7_KjU:()J
+000328: 6100 0a00                              |0000: sget-wide v0, Lcom/elder/android/design/tokens/BrandColor;.WarmOrange:J // field@000a
+00032c: 1000                                   |0002: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=21
+      locals        :
+        0x0000 - 0x0003 reg=2 this Lcom/elder/android/design/tokens/BrandColor;
+
+  source_file_idx   : 12 (Dimens.kt)
+

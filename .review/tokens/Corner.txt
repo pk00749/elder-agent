@@ -1,0 +1,222 @@
+Processing 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/Corner.dex'...
+Opened 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/Corner.dex', DEX version '038'
+Class #0            -
+  Class descriptor  : 'Lcom/elder/android/design/tokens/Corner;'
+  Access flags      : 0x0011 (PUBLIC FINAL)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+  Static fields     -
+    #0              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : '$stable'
+      type          : 'I'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #1              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : 'Button'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #2              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : 'Card'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #3              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : 'INSTANCE'
+      type          : 'Lcom/elder/android/design/tokens/Corner;'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #4              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : 'Input'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #5              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : 'Pill'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #6              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : 'Toast'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+  Instance fields   -
+  Direct methods    -
+    #0              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : '<clinit>'
+      type          : '()V'
+      access        : 0x10008 (STATIC CONSTRUCTOR)
+      code          -
+      registers     : 3
+      ins           : 0
+      outs          : 1
+      insns size    : 58 16-bit code units
+00028c:                                        |[00028c] com.elder.android.design.tokens.Corner.<clinit>:()V
+00029c: 2200 0400                              |0000: new-instance v0, Lcom/elder/android/design/tokens/Corner; // type@0004
+0002a0: 7010 0200 0000                         |0002: invoke-direct {v0}, Lcom/elder/android/design/tokens/Corner;.<init>:()V // method@0002
+0002a6: 6900 0300                              |0005: sput-object v0, Lcom/elder/android/design/tokens/Corner;.INSTANCE:Lcom/elder/android/design/tokens/Corner; // field@0003
+0002aa: 1300 0800                              |0007: const/16 v0, #int 8 // #8
+0002ae: 1201                                   |0009: const/4 v1, #int 0 // #0
+0002b0: 8202                                   |000a: int-to-float v2, v0
+0002b2: 7110 0000 0200                         |000b: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+0002b8: 0a00                                   |000e: move-result v0
+0002ba: 6700 0200                              |000f: sput v0, Lcom/elder/android/design/tokens/Corner;.Card:F // field@0002
+0002be: 1300 0800                              |0011: const/16 v0, #int 8 // #8
+0002c2: 1201                                   |0013: const/4 v1, #int 0 // #0
+0002c4: 8202                                   |0014: int-to-float v2, v0
+0002c6: 7110 0000 0200                         |0015: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+0002cc: 0a00                                   |0018: move-result v0
+0002ce: 6700 0100                              |0019: sput v0, Lcom/elder/android/design/tokens/Corner;.Button:F // field@0001
+0002d2: 1300 0800                              |001b: const/16 v0, #int 8 // #8
+0002d6: 1201                                   |001d: const/4 v1, #int 0 // #0
+0002d8: 8202                                   |001e: int-to-float v2, v0
+0002da: 7110 0000 0200                         |001f: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+0002e0: 0a00                                   |0022: move-result v0
+0002e2: 6700 0400                              |0023: sput v0, Lcom/elder/android/design/tokens/Corner;.Input:F // field@0004
+0002e6: 1300 0800                              |0025: const/16 v0, #int 8 // #8
+0002ea: 1201                                   |0027: const/4 v1, #int 0 // #0
+0002ec: 8202                                   |0028: int-to-float v2, v0
+0002ee: 7110 0000 0200                         |0029: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+0002f4: 0a00                                   |002c: move-result v0
+0002f6: 6700 0600                              |002d: sput v0, Lcom/elder/android/design/tokens/Corner;.Toast:F // field@0006
+0002fa: 1300 0f27                              |002f: const/16 v0, #int 9999 // #270f
+0002fe: 1201                                   |0031: const/4 v1, #int 0 // #0
+000300: 8202                                   |0032: int-to-float v2, v0
+000302: 7110 0000 0200                         |0033: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+000308: 0a00                                   |0036: move-result v0
+00030a: 6700 0500                              |0037: sput v0, Lcom/elder/android/design/tokens/Corner;.Pill:F // field@0005
+00030e: 0e00                                   |0039: return-void
+      catches       : (none)
+      positions     :
+        0x0007 line=68
+        0x000a line=103
+        0x000f line=68
+        0x0011 line=69
+        0x0014 line=104
+        0x0019 line=69
+        0x001b line=70
+        0x001e line=105
+        0x0023 line=70
+        0x0025 line=71
+        0x0028 line=106
+        0x002d line=71
+        0x002f line=72
+        0x0032 line=107
+        0x0037 line=72
+      locals        :
+        0x0009 - 0x000f reg=0 $this$dp$iv I
+        0x000a - 0x000f reg=1 $i$f$getDp I
+        0x0013 - 0x0019 reg=0 $this$dp$iv I
+        0x0014 - 0x0019 reg=1 $i$f$getDp I
+        0x001d - 0x0023 reg=0 $this$dp$iv I
+        0x001e - 0x0023 reg=1 $i$f$getDp I
+        0x0027 - 0x002d reg=0 $this$dp$iv I
+        0x0028 - 0x002d reg=1 $i$f$getDp I
+        0x0031 - 0x0037 reg=0 $this$dp$iv I
+        0x0032 - 0x0037 reg=1 $i$f$getDp I
+
+    #1              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : '<init>'
+      type          : '()V'
+      access        : 0x10002 (PRIVATE CONSTRUCTOR)
+      code          -
+      registers     : 1
+      ins           : 1
+      outs          : 1
+      insns size    : 4 16-bit code units
+000310:                                        |[000310] com.elder.android.design.tokens.Corner.<init>:()V
+000320: 7010 0800 0000                         |0000: invoke-direct {v0}, Ljava/lang/Object;.<init>:()V // method@0008
+000326: 0e00                                   |0003: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=67
+      locals        :
+        0x0000 - 0x0004 reg=0 this Lcom/elder/android/design/tokens/Corner;
+
+  Virtual methods   -
+    #0              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : 'getButton-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000214:                                        |[000214] com.elder.android.design.tokens.Corner.getButton-D9Ej5fM:()F
+000224: 6000 0100                              |0000: sget v0, Lcom/elder/android/design/tokens/Corner;.Button:F // field@0001
+000228: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=69
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Corner;
+
+    #1              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : 'getCard-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+00022c:                                        |[00022c] com.elder.android.design.tokens.Corner.getCard-D9Ej5fM:()F
+00023c: 6000 0200                              |0000: sget v0, Lcom/elder/android/design/tokens/Corner;.Card:F // field@0002
+000240: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=68
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Corner;
+
+    #2              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : 'getInput-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000244:                                        |[000244] com.elder.android.design.tokens.Corner.getInput-D9Ej5fM:()F
+000254: 6000 0400                              |0000: sget v0, Lcom/elder/android/design/tokens/Corner;.Input:F // field@0004
+000258: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=70
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Corner;
+
+    #3              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : 'getPill-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+00025c:                                        |[00025c] com.elder.android.design.tokens.Corner.getPill-D9Ej5fM:()F
+00026c: 6000 0500                              |0000: sget v0, Lcom/elder/android/design/tokens/Corner;.Pill:F // field@0005
+000270: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=72
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Corner;
+
+    #4              : (in Lcom/elder/android/design/tokens/Corner;)
+      name          : 'getToast-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000274:                                        |[000274] com.elder.android.design.tokens.Corner.getToast-D9Ej5fM:()F
+000284: 6000 0600                              |0000: sget v0, Lcom/elder/android/design/tokens/Corner;.Toast:F // field@0006
+000288: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=71
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Corner;
+
+  source_file_idx   : 11 (Dimens.kt)
+

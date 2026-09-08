@@ -1,0 +1,89 @@
+Processing 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/Motion.dex'...
+Opened 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/Motion.dex', DEX version '038'
+Class #0            -
+  Class descriptor  : 'Lcom/elder/android/design/tokens/Motion;'
+  Access flags      : 0x0011 (PUBLIC FINAL)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+  Static fields     -
+    #0              : (in Lcom/elder/android/design/tokens/Motion;)
+      name          : '$stable'
+      type          : 'I'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+      value         : 0
+    #1              : (in Lcom/elder/android/design/tokens/Motion;)
+      name          : 'DurationMs'
+      type          : 'I'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+      value         : 200
+    #2              : (in Lcom/elder/android/design/tokens/Motion;)
+      name          : 'Easing'
+      type          : 'Landroidx/compose/animation/core/Easing;'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #3              : (in Lcom/elder/android/design/tokens/Motion;)
+      name          : 'INSTANCE'
+      type          : 'Lcom/elder/android/design/tokens/Motion;'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+  Instance fields   -
+  Direct methods    -
+    #0              : (in Lcom/elder/android/design/tokens/Motion;)
+      name          : '<clinit>'
+      type          : '()V'
+      access        : 0x10008 (STATIC CONSTRUCTOR)
+      code          -
+      registers     : 1
+      ins           : 0
+      outs          : 1
+      insns size    : 14 16-bit code units
+0001ac:                                        |[0001ac] com.elder.android.design.tokens.Motion.<clinit>:()V
+0001bc: 2200 0400                              |0000: new-instance v0, Lcom/elder/android/design/tokens/Motion; // type@0004
+0001c0: 7010 0200 0000                         |0002: invoke-direct {v0}, Lcom/elder/android/design/tokens/Motion;.<init>:()V // method@0002
+0001c6: 6900 0300                              |0005: sput-object v0, Lcom/elder/android/design/tokens/Motion;.INSTANCE:Lcom/elder/android/design/tokens/Motion; // field@0003
+0001ca: 7100 0000 0000                         |0007: invoke-static {}, Landroidx/compose/animation/core/EasingKt;.getFastOutSlowInEasing:()Landroidx/compose/animation/core/Easing; // method@0000
+0001d0: 0c00                                   |000a: move-result-object v0
+0001d2: 6900 0200                              |000b: sput-object v0, Lcom/elder/android/design/tokens/Motion;.Easing:Landroidx/compose/animation/core/Easing; // field@0002
+0001d6: 0e00                                   |000d: return-void
+      catches       : (none)
+      positions     :
+        0x0007 line=77
+      locals        :
+
+    #1              : (in Lcom/elder/android/design/tokens/Motion;)
+      name          : '<init>'
+      type          : '()V'
+      access        : 0x10002 (PRIVATE CONSTRUCTOR)
+      code          -
+      registers     : 1
+      ins           : 1
+      outs          : 1
+      insns size    : 4 16-bit code units
+0001d8:                                        |[0001d8] com.elder.android.design.tokens.Motion.<init>:()V
+0001e8: 7010 0400 0000                         |0000: invoke-direct {v0}, Ljava/lang/Object;.<init>:()V // method@0004
+0001ee: 0e00                                   |0003: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=75
+      locals        :
+        0x0000 - 0x0004 reg=0 this Lcom/elder/android/design/tokens/Motion;
+
+  Virtual methods   -
+    #0              : (in Lcom/elder/android/design/tokens/Motion;)
+      name          : 'getEasing'
+      type          : '()Landroidx/compose/animation/core/Easing;'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000194:                                        |[000194] com.elder.android.design.tokens.Motion.getEasing:()Landroidx/compose/animation/core/Easing;
+0001a4: 6200 0200                              |0000: sget-object v0, Lcom/elder/android/design/tokens/Motion;.Easing:Landroidx/compose/animation/core/Easing; // field@0002
+0001a8: 1100                                   |0002: return-object v0
+      catches       : (none)
+      positions     :
+        0x0000 line=77
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Motion;
+
+  source_file_idx   : 7 (Dimens.kt)
+

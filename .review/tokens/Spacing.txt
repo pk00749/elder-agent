@@ -1,0 +1,255 @@
+Processing 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/Spacing.dex'...
+Opened 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/Spacing.dex', DEX version '038'
+Class #0            -
+  Class descriptor  : 'Lcom/elder/android/design/tokens/Spacing;'
+  Access flags      : 0x0011 (PUBLIC FINAL)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+  Static fields     -
+    #0              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : '$stable'
+      type          : 'I'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #1              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'INSTANCE'
+      type          : 'Lcom/elder/android/design/tokens/Spacing;'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #2              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'Lg'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #3              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'Md'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #4              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'Sm'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #5              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'Xl'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #6              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'Xs'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #7              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'Xxl'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+  Instance fields   -
+  Direct methods    -
+    #0              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : '<clinit>'
+      type          : '()V'
+      access        : 0x10008 (STATIC CONSTRUCTOR)
+      code          -
+      registers     : 3
+      ins           : 0
+      outs          : 1
+      insns size    : 67 16-bit code units
+0002bc:                                        |[0002bc] com.elder.android.design.tokens.Spacing.<clinit>:()V
+0002cc: 2200 0400                              |0000: new-instance v0, Lcom/elder/android/design/tokens/Spacing; // type@0004
+0002d0: 7010 0200 0000                         |0002: invoke-direct {v0}, Lcom/elder/android/design/tokens/Spacing;.<init>:()V // method@0002
+0002d6: 6900 0100                              |0005: sput-object v0, Lcom/elder/android/design/tokens/Spacing;.INSTANCE:Lcom/elder/android/design/tokens/Spacing; // field@0001
+0002da: 1240                                   |0007: const/4 v0, #int 4 // #4
+0002dc: 1201                                   |0008: const/4 v1, #int 0 // #0
+0002de: 8202                                   |0009: int-to-float v2, v0
+0002e0: 7110 0000 0200                         |000a: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+0002e6: 0a00                                   |000d: move-result v0
+0002e8: 6700 0600                              |000e: sput v0, Lcom/elder/android/design/tokens/Spacing;.Xs:F // field@0006
+0002ec: 1300 0800                              |0010: const/16 v0, #int 8 // #8
+0002f0: 1201                                   |0012: const/4 v1, #int 0 // #0
+0002f2: 8202                                   |0013: int-to-float v2, v0
+0002f4: 7110 0000 0200                         |0014: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+0002fa: 0a00                                   |0017: move-result v0
+0002fc: 6700 0400                              |0018: sput v0, Lcom/elder/android/design/tokens/Spacing;.Sm:F // field@0004
+000300: 1300 1000                              |001a: const/16 v0, #int 16 // #10
+000304: 1201                                   |001c: const/4 v1, #int 0 // #0
+000306: 8202                                   |001d: int-to-float v2, v0
+000308: 7110 0000 0200                         |001e: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+00030e: 0a00                                   |0021: move-result v0
+000310: 6700 0300                              |0022: sput v0, Lcom/elder/android/design/tokens/Spacing;.Md:F // field@0003
+000314: 1300 1800                              |0024: const/16 v0, #int 24 // #18
+000318: 1201                                   |0026: const/4 v1, #int 0 // #0
+00031a: 8202                                   |0027: int-to-float v2, v0
+00031c: 7110 0000 0200                         |0028: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+000322: 0a00                                   |002b: move-result v0
+000324: 6700 0200                              |002c: sput v0, Lcom/elder/android/design/tokens/Spacing;.Lg:F // field@0002
+000328: 1300 2000                              |002e: const/16 v0, #int 32 // #20
+00032c: 1201                                   |0030: const/4 v1, #int 0 // #0
+00032e: 8202                                   |0031: int-to-float v2, v0
+000330: 7110 0000 0200                         |0032: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+000336: 0a00                                   |0035: move-result v0
+000338: 6700 0500                              |0036: sput v0, Lcom/elder/android/design/tokens/Spacing;.Xl:F // field@0005
+00033c: 1300 3000                              |0038: const/16 v0, #int 48 // #30
+000340: 1201                                   |003a: const/4 v1, #int 0 // #0
+000342: 8202                                   |003b: int-to-float v2, v0
+000344: 7110 0000 0200                         |003c: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+00034a: 0a00                                   |003f: move-result v0
+00034c: 6700 0700                              |0040: sput v0, Lcom/elder/android/design/tokens/Spacing;.Xxl:F // field@0007
+000350: 0e00                                   |0042: return-void
+      catches       : (none)
+      positions     :
+        0x0007 line=59
+        0x0009 line=103
+        0x000e line=59
+        0x0010 line=60
+        0x0013 line=104
+        0x0018 line=60
+        0x001a line=61
+        0x001d line=105
+        0x0022 line=61
+        0x0024 line=62
+        0x0027 line=106
+        0x002c line=62
+        0x002e line=63
+        0x0031 line=107
+        0x0036 line=63
+        0x0038 line=64
+        0x003b line=108
+        0x0040 line=64
+      locals        :
+        0x0008 - 0x000e reg=0 $this$dp$iv I
+        0x0009 - 0x000e reg=1 $i$f$getDp I
+        0x0012 - 0x0018 reg=0 $this$dp$iv I
+        0x0013 - 0x0018 reg=1 $i$f$getDp I
+        0x001c - 0x0022 reg=0 $this$dp$iv I
+        0x001d - 0x0022 reg=1 $i$f$getDp I
+        0x0026 - 0x002c reg=0 $this$dp$iv I
+        0x0027 - 0x002c reg=1 $i$f$getDp I
+        0x0030 - 0x0036 reg=0 $this$dp$iv I
+        0x0031 - 0x0036 reg=1 $i$f$getDp I
+        0x003a - 0x0040 reg=0 $this$dp$iv I
+        0x003b - 0x0040 reg=1 $i$f$getDp I
+
+    #1              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : '<init>'
+      type          : '()V'
+      access        : 0x10002 (PRIVATE CONSTRUCTOR)
+      code          -
+      registers     : 1
+      ins           : 1
+      outs          : 1
+      insns size    : 4 16-bit code units
+000354:                                        |[000354] com.elder.android.design.tokens.Spacing.<init>:()V
+000364: 7010 0900 0000                         |0000: invoke-direct {v0}, Ljava/lang/Object;.<init>:()V // method@0009
+00036a: 0e00                                   |0003: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=58
+      locals        :
+        0x0000 - 0x0004 reg=0 this Lcom/elder/android/design/tokens/Spacing;
+
+  Virtual methods   -
+    #0              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'getLg-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+00022c:                                        |[00022c] com.elder.android.design.tokens.Spacing.getLg-D9Ej5fM:()F
+00023c: 6000 0200                              |0000: sget v0, Lcom/elder/android/design/tokens/Spacing;.Lg:F // field@0002
+000240: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=62
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Spacing;
+
+    #1              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'getMd-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000244:                                        |[000244] com.elder.android.design.tokens.Spacing.getMd-D9Ej5fM:()F
+000254: 6000 0300                              |0000: sget v0, Lcom/elder/android/design/tokens/Spacing;.Md:F // field@0003
+000258: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=61
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Spacing;
+
+    #2              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'getSm-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+00025c:                                        |[00025c] com.elder.android.design.tokens.Spacing.getSm-D9Ej5fM:()F
+00026c: 6000 0400                              |0000: sget v0, Lcom/elder/android/design/tokens/Spacing;.Sm:F // field@0004
+000270: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=60
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Spacing;
+
+    #3              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'getXl-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000274:                                        |[000274] com.elder.android.design.tokens.Spacing.getXl-D9Ej5fM:()F
+000284: 6000 0500                              |0000: sget v0, Lcom/elder/android/design/tokens/Spacing;.Xl:F // field@0005
+000288: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=63
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Spacing;
+
+    #4              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'getXs-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+00028c:                                        |[00028c] com.elder.android.design.tokens.Spacing.getXs-D9Ej5fM:()F
+00029c: 6000 0600                              |0000: sget v0, Lcom/elder/android/design/tokens/Spacing;.Xs:F // field@0006
+0002a0: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=59
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Spacing;
+
+    #5              : (in Lcom/elder/android/design/tokens/Spacing;)
+      name          : 'getXxl-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0002a4:                                        |[0002a4] com.elder.android.design.tokens.Spacing.getXxl-D9Ej5fM:()F
+0002b4: 6000 0700                              |0000: sget v0, Lcom/elder/android/design/tokens/Spacing;.Xxl:F // field@0007
+0002b8: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=64
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Spacing;
+
+  source_file_idx   : 9 (Dimens.kt)
+

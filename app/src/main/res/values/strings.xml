@@ -20,7 +20,7 @@
     <string name="home_greeting_evening">晚上好</string>
     <string name="home_no_reminders_today">今日暂无提醒</string>
     <string name="home_today_records_icon_desc">今日记录</string>
-    <string name="home_diary_button">按住说话写日记</string>
+    <string name="home_diary_button">点击开始写日志</string>
 
     <!-- §3.2.1 家属主屏 -->
     <string name="family_home_bound_title">已绑定 · 爸妈的家</string>
@@ -98,6 +98,11 @@
     <string name="diary_recording_retry">没听清，再说一次</string>
     <string name="diary_recording_network_failed">网络好像断了，正在重试</string>
     <string name="diary_recording_mic_denied">需要麦克风权限才能写日记</string>
+    <!-- PR-A 新增，MVP 录音闭环专用（不动既有字段，AGENTS.md §18） -->
+    <string name="diary_recording_stop">点击停止</string>
+    <string name="diary_recording_done_check">✓ 已录音</string>
+    <string name="diary_recording_done_duration">%1$02d:%2$02d</string>
+    <string name="diary_recording_back">返回主页</string>
 
     <!-- §3.1.6 访谈总结 -->
     <string name="diary_summary_title">今天记好了 ✓</string>

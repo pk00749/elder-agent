@@ -1,10 +1,10 @@
-// PR 4 build.gradle.kts：MVP 全量 Android 客户端依赖
-// §19：用到才引入 —— PR 1 仅 Compose 主链；PR 4 加网络/QR/音频/TTS/导航
+// v3.0 MVP build.gradle.kts：老人端独立运行依赖集（§19 用到才引入）
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.21"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -13,25 +13,16 @@ android {
 
     defaultConfig {
         applicationId = "com.elder.android"
-        minSdk = 26  // §11.10
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "0.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // §8.3：MVP 默认连本地 docker compose（host 模式 Android emulator → 10.0.2.2）
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8001/\"")
-        buildConfigField("String", "ACCOUNT_BASE_URL", "\"http://10.0.2.2:8003/\"")
-        buildConfigField("String", "REMINDER_BASE_URL", "\"http://10.0.2.2:8002/\"")
-        buildConfigField("String", "AGENT_BASE_URL", "\"http://10.0.2.2:8001/\"")
     }
 
     buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-        debug {
-            isMinifyEnabled = false
-        }
+        release { isMinifyEnabled = false }
+        debug { isMinifyEnabled = false }
     }
 
     compileOptions {
@@ -47,6 +38,21 @@ android {
         compose = true
         buildConfig = true
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true  // Robolectric 需要
+            isReturnDefaultValues = true
+            // §A.8 workaround：Java 25 环境下 Robolectric 4.13 asm 9.7.1 读不动新 android-all（i7+ 已升 Java 25）；
+            // 强制 offline 走本地 i6 jar（Java 11），不下载 i7+
+            all {
+                it.systemProperty("robolectric.offline", "true")
+                // LocalDependencyResolver 用单一 depdir 找 <depdir>/<shortName>.jar；放一个 flat 目录
+                // 同时装 SDK 33 / 34 两个 i6 jar（Java 11 字节码；asm 9.7.1 能读）
+                it.systemProperty("robolectric.dependency.dir", "${System.getProperty("user.home")}/.m2/repository/org/robolectric/all-jars")
+            }
+        }
+    }
 }
 
 dependencies {
@@ -54,7 +60,7 @@ dependencies {
     implementation(project(":app:design"))
     implementation(project(":app:ui"))
 
-    // Compose 主链（PR 1）
+    // Compose 主链
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
@@ -67,32 +73,44 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    // PR 4 增量（§19 用到才引入）
     // 导航
     implementation("androidx.navigation:navigation-compose:2.8.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
 
-    // 网络（Retrofit + Moshi）
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
-    implementation("com.squareup.moshi:moshi-adapters:1.15.1")
+    // ASR 网络
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-    implementation("com.squareup.okhttp3:okhttp-urlconnection:4.12.0")
+    implementation("com.squareup.okio:okio:3.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
-    // Token 存储（DataStore）
+    // 本机存储
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    // QR 扫码（CameraX + ML Kit 条码；为 MVP 简化用 ZXing + 系统相机）
-    implementation("androidx.camera:camera-core:1.3.4")
-    implementation("androidx.camera:camera-camera2:1.3.4")
-    implementation("androidx.camera:camera-lifecycle:1.3.4")
-    implementation("androidx.camera:camera-view:1.3.4")
-    implementation("com.google.zxing:core:3.5.3")
+    // Room
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
 
-    // 音频播放（ExoPlayer for TTS 流）
-    implementation("androidx.media3:media3-exoplayer:1.4.1")
-    implementation("androidx.media3:media3-ui:1.4.1")
-    implementation("androidx.media3:media3-common:1.4.1")
+    // Keystore-wrapped EncryptedSharedPreferences
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+    // v3.0 MVP 移除：CameraX / ZXing / Retrofit / Moshi / ExoPlayer
+
+    // ---- 单元测试（Robolectric + Compose UI test，JVM 上跑，无需 emulator）----
+    testImplementation("junit:junit:4.13.2")
+    // Robolectric 4.13：Room in-memory 测试需要 Android framework stub
+    // 注：4.13 的 asm 9.7.1 不支持 Java 25 class file（major 69），android.webkit.RoboCookieManager 影子加载会失败。
+    // DiaryDaoTest 通过 JUnit @Before/@After 显式 close db + Robolectric config workaround 绕开。
+    testImplementation("org.robolectric:robolectric:4.13")
+    // 纯 Java org.json：AsrApiClientTest 在纯 JVM 下 JSONObject().toString() 不会返回 null
+    // （Android jar 的 org.json 是 stub，runTest 调 .put/.toString 全返回 null）
+    testImplementation("org.json:json:20240303")
+    testImplementation("androidx.test:core:1.6.1")
+    testImplementation("androidx.test.ext:junit:1.2.1")
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    testImplementation("androidx.room:room-testing:2.6.1")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
 }

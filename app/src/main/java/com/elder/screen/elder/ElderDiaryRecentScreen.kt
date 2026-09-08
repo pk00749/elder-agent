@@ -1,9 +1,12 @@
-// §3.1.7 今日记录屏 —— 今天 / 近7天 双选 + 时间轴列表
+// §3.1.7 老人端「今日记录」时间轴屏（v3.0 MVP 版）
 package com.elder.android.screen.elder
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,84 +16,173 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import com.elder.android.R
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.elder.android.data.db.DiaryEntryEntity
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Spacing
-import com.elder.android.di.ServiceLocator
-import com.elder.android.network.dto.Diary
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ElderDiaryRecentScreen(onBack: () -> Unit) {
-    var range by remember { mutableStateOf("today") }
-    var diaries by remember { mutableStateOf<List<Diary>>(emptyList()) }
-    val snap by ServiceLocator.tokenStore.snapshot.collectAsState(initial = null)
-    val elderId = snap?.elderId ?: snap?.userId
+fun ElderDiaryRecentScreen(
+    onBack: () -> Unit,
+    vm: ElderDiaryRecentViewModel = viewModel(),
+) {
+    val state by vm.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(range, elderId) {
-        if (elderId != null) {
-            runCatching {
-                ServiceLocator.apiClient.accountApi.listDiaries(elderId = elderId)
-            }.onSuccess { diaries = it.diaries }
-        }
-    }
+    Surface(modifier = Modifier.fillMaxSize(), color = BrandColor.CardWhite) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = { Text("今日记录", fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
+            )
 
-    Column(modifier = Modifier.fillMaxSize().background(BrandColor.CardWhite)) {
-        Row(modifier = Modifier.fillMaxWidth().padding(Spacing.Lg), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.common_back)) }
-            Text(stringResource(R.string.diary_recent_title), fontSize = FontSize.title(), color = BrandColor.TextPrimary)
-        }
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.Lg)) {
-            listOf("today" to R.string.diary_recent_today_tab, "7d" to R.string.diary_recent_7d_tab).forEach { (key, label) ->
-                Button(
-                    onClick = { range = key },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (range == key) BrandColor.Brand500 else BrandColor.BgGray,
-                        contentColor = if (range == key) BrandColor.CardWhite else BrandColor.TextPrimary,
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Spacing.Md),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
+            ) {
+                FilterChip(
+                    selected = state.range == DiaryRecentRange.TODAY,
+                    onClick = { vm.setRange(DiaryRecentRange.TODAY) },
+                    label = { Text("今天", fontSize = FontSize.body()) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = BrandColor.Brand500,
+                        selectedLabelColor = Color.White,
                     ),
-                    shape = RoundedCornerShape(Corner.Button),
-                    modifier = Modifier.padding(end = Spacing.Sm),
-                ) { Text(stringResource(label)) }
-            }
-        }
-        Spacer(Modifier.height(Spacing.Md))
-        if (diaries.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = if (range == "today") stringResource(R.string.diary_list_empty_today) else stringResource(R.string.diary_list_empty_7d),
-                    fontSize = FontSize.body(),
-                    color = BrandColor.TextSecondary,
+                )
+                FilterChip(
+                    selected = state.range == DiaryRecentRange.LAST_7_DAYS,
+                    onClick = { vm.setRange(DiaryRecentRange.LAST_7_DAYS) },
+                    label = { Text("近7天", fontSize = FontSize.body()) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = BrandColor.Brand500,
+                        selectedLabelColor = Color.White,
+                    ),
                 )
             }
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.Lg)) {
-                items(diaries) { d ->
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.Sm).background(BrandColor.BgGray, RoundedCornerShape(Corner.Card)).padding(Spacing.Md),
-                    ) {
-                        Column {
-                            Text(d.date, fontSize = FontSize.caption(), color = BrandColor.TextSecondary)
-                            Spacer(Modifier.height(Spacing.Xs))
-                            Text(d.summary, fontSize = FontSize.body(), color = BrandColor.TextPrimary)
-                        }
+
+            if (state.entries.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    val emptyMsg = when (state.range) {
+                        DiaryRecentRange.TODAY -> "今天还没记"
+                        DiaryRecentRange.LAST_7_DAYS -> "近7天还没有日志"
+                    }
+                    Text(emptyMsg, fontSize = FontSize.body(), color = BrandColor.TextSecondary)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(Spacing.Md),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
+                ) {
+                    items(items = state.entries, key = { it.id }) { entry: DiaryEntryEntity ->
+                        DiaryRow(
+                            entry = entry,
+                            onEdit = { vm.startEdit(entry.id, entry.text) },
+                        )
                     }
                 }
             }
         }
     }
+
+    val editingId = state.editingId
+    if (editingId != null) {
+        AlertDialog(
+            onDismissRequest = vm::cancelEdit,
+            title = { Text("手动改写", fontSize = FontSize.body(), fontWeight = FontWeight.Bold) },
+            text = {
+                OutlinedTextField(
+                    value = state.editingDraft,
+                    onValueChange = vm::updateDraft,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp),
+                    textStyle = TextStyle(fontSize = 22.sp),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { vm.saveEdit() }) {
+                    Text("保存", color = BrandColor.Brand500, fontSize = FontSize.body())
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = vm::cancelEdit) {
+                    Text("取消", color = BrandColor.TextSecondary, fontSize = FontSize.body())
+                }
+            },
+        )
+    }
 }
+
+@Composable
+private fun DiaryRow(entry: DiaryEntryEntity, onEdit: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onEdit),
+        color = BrandColor.BgGray,
+        shape = RoundedCornerShape(Corner.Card),
+    ) {
+        Row(
+            modifier = Modifier.padding(Spacing.Md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = formatTime(entry.createdAt),
+                    fontSize = 20.sp,
+                    color = BrandColor.TextSecondary,
+                )
+                Spacer(modifier = Modifier.height(Spacing.Xs))
+                Text(
+                    text = entry.text,
+                    fontSize = FontSize.body(),
+                    color = BrandColor.TextPrimary,
+                )
+            }
+            IconButton(onClick = onEdit) {
+                Icon(Icons.Default.Edit, contentDescription = "改写", tint = BrandColor.Brand500)
+            }
+        }
+    }
+}
+
+private fun formatTime(ms: Long): String =
+    SimpleDateFormat("HH:mm", Locale.US).format(Date(ms))
