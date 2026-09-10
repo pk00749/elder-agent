@@ -53,6 +53,7 @@ import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.ui.component.ElderToast
 import com.elder.android.ui.component.LoadingState
+import com.elder.android.ui.component.NetworkYellowBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +96,14 @@ fun ElderDiaryRecordScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
+               colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
+            )
+
+            // PR #4：ASR 上游失败（非 ASR_AUTH_FAILED）时顶部展示黄条 + 重试按钮
+            // 对应 prd.md §4.9 网络异常黄条规范 — 独立组件，不绑其他上游
+            NetworkYellowBar(
+                visible = state.networkFailed,
+                onRetry = vm::retryAsr,
             )
 
             Box(
@@ -161,9 +169,6 @@ private fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
         }
     }
 }
-
-@Composable
-private fun ProcessingState() = LoadingState()
 
 @Composable
 private fun RecordedState(

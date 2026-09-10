@@ -51,6 +51,7 @@ import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
+import com.elder.android.ui.component.ElderEmptyState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -102,13 +103,16 @@ fun ElderDiaryRecentScreen(
             }
 
             if (state.entries.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    val emptyMsg = when (state.range) {
-                        DiaryRecentRange.TODAY -> stringResource(R.string.empty_no_diary)
-                        DiaryRecentRange.LAST_7_DAYS -> stringResource(R.string.empty_no_diary_7d)
-                    }
-                    Text(emptyMsg, fontSize = FontSize.body(), color = BrandColor.TextSecondary)
+                // PR #4：空态走标准 ElderEmptyState 组件（prd.md §4.7 居中 + ▶ TTS 按钮）
+                // TTS 由 ElderDiaryRecentViewModel.ttsPlay 注入，保留后续接入千问 TTS 的扩展点
+                val emptyMsg = when (state.range) {
+                    DiaryRecentRange.TODAY -> stringResource(R.string.empty_no_diary)
+                    DiaryRecentRange.LAST_7_DAYS -> stringResource(R.string.empty_no_diary_7d)
                 }
+                ElderEmptyState(
+                    text = emptyMsg,
+                    onTtsClick = { vm.ttsPlay(emptyMsg) },
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
