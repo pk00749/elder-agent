@@ -1,11 +1,9 @@
 // §3.1.5 老人端主屏（v3.0 MVP 版）
-// 主屏元素恰好 2 个（v3.0 收窄，移除今日提醒卡；隐藏设置入口不计）
+// 主屏元素恰好 2 个（v3.0 收窄，移除今日提醒卡；设置改为可见按钮 PR #2）
 package com.elder.android.screen.elder
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,26 +12,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -62,15 +59,10 @@ fun ElderHomeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(Size.HomeGreetingArea)
-                    .pointerInput(Unit) {
-                        detectTapGestures(onTap = { vm.onGreetingTap() })
-                    },
+                    .height(Size.HomeGreetingArea),
                 contentAlignment = Alignment.Center,
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = uiState.greeting,
                         fontSize = FontSize.BodyHugeSp.sp,
@@ -115,40 +107,62 @@ fun ElderHomeScreen(
                 }
             }
 
-           // 区域 C：写日记按钮（高 200dp，v3.0 占满）
-           Box(
-               modifier = Modifier
-                   .fillMaxWidth()
+            // 区域 C：写日记按钮（高 200dp，v3.0 占满）
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
                     .height(Size.HomeDiaryArea)
-                   .padding(Spacing.Md),
+                    .padding(Spacing.Md),
                 contentAlignment = Alignment.Center,
             ) {
-               Button(
-                   onClick = onStartDiary,
-                   modifier = Modifier
-                       .fillMaxWidth()
+                Button(
+                    onClick = onStartDiary,
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .height(Size.HomeDiaryButton),
-                   shape = RoundedCornerShape(Corner.Button),
-                   colors = ButtonDefaults.buttonColors(
-                       containerColor = BrandColor.Brand500,
-                       contentColor = Color.White,
-                   ),
-               ) {
-                   Text(
+                    shape = RoundedCornerShape(Corner.Button),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrandColor.Brand500,
+                        contentColor = Color.White,
+                    ),
+                ) {
+                    Text(
                         text = stringResource(R.string.home_diary_button),
-                       fontSize = FontSize.button(),
-                       fontWeight = FontWeight.Bold,
-                   )
-               }
+                        fontSize = FontSize.button(),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
-        }
-    }
 
-    // 隐藏入口触发后跳设置
-    LaunchedEffect(uiState.settingsTrigger) {
-        if (uiState.settingsTrigger) {
-            vm.consumeSettingsTrigger()
-            onOpenSettings()
+            // 区域 D：设置入口（PR #2 §3.1.8：可见按钮替代 5 次点击隐藏手势）
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Size.SecondaryButtonHeight)
+                    .padding(horizontal = Spacing.Md, vertical = Spacing.Xs),
+                contentAlignment = Alignment.Center,
+            ) {
+                Button(
+                    onClick = onOpenSettings,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(Corner.Button),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrandColor.BgGray,
+                        contentColor = BrandColor.TextSecondary,
+                    ),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(Size.IconMd),
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.Sm))
+                    Text(
+                        text = stringResource(R.string.home_settings_button),
+                        fontSize = FontSize.body(),
+                    )
+                }
+            }
         }
     }
 }

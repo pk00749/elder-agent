@@ -1,4 +1,7 @@
 // §3.1.5 老人端主屏（v3.0 MVP）ViewModel
+// PR #2：删除 5 次点击隐藏入口（tapCounter / settingsTrigger / todayRecordJustRecorded
+// 字段，onGreetingTap / consumeSettingsTrigger / consumeTodayRecordFlag 方法）；设置入口
+// 改为可见按钮（UI 直接调 onOpenSettings 回调），不再需要 ViewModel 兜底
 package com.elder.android.screen.elder
 
 import android.app.Application
@@ -37,9 +40,6 @@ data class ElderHomeUiState(
     val dateLine: String = formatToday(),
     val todayRecorded: Boolean = false,
     val showAsrHint: Boolean = false,
-    val tapCounter: Int = 0,
-    val settingsTrigger: Boolean = false,
-    val todayRecordJustRecorded: Boolean = false,
 )
 
 class ElderHomeViewModel(app: Application) : AndroidViewModel(app) {
@@ -65,25 +65,8 @@ class ElderHomeViewModel(app: Application) : AndroidViewModel(app) {
             diaryRepo.observeAll().collect { _ ->
                 val today = LocalDate.today()
                 val has = diaryRepo.hasAnyOnDate(today)
-                val wasRecorded = _uiState.value.todayRecorded
-                _uiState.update { it.copy(todayRecorded = has, todayRecordJustRecorded = has && !wasRecorded) }
+                _uiState.update { it.copy(todayRecorded = has) }
             }
         }
-    }
-
-    fun onGreetingTap() {
-        val next = _uiState.value.tapCounter + 1
-        _uiState.update { it.copy(tapCounter = next) }
-        if (next >= 5) {
-            _uiState.update { it.copy(tapCounter = 0, settingsTrigger = true) }
-        }
-    }
-
-    fun consumeSettingsTrigger() {
-        _uiState.update { it.copy(settingsTrigger = false) }
-    }
-
-    fun consumeTodayRecordFlag() {
-        _uiState.update { it.copy(todayRecordJustRecorded = false) }
     }
 }
