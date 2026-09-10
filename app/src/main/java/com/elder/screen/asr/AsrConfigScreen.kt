@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elder.android.R
@@ -80,19 +81,18 @@ fun AsrConfigScreen(
                     }
                 },
                 actions = {
-                    Text(
-                        "✓",
-                        modifier = Modifier
-                            .padding(end = Spacing.Md)
-                            .background(
-                                color = if (state.allRequiredValid) BrandColor.Brand500 else BrandColor.BgGray,
-                                shape = RoundedCornerShape(Corner.Pill),
-                            )
-                            .padding(horizontal = Spacing.Md, vertical = Spacing.Xs),
-                        color = Color.White,
-                        fontSize = FontSize.body(),
-                        fontWeight = FontWeight.Bold,
-                    )
+                    // PR #5：✓ emoji 升级为 IconButton + Icons.Default.Check，对应 prd.md §18 红线
+                    // a11y 可读"保存"语义；启用态绑 allRequiredValid，禁用态 Icon tint 灰
+                    IconButton(
+                        onClick = vm::save,
+                        enabled = state.allRequiredValid,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = stringResource(R.string.common_save),
+                            tint = if (state.allRequiredValid) BrandColor.Brand500 else BrandColor.TextSecondary,
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = BrandColor.CardWhite,
@@ -241,33 +241,6 @@ private fun TestButton(
             CircularProgressIndicator(color = Color.White)
         } else {
             Text(stringResource(R.string.asr_config_test), fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-private fun SaveButton(
-    isLoading: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(Size.PrimaryButtonHeight),
-        shape = RoundedCornerShape(Corner.Button),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = BrandColor.Brand500,
-            contentColor = Color.White,
-            disabledContainerColor = BrandColor.BgGray,
-        ),
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(color = Color.White)
-        } else {
-            Text("保存", fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
         }
     }
 }

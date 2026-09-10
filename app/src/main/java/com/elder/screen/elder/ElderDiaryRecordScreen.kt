@@ -15,10 +15,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -163,6 +165,34 @@ private fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
         ) {
             Text(
                 text = stringResource(R.string.diary_recording_stop),
+                fontSize = FontSize.body(),
+                fontWeight = FontWeight.Bold,
+            )
+        }
+        // PR #5：160dp 圆按钮下方加 72dp 全宽次级按钮冗余，避免单点风险
+        // 对应 ui-ux-pro-max：Touch & Interaction — 主 + 次级双按钮
+        // 两个按钮共享 onStop 回调，任何一处都触发停止 + ASR
+        Spacer(modifier = Modifier.height(Spacing.Lg))
+        Button(
+            onClick = onStop,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(Size.SecondaryButtonHeight),
+            shape = RoundedCornerShape(Corner.Button),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = BrandColor.BgGray,
+                contentColor = BrandColor.TextSecondary,
+            ),
+        ) {
+            // core icons 没有 Stop，用 Close（X 视觉同表达"停止"）+ 文本"停止录音"双冗余
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = null,
+                modifier = Modifier.size(Size.IconMd),
+            )
+            Spacer(modifier = Modifier.width(Spacing.Sm))
+            Text(
+                text = stringResource(R.string.diary_recording_stop_secondary),
                 fontSize = FontSize.body(),
                 fontWeight = FontWeight.Bold,
             )

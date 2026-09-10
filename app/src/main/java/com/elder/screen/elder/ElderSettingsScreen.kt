@@ -167,10 +167,10 @@ private fun labelOf(f: FontScale) = when (f) {
 
 @Composable
 private fun SettingRow3Tts(enabled: Boolean, onChange: (Boolean) -> Unit) {
+    // PR #5：onClick = null，整行不挂 clickable，Switch 自身 onCheckedChange 不被外层吞掉
     SettingRow(
         title = stringResource(R.string.settings_tts_switch),
         subtitle = if (enabled) stringResource(R.string.settings_on) else stringResource(R.string.settings_off),
-        onClick = {},
         trailing = {
             Switch(
                 checked = enabled,
@@ -181,6 +181,7 @@ private fun SettingRow3Tts(enabled: Boolean, onChange: (Boolean) -> Unit) {
                 ),
             )
         },
+        onClick = null,
     )
 }
 
@@ -203,14 +204,16 @@ private fun SettingRow6Logout(onClick: () -> Unit) {
 private fun SettingRow(
     title: String,
     subtitle: String,
-    onClick: () -> Unit,
+    // PR #5：onClick 改 nullable；为 null 时整行不挂 clickable，
+    // 避免吞掉 trailing slot 里 Switch 自身 onCheckedChange 事件
     trailing: @Composable (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(Size.ListRowMinHeight)
-            .clickable(onClick = onClick)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(horizontal = Spacing.Md),
         verticalAlignment = Alignment.CenterVertically,
     ) {

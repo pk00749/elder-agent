@@ -102,6 +102,7 @@
     <string name="diary_recording_mic_denied">需要麦克风权限才能写日记</string>
     <!-- PR-A 新增，MVP 录音闭环专用（不动既有字段，AGENTS.md §18） -->
     <string name="diary_recording_stop">点击停止</string>
+    <string name="diary_recording_stop_secondary">停止录音</string>
     <string name="diary_recording_title">写日志</string>
     <string name="diary_recording_transcribing">转写中…</string>
     <string name="diary_recording_auth_and_start">授权并开始</string>
