@@ -3,14 +3,17 @@
 package com.elder.android.screen.elder
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -39,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -93,16 +98,40 @@ fun ElderHomeScreen(
                         fontSize = FontSize.body(),
                         color = BrandColor.TextSecondary,
                     )
-                    if (uiState.showAsrHint) {
-                        Spacer(modifier = Modifier.height(Spacing.Sm))
-                        Text(
-                            text = stringResource(R.string.home_asr_unconfigured),
-                            fontSize = FontSize.BodySmallSp.sp,
-                            color = BrandColor.Error500,
-                            modifier = Modifier
-                                .clickable { onOpenSettings() }
-                                .padding(Spacing.Xs),
-                        )
+                }
+                // PR #5：ASR 未配置提示从内联红字升级为独立红卡片
+                // 对应 ui-ux-pro-max：Forms & Feedback（一级提示视觉权重）
+                // BgGray 底 + Error500 边 + Icons.Default.Warning + 高度 ≥ 72dp
+                if (uiState.showAsrHint) {
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .padding(horizontal = Spacing.Md, vertical = Spacing.Sm)
+                            .heightIn(min = Size.SecondaryButtonHeight)
+                            .clickable { onOpenSettings() }
+                            .semantics { testTag = "home_asr_hint_card" },
+                        shape = RoundedCornerShape(Corner.Card),
+                        color = BrandColor.BgGray,
+                        border = BorderStroke(Size.AsrCardBorderWidth, BrandColor.Error500),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(Spacing.Md),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = BrandColor.Error500,
+                                modifier = Modifier.size(Size.IconMd),
+                            )
+                            Spacer(modifier = Modifier.width(Spacing.Sm))
+                            Text(
+                                text = stringResource(R.string.home_asr_unconfigured),
+                                fontSize = FontSize.body(),
+                                color = BrandColor.Error500,
+                            )
+                        }
                     }
                 }
                 // 今日记录图标（右上 32dp；§3.1.7）— 点击进时间轴屏

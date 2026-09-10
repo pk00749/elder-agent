@@ -84,6 +84,8 @@ object Size {
     val HomeGreetingArea = 240.dp
     val HomeDiaryArea = 200.dp
     val HomeDiaryButton = 120.dp
+    // PR #5：ASR 提示红卡 BorderStroke 宽度（红边粗细，视觉权重匹配红 Error 提示）
+    val AsrCardBorderWidth = 2.dp
     // 图标（§3.1.7 今日记录图标）
     val IconMd = 24.dp
     val TodayRecordIcon = 32.dp

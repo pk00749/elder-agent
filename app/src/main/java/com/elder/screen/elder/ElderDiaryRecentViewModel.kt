@@ -76,4 +76,15 @@ class ElderDiaryRecentViewModel(app: Application) : AndroidViewModel(app) {
     fun cancelEdit() {
         _uiState.update { it.copy(editingId = null, editingDraft = "") }
     }
+
+    /**
+     * PR #4：空态 ▶ TTS 按钮回调（对应 prd.md §4.5 千问 TTS + §4.7 空态）。
+     * 当前 MVP 范围：老人端未接入 TTS SDK，本方法为占位；正式实现将调用
+     * elder_common.tts.synthesize(text) 并走千问粤语男声（§A.1 TTS 封装）。
+     * ViewModel 层只暴露入口；UI 不直接持有 SDK。
+     */
+    fun ttsPlay(text: String) {
+        // 占位：MVP 老人端 TTS 推迟到接入千问 SDK 时实现。
+        // 保留签名便于 ElderEmptyState 组件直接回调，避免 UI 改 schema。
+    }
 }
