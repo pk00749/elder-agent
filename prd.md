@@ -15,6 +15,7 @@
 | v2.0 | 2026-08-24 | Codex | PRD/AGENT.md 分工重排：所有需求迁移到 PRD；AGENT.md 只留实施规范；新增 §3.1.4 Agent 行为约束、§7 安全与隐私、§10 系统质量要求；D1–D4 锁定，新增 D5 |
 | v2.1 | 2026-08-27 | Codex | UI 设计 token 系统化：§4 → §4.1-§4.10（色彩 / 字号 / 间距 / 圆角 / 动效 / 声音 / 权限 / 空态 / Toast / 黄条 / 加载）；§3.1 老人端 4 → 8 子节（新增 §3.1.5 主屏 / §3.1.6 访谈总结 / §3.1.7 今日记录 / §3.1.8 设置）；§3.2 家属端 3 → 9 子节重排（主屏 / Tab / 表单 / 日志 / 绑定全部展开）；§6.1 端点 16 → 20（新增 bind/confirm + bind/pending + diary/flush-pending + bind/elder 修订）；§6.2 错误码新增 REMINDER_TIME_PAST / BIND_CODE_EXPIRED / BIND_ATTEMPT_NOT_FOUND；§10.4 兼容 TTS 粤语男声 + ASR 粤语主识别；§11 待澄清 14 → 31 项（11.15-§I.9 全闭环）；§J3 联动 §I-4 剂量枚举 [PILL\|HALF\|SPOON\|CUSTOM] 收紧为 [PILL\|HALF\|SPOON] 走备注 |
 | v2.1.1 | 2026-08-27 | Codex | 字段表补齐（为开工扫除文档缺口）：§5.4 reminder 加 `channel_priority`；§5.4 medication payload 收紧为 `dosage ∈ [pill\|half\|spoon]` + `note?`；§5.4 appointment payload 加 `advance_remind_min ∈ [30\|60\|120]` 默认 60 + `repeat = none`；§5 新增 `bind_attempt` 数据模型（§3.2.7-§3.2.8 + §A.5 引用落地）；§3.1.7 图标熄灭时区规则明确为"设备本地时区零点"；§11 默认项 11.1 / 11.2 / 11.6 / 11.7 / 11.10 / 11.11 / 11.12 / 11.13 / 11.14 收口为已定 |
+| v2.1.2 | 2026-09-05 | Codex | MVP 免 SMS：§5.1 `family_user` 新增 `device_token` 字段（phone 与 device_token 二选一非空）；§6.1 移除 `/v1/auth/sms-code` 与 `/v1/auth/login`，新增 `/v1/auth/anonymous-device`；§6.2 错误码新增 `DEVICE_TOKEN_REQUIRED`；§11.11 JWT 续签改为"过期走 `/v1/auth/anonymous-device` 续签"；§10.4 SMS 标记 MVP-DEFER，v2.x 启用；§3.2.x 文案"手机号绑定"同步去掉，详见 `docs/prd-v2.1.2-mvp-auth.md` |
 
 
 ---
@@ -700,6 +701,12 @@ pending_diary(
 | created_at | ISO datetime | 是 | |
 | updated_at | ISO datetime | 是 | |
 
+> **v2.1.2 修订**：MVP 阶段 `phone` 与 `device_token` **二选一非空**——`phone` 留空表示未走 SMS 注册，`device_token` 必填用于 anonymous-device 流程标识设备。v2.x 接回 SMS 时收紧到 `phone` 必填。
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `device_token` | string | 否（v2.1.2 新增） | UUID v4，client 首启生成；anonymous-device 流程唯一标识（**MVP 必填**之一；v2.x 接 SMS 后可选）|
+
 ### 5.2 `elder_profile`（老人档案）
 
 | 字段 | 类型 | 必填 | 说明 |
@@ -840,7 +847,7 @@ pending_diary(
 | 端点 | 方法 | 鉴权角色 | 限流 | 说明 |
 |------|------|----------|------|------|
 | `/v1/auth/sms-code` | POST | 公开 | 60s 1 次 / 手机号 | 发送短信验证码 |
-| `/v1/auth/login` | POST | 公开 | 5 次失败锁定 5 分钟 | 验证码登录，返回 JWT |
+| `/v1/auth/anonymous-device` | POST | 公开 | 60s 1 次 / device_token | **v2.1.2 新增**：device_token 静默注册 / 登录，返回 JWT；MVP 阶段唯一鉴权端点；v2.x 接 SMS 后保留作为降级路径 |
 | `/v1/bind/elder` | POST | family | 10 次 / 小时 | 家属绑定老人 |
 | `/v1/bind/elder/:id` | DELETE | family (primary) | — | 解绑（仅 primary） |
 | `/v1/reminders` | GET | family / elder | — | 列出可访问的提醒 |
@@ -1125,3 +1132,5 @@ pending_diary(
 ---
 
 > **维护说明**：PRD 是产品需求的唯一真源；AGENT.md 中所有产品规则、数据字段、错误码、行为约束必须能在本 PRD 中找到对应条款。
+| 422 | `DEVICE_TOKEN_REQUIRED` | **v2.1.2 新增**：`/v1/auth/anonymous-device` 入参缺 device_token 或格式不合法 |
+| 11.11 | JWT 续签机制（v2.1.2 修订） | 单 JWT 7 天有效；过期客户端静默重新走 `/v1/auth/anonymous-device`（不通知、不弹窗；MVP 唯一鉴权路径）| 已定（§7.4 / 无 refresh token / §C） |

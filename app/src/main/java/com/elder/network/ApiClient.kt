@@ -25,10 +25,9 @@ class ApiClient(
 
     private val authInterceptor = Interceptor { chain ->
         val req = chain.request()
-        // 登录 / 发送验证码端点不需 Bearer
+        // anonymous-device / bind 端点不需 Bearer（§C / §3.2.7，v2.1.2）
         val path = req.url.encodedPath
-        val isPublic = path.endsWith("/v1/auth/sms-code") ||
-            path.endsWith("/v1/auth/login") ||
+        val isPublic = path.endsWith("/v1/auth/anonymous-device") ||
             path.contains("/v1/bind/code") ||
             path.contains("/v1/bind/pending") ||
             path.contains("/v1/bind/confirm")

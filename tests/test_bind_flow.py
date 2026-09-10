@@ -12,7 +12,9 @@ from elder_common.repos import elder_profile as ep_repo
 async def _bind_setup(account_client: object) -> tuple[str, str]:
     """走完 elder 创建 bind_code + family 扫码。
 
-    返回 (elder_device_token, family_token)。
+    v2.1.2：family 端走 anonymous-device 拿 JWT，不再走 SMS。
+
+    返回 (elder_device_token, family_token, family_user_id)。
     """
     device = "elder-token-A"
     # 1. elder 端签 bind_code
@@ -22,15 +24,13 @@ async def _bind_setup(account_client: object) -> tuple[str, str]:
     assert r.status_code == 200, r.text
     bind_code = r.json()["bind_code"]
 
-    # 2. family 注册 + 登录拿 token
-    fam_phone = "13800138001"
-    await account_client.post("/v1/auth/sms-code", json={"phone": fam_phone})  # type: ignore[attr-defined]
-    # 通过 dev peek 取 code
-    store = _sms_store()
-    code = store.dev_peek(fam_phone)
-    assert code
-    r = await account_client.post("/v1/auth/login", json={"phone": fam_phone, "code": code})  # type: ignore[attr-defined]
+    # 2. family anonymous-device 拿 token
+    r = await account_client.post(  # type: ignore[attr-defined]
+        "/v1/auth/anonymous-device", json={"device_token": "fam-device-aaaa-1111"}
+    )
+    assert r.status_code == 200, r.text
     family_token = r.json()["token"]
+    family_user_id = r.json()["user_id"]
 
     # 3. family 扫码 → 服务端生成新的 bind_attempt
     r = await account_client.post(  # type: ignore[attr-defined]
@@ -39,18 +39,20 @@ async def _bind_setup(account_client: object) -> tuple[str, str]:
         headers={"Authorization": f"Bearer {family_token}"},
     )
     assert r.status_code == 200, r.text
-    return device, family_token
+    return device, family_token, family_user_id
 
 
 def _sms_store() -> object:
-    from services.account_service.app.deps import _sms_store  # type: ignore[attr-defined]
-
-    return _sms_store
+    """MVP-DEFER（v2.1.2）：保留函数名但返回空 —— 历史调用方已切 anonymous-device。"""
+    class _Empty:
+        def dev_peek(self, _: str) -> str | None:
+            return None
+    return _Empty()
 
 
 async def test_bind_full_flow_accept(account_client: object) -> None:
     """§3.2.8 accept：elder_profile + binding(PRIMARY) 创建；返回 elder JWT。"""
-    device, _fam_token = await _bind_setup(account_client)
+    device, _fam_token, _fam_uid = await _bind_setup(account_client)
     # elder 端 /v1/bind/pending 拿队列
     r = await account_client.get(  # type: ignore[attr-defined]
         "/v1/bind/pending", headers={"X-Elder-Device-Token": device}
@@ -87,7 +89,7 @@ async def test_bind_full_flow_accept(account_client: object) -> None:
 
 async def test_bind_full_flow_reject(account_client: object) -> None:
     """§3.2.8 reject：bind_attempt 标 rejected；不创建 elder_profile / binding。"""
-    device, _fam_token = await _bind_setup(account_client)
+    device, _fam_token, _fam_uid = await _bind_setup(account_client)
     r = await account_client.get(  # type: ignore[attr-defined]
         "/v1/bind/pending", headers={"X-Elder-Device-Token": device}
     )
@@ -121,12 +123,13 @@ async def test_bind_primary_then_secondary(account_client: object) -> None:
         bind_codes.append(r.json()["bind_code"])
 
     family_tokens: list[str] = []
-    family_phones = ["13800138002", "13800138003"]
-    for phone in family_phones:
-        await account_client.post("/v1/auth/sms-code", json={"phone": phone})  # type: ignore[attr-defined]
-        code = _sms_store().dev_peek(phone)
+    family_device_tokens = [
+        "fam-device-cccc-2222",
+        "fam-device-dddd-3333",
+    ]
+    for dev_token in family_device_tokens:
         r = await account_client.post(  # type: ignore[attr-defined]
-            "/v1/auth/login", json={"phone": phone, "code": code}
+            "/v1/auth/anonymous-device", json={"device_token": dev_token}
         )
         family_tokens.append(r.json()["token"])
 
@@ -158,7 +161,7 @@ async def test_bind_primary_then_secondary(account_client: object) -> None:
 
 async def test_bind_confirm_wrong_device(account_client: object) -> None:
     """§3.2.8：confirm 时 X-Elder-Device-Token 与 bind_attempt 不符 → 403。"""
-    device, _ = await _bind_setup(account_client)
+    device, _, _ = await _bind_setup(account_client)
     r = await account_client.get(  # type: ignore[attr-defined]
         "/v1/bind/pending", headers={"X-Elder-Device-Token": device}
     )

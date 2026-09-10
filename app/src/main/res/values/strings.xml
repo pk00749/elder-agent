@@ -7,14 +7,6 @@
     <string name="identity_family">我是家人</string>
     <string name="identity_elder">我是爸妈</string>
 
-    <!-- 登录 §3.2 / §6.1 -->
-    <string name="login_phone_hint">手机号</string>
-    <string name="login_code_hint">验证码</string>
-    <string name="login_send_code">发送验证码</string>
-    <string name="login_resend_in">%1$d 秒后可重发</string>
-    <string name="login_button">登录</string>
-    <string name="login_invalid_code">验证码错误或已过期</string>
-
     <!-- 通用 -->
     <string name="common_back">返回</string>
     <string name="common_cancel">取消</string>
@@ -142,6 +134,5 @@
     <string name="toast_network_error">网络好像断了，再试一次</string>
     <string name="toast_save_error">保存失败，再试一次</string>
     <string name="toast_server_busy">服务器忙，过会儿再试</string>
-    <string name="toast_login_failed">登录失败</string>
     <string name="toast_unbound_no_diary">未绑定家人，写好的日记会丢失</string>
 </resources>
