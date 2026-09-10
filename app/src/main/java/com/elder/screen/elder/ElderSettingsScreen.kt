@@ -41,14 +41,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.elder.android.R
 import com.elder.android.data.db.FontScale
 import com.elder.android.design.tokens.BrandColor
+import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,10 +73,10 @@ fun ElderSettingsScreen(
     Surface(modifier = Modifier.fillMaxSize(), color = BrandColor.CardWhite) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
-                title = { Text("设置", fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.settings_title), fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
@@ -99,22 +103,22 @@ fun ElderSettingsScreen(
     if (state.showLogoutConfirm) {
         AlertDialog(
             onDismissRequest = vm::cancelLogout,
-            title = { Text("退出登录", fontSize = FontSize.body(), fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.settings_logout), fontSize = FontSize.body(), fontWeight = FontWeight.Bold) },
             text = {
                 Text(
-                    "退出后所有日志和设置都会清空。\n\n日志只存在这台手机，退出后无法恢复。",
+                    stringResource(R.string.settings_logout_warning),
                     fontSize = FontSize.body(),
                     color = BrandColor.TextPrimary,
                 )
             },
             confirmButton = {
                 TextButton(onClick = vm::confirmLogout) {
-                    Text("确认退出", color = BrandColor.Error500, fontSize = FontSize.body())
+                    Text(stringResource(R.string.settings_logout_confirm_button), color = BrandColor.Error500, fontSize = FontSize.body())
                 }
             },
             dismissButton = {
                 TextButton(onClick = vm::cancelLogout) {
-                    Text("取消", color = BrandColor.TextSecondary, fontSize = FontSize.body())
+                    Text(stringResource(R.string.common_cancel), color = BrandColor.TextSecondary, fontSize = FontSize.body())
                 }
             },
         )
@@ -123,7 +127,11 @@ fun ElderSettingsScreen(
 
 @Composable
 private fun SettingRow1Asr(configured: Boolean, onClick: () -> Unit) {
-    SettingRow(title = "AI 语音识别", subtitle = if (configured) "已配置" else "未配置", onClick = onClick, trailing = {
+    SettingRow(
+        title = stringResource(R.string.settings_asr),
+        subtitle = if (configured) stringResource(R.string.settings_asr_configured) else stringResource(R.string.settings_asr_not_configured),
+        onClick = onClick,
+        trailing = {
         if (!configured) RedDot()
     })
 }
@@ -133,14 +141,14 @@ private fun SettingRow2FontScale(current: FontScale, onPick: (FontScale) -> Unit
     Column(modifier = Modifier
         .fillMaxWidth()
         .padding(Spacing.Md)) {
-        Text("字体大小", fontSize = FontSize.body(), color = BrandColor.TextPrimary)
+        Text(stringResource(R.string.settings_font_size), fontSize = FontSize.body(), color = BrandColor.TextPrimary)
         Spacer(modifier = Modifier.height(Spacing.Sm))
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
             listOf(FontScale.DEFAULT, FontScale.LARGE, FontScale.XLARGE).forEach { f ->
                 FilterChip(
                     selected = current == f,
                     onClick = { onPick(f) },
-                    label = { Text(labelOf(f), fontSize = 18.sp) },
+                    label = { Text(labelOf(f), fontSize = FontSize.BodySmallSp.sp) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = BrandColor.Brand500,
                         selectedLabelColor = Color.White,
@@ -160,9 +168,9 @@ private fun labelOf(f: FontScale) = when (f) {
 @Composable
 private fun SettingRow3Tts(enabled: Boolean, onChange: (Boolean) -> Unit) {
     SettingRow(
-        title = "语音播报",
-        subtitle = if (enabled) "开" else "关",
-        onClick = { onChange(!enabled) },
+        title = stringResource(R.string.settings_tts_switch),
+        subtitle = if (enabled) stringResource(R.string.settings_on) else stringResource(R.string.settings_off),
+        onClick = {},
         trailing = {
             Switch(
                 checked = enabled,
@@ -178,17 +186,17 @@ private fun SettingRow3Tts(enabled: Boolean, onChange: (Boolean) -> Unit) {
 
 @Composable
 private fun SettingRow4Volume(onClick: () -> Unit) {
-    SettingRow(title = "音量", subtitle = "跳转系统音量设置", onClick = onClick)
+    SettingRow(title = stringResource(R.string.settings_volume), subtitle = stringResource(R.string.settings_volume_hint), onClick = onClick)
 }
 
 @Composable
 private fun SettingRow5About(versionName: String) {
-    SettingRow(title = "关于", subtitle = "版本 $versionName", onClick = {})
+    SettingRow(title = stringResource(R.string.settings_about), subtitle = stringResource(R.string.settings_version, versionName), onClick = {})
 }
 
 @Composable
 private fun SettingRow6Logout(onClick: () -> Unit) {
-    SettingRow(title = "退出登录", subtitle = "清空本地数据", onClick = onClick)
+    SettingRow(title = stringResource(R.string.settings_logout), subtitle = stringResource(R.string.settings_logout_subtitle), onClick = onClick)
 }
 
 @Composable
@@ -201,14 +209,14 @@ private fun SettingRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(Size.ListRowMinHeight)
             .clickable(onClick = onClick)
             .padding(horizontal = Spacing.Md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(title, fontSize = FontSize.body(), color = BrandColor.TextPrimary)
-            Text(subtitle, fontSize = 20.sp, color = BrandColor.TextSecondary)
+            Text(subtitle, fontSize = FontSize.caption(), color = BrandColor.TextSecondary)
         }
         trailing?.invoke()
     }
@@ -226,7 +234,7 @@ private fun Divider() {
 private fun RedDot() {
     androidx.compose.foundation.layout.Box(
         modifier = Modifier
-            .size(12.dp)
+            .size(Size.WarningDotSize)
             .clip(CircleShape)
             .background(BrandColor.Error500),
     )

@@ -37,17 +37,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.elder.android.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
+import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.ui.component.ElderToast
+import com.elder.android.ui.component.LoadingState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,13 +86,13 @@ fun ElderDiaryRecordScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
-                title = { Text("写日志", fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.diary_recording_title), fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = {
                         vm.cancel()
                         onBack()
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
@@ -103,7 +108,7 @@ fun ElderDiaryRecordScreen(
                 val savedId = state.savedId
                 when {
                     state.isRecording -> RecordingActive(state = state, onStop = vm::stopAndProcess)
-                    state.isProcessing -> ProcessingState()
+                    state.isProcessing -> LoadingState()
                     savedId != null && savedTranscript != null -> RecordedState(
                         durationMs = state.elapsedMs,
                         transcript = savedTranscript,
@@ -131,8 +136,8 @@ fun ElderDiaryRecordScreen(
 private fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "正在录音… ${formatSec(state.elapsedMs)}",
-            fontSize = 28.sp,
+            text = stringResource(R.string.diary_recording_recording, (state.elapsedMs / 60000).toInt(), ((state.elapsedMs / 1000) % 60).toInt()),
+            fontSize = FontSize.body(FontLevel.LARGE),
             fontWeight = FontWeight.Bold,
             color = BrandColor.Error500,
         )
@@ -140,7 +145,7 @@ private fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
         Button(
             onClick = onStop,
             modifier = Modifier
-                .size(160.dp)
+                .size(Size.PressButtonSize)
                 .clip(CircleShape),
             shape = RoundedCornerShape(percent = 50),
             colors = ButtonDefaults.buttonColors(
@@ -149,8 +154,8 @@ private fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
             ),
         ) {
             Text(
-                text = "点击停止",
-                fontSize = 24.sp,
+                text = stringResource(R.string.diary_recording_stop),
+                fontSize = FontSize.body(),
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -158,18 +163,7 @@ private fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
 }
 
 @Composable
-private fun ProcessingState() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        CircularProgressIndicator(color = BrandColor.Brand500)
-        Spacer(modifier = Modifier.height(Spacing.Md))
-        Text(
-            text = "转写中…",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = BrandColor.TextPrimary,
-        )
-    }
-}
+private fun ProcessingState() = LoadingState()
 
 @Composable
 private fun RecordedState(
@@ -182,8 +176,8 @@ private fun RecordedState(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "✓ 已录音 ${formatSec(durationMs)}",
-            fontSize = 28.sp,
+            text = stringResource(R.string.diary_recording_done_check) + " " + stringResource(R.string.diary_recording_done_duration, (durationMs / 60000).toInt(), ((durationMs / 1000) % 60).toInt()),
+            fontSize = FontSize.body(FontLevel.LARGE),
             fontWeight = FontWeight.Bold,
             color = BrandColor.Brand500,
         )
@@ -205,14 +199,14 @@ private fun RecordedState(
             onClick = onDone,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(96.dp),
+                .height(Size.PrimaryButtonHeight),
             shape = RoundedCornerShape(Corner.Button),
             colors = ButtonDefaults.buttonColors(
                 containerColor = BrandColor.Brand500,
                 contentColor = Color.White,
             ),
         ) {
-            Text("返回主页", fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.diary_recording_back), fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -224,7 +218,7 @@ private fun StartState(
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "需要麦克风权限才能写日志",
+            text = stringResource(R.string.diary_recording_mic_denied),
             fontSize = FontSize.body(),
             color = BrandColor.Error500,
         )
@@ -233,14 +227,14 @@ private fun StartState(
             onClick = { permLauncher.launch(Manifest.permission.RECORD_AUDIO) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(96.dp),
+                .height(Size.PrimaryButtonHeight),
             shape = RoundedCornerShape(Corner.Button),
             colors = ButtonDefaults.buttonColors(
                 containerColor = BrandColor.Brand500,
                 contentColor = Color.White,
             ),
         ) {
-            Text("授权并开始", fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.diary_recording_auth_and_start), fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
         }
     }
 }

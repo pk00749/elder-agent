@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -40,11 +41,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.elder.android.R
 import com.elder.android.data.asr.AsrApiClient.Companion.BAILIAN_MODEL
 import com.elder.android.data.asr.AsrApiClient.Companion.BAILIAN_WORKSPACE_ID
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
+import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.ui.component.ElderToast
 
@@ -69,10 +73,10 @@ fun AsrConfigScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
-                title = { Text("AI 语音识别", fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.asr_config_title), fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {
@@ -86,7 +90,7 @@ fun AsrConfigScreen(
                             )
                             .padding(horizontal = Spacing.Md, vertical = Spacing.Xs),
                         color = Color.White,
-                        fontSize = 24.sp,
+                        fontSize = FontSize.body(),
                         fontWeight = FontWeight.Bold,
                     )
                 },
@@ -106,10 +110,10 @@ fun AsrConfigScreen(
                 item { BailianConfigCard() }
                 item {
                     LabeledField(
-                        label = "API Key",
+                        label = stringResource(R.string.asr_config_api_key),
                         value = state.apiKey,
                         onChange = vm::setApiKey,
-                        placeholder = "sk-...",
+                        placeholder = stringResource(R.string.asr_config_api_key_placeholder),
                         isPassword = true,
                         keyboardType = KeyboardType.Password,
                     )
@@ -130,7 +134,11 @@ fun AsrConfigScreen(
                                 .background(BrandColor.BgGray, RoundedCornerShape(Corner.Card))
                                 .padding(Spacing.Md),
                         ) {
-                            Text("最近测试：$it", fontSize = 18.sp, color = BrandColor.TextSecondary)
+                            Text(
+                                stringResource(R.string.asr_config_last_test, it),
+                                fontSize = FontSize.BodySmallSp.sp,
+                                color = BrandColor.TextSecondary,
+                            )
                         }
                     }
                 }
@@ -153,8 +161,8 @@ private fun HeaderCard() {
         color = BrandColor.BgGray,
         shape = RoundedCornerShape(Corner.Card),
     ) {
-        Text(
-            "把百炼 ASR 的 API Key 填在这里，老人端不依赖任何第三方服务器。配置只保存在这台手机。",
+       Text(
+            stringResource(R.string.asr_config_header),
             modifier = Modifier.padding(Spacing.Md),
             fontSize = FontSize.body(),
             color = BrandColor.TextSecondary,
@@ -174,9 +182,9 @@ private fun BailianConfigCard() {
             modifier = Modifier.padding(Spacing.Md),
             verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
         ) {
-            Text("服务商：阿里云百炼", fontSize = FontSize.body(), color = BrandColor.TextPrimary)
-            Text("模型：$BAILIAN_MODEL", fontSize = 18.sp, color = BrandColor.TextSecondary)
-            Text("WorkspaceId：$BAILIAN_WORKSPACE_ID", fontSize = 18.sp, color = BrandColor.TextSecondary)
+            Text(stringResource(R.string.asr_config_provider), fontSize = FontSize.body(), color = BrandColor.TextPrimary)
+            Text(stringResource(R.string.asr_config_model, BAILIAN_MODEL), fontSize = FontSize.BodySmallSp.sp, color = BrandColor.TextSecondary)
+            Text(stringResource(R.string.asr_config_workspace_id, BAILIAN_WORKSPACE_ID), fontSize = FontSize.BodySmallSp.sp, color = BrandColor.TextSecondary)
         }
     }
 }
@@ -195,11 +203,11 @@ private fun LabeledField(
         OutlinedTextField(
             value = value,
             onValueChange = onChange,
-            placeholder = { Text(placeholder, fontSize = 20.sp, color = BrandColor.TextSecondary) },
+            placeholder = { Text(placeholder, fontSize = FontSize.caption(), color = BrandColor.TextSecondary) },
             singleLine = true,
             visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 22.sp),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = FontSize.BodyInputSp.sp),
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = BrandColor.CardWhite,
@@ -221,7 +229,7 @@ private fun TestButton(
         enabled = enabled && !isLoading,
         modifier = Modifier
             .fillMaxWidth()
-            .height(96.dp),
+            .height(Size.PrimaryButtonHeight),
         shape = RoundedCornerShape(Corner.Button),
         colors = ButtonDefaults.buttonColors(
             containerColor = BrandColor.Brand500,
@@ -232,7 +240,7 @@ private fun TestButton(
         if (isLoading) {
             CircularProgressIndicator(color = Color.White)
         } else {
-            Text("测试一下", fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.asr_config_test), fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -248,7 +256,7 @@ private fun SaveButton(
         enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
-            .height(96.dp),
+            .height(Size.PrimaryButtonHeight),
         shape = RoundedCornerShape(Corner.Button),
         colors = ButtonDefaults.buttonColors(
             containerColor = BrandColor.Brand500,

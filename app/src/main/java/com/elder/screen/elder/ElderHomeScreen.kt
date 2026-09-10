@@ -30,15 +30,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.elder.android.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 
 @Composable
@@ -59,7 +62,7 @@ fun ElderHomeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(240.dp)
+                    .height(Size.HomeGreetingArea)
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = { vm.onGreetingTap() })
                     },
@@ -70,7 +73,7 @@ fun ElderHomeScreen(
                 ) {
                     Text(
                         text = uiState.greeting,
-                        fontSize = 40.sp,
+                        fontSize = FontSize.BodyHugeSp.sp,
                         fontWeight = FontWeight.Bold,
                         color = BrandColor.TextPrimary,
                     )
@@ -83,8 +86,8 @@ fun ElderHomeScreen(
                     if (uiState.showAsrHint) {
                         Spacer(modifier = Modifier.height(Spacing.Sm))
                         Text(
-                            text = "请在设置 → AI 语音识别 配置 API",
-                            fontSize = FontSize.body(),
+                            text = stringResource(R.string.home_asr_unconfigured),
+                            fontSize = FontSize.BodySmallSp.sp,
                             color = BrandColor.Error500,
                             modifier = Modifier
                                 .clickable { onOpenSettings() }
@@ -97,7 +100,7 @@ fun ElderHomeScreen(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(Spacing.Md)
-                        .size(32.dp)
+                        .size(Size.TodayRecordIcon)
                         .clip(CircleShape)
                         .background(if (uiState.todayRecorded) BrandColor.Brand500 else Color.Transparent)
                         .clickable { onOpenRecent() },
@@ -105,38 +108,38 @@ fun ElderHomeScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "今日记录",
+                        contentDescription = stringResource(R.string.home_today_records_icon_desc),
                         tint = if (uiState.todayRecorded) Color.White else BrandColor.TextSecondary,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(Size.IconMd),
                     )
                 }
             }
 
-            // 区域 C：写日记按钮（高 200dp，v3.0 占满）
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(Spacing.Md),
+           // 区域 C：写日记按钮（高 200dp，v3.0 占满）
+           Box(
+               modifier = Modifier
+                   .fillMaxWidth()
+                    .height(Size.HomeDiaryArea)
+                   .padding(Spacing.Md),
                 contentAlignment = Alignment.Center,
             ) {
-                Button(
-                    onClick = onStartDiary,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp),
-                    shape = RoundedCornerShape(Corner.Button),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = BrandColor.Brand500,
-                        contentColor = Color.White,
-                    ),
-                ) {
-                    Text(
-                        text = "✎  点击开始写日志",
-                        fontSize = FontSize.button(),
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
+               Button(
+                   onClick = onStartDiary,
+                   modifier = Modifier
+                       .fillMaxWidth()
+                        .height(Size.HomeDiaryButton),
+                   shape = RoundedCornerShape(Corner.Button),
+                   colors = ButtonDefaults.buttonColors(
+                       containerColor = BrandColor.Brand500,
+                       contentColor = Color.White,
+                   ),
+               ) {
+                   Text(
+                        text = stringResource(R.string.home_diary_button),
+                       fontSize = FontSize.button(),
+                       fontWeight = FontWeight.Bold,
+                   )
+               }
             }
         }
     }

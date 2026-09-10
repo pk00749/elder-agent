@@ -21,6 +21,8 @@
     <string name="home_no_reminders_today">今日暂无提醒</string>
     <string name="home_today_records_icon_desc">今日记录</string>
     <string name="home_diary_button">点击开始写日志</string>
+    <string name="home_asr_unconfigured">请在设置 → AI 语音识别 配置 API</string>
+    <string name="home_settings_button">设置</string>
 
     <!-- §3.2.1 家属主屏 -->
     <string name="family_home_bound_title">已绑定 · 爸妈的家</string>
@@ -100,6 +102,9 @@
     <string name="diary_recording_mic_denied">需要麦克风权限才能写日记</string>
     <!-- PR-A 新增，MVP 录音闭环专用（不动既有字段，AGENTS.md §18） -->
     <string name="diary_recording_stop">点击停止</string>
+    <string name="diary_recording_title">写日志</string>
+    <string name="diary_recording_transcribing">转写中…</string>
+    <string name="diary_recording_auth_and_start">授权并开始</string>
     <string name="diary_recording_done_check">✓ 已录音</string>
     <string name="diary_recording_done_duration">%1$02d:%2$02d</string>
     <string name="diary_recording_back">返回主页</string>
@@ -111,21 +116,46 @@
 
     <!-- §3.1.7 今日记录屏 -->
     <string name="diary_recent_title">近期日志</string>
+    <string name="diary_recent_screen_title">今日记录</string>
     <string name="diary_recent_today_tab">今天</string>
     <string name="diary_recent_7d_tab">近7天</string>
+    <string name="diary_recent_edit_dialog_title">手动改写</string>
+    <string name="diary_recent_edit_icon_desc">改写</string>
 
     <!-- §3.1.8 老人设置 -->
     <string name="settings_title">设置</string>
+    <string name="settings_asr">AI 语音识别</string>
+    <string name="settings_asr_configured">已配置</string>
+    <string name="settings_asr_not_configured">未配置</string>
     <string name="settings_font_size">字体大小</string>
     <string name="settings_tts_switch">语音播报</string>
+    <string name="settings_on">开</string>
+    <string name="settings_off">关</string>
     <string name="settings_volume">媒体音量</string>
+    <string name="settings_volume_hint">跳转系统音量设置</string>
     <string name="settings_generate_qr">生成本机二维码</string>
     <string name="settings_about">关于</string>
+    <string name="settings_version">版本 %1$s</string>
     <string name="settings_logout">退出登录</string>
+    <string name="settings_logout_subtitle">清空本地数据</string>
+    <string name="settings_logout_warning">退出后所有日志和设置都会清空。\n\n日志只存在这台手机，退出后无法恢复。</string>
+    <string name="settings_logout_confirm_button">确认退出</string>
     <string name="settings_logout_confirm">退出后将无法接收提醒\n再装此 App 需要家人重新绑定</string>
     <string name="settings_font_normal">默认</string>
     <string name="settings_font_large">大</string>
     <string name="settings_font_xlarge">特大</string>
+
+    <!-- §3.1.9 ASR 配置（v3.0.1 §A.1.b：百炼 only） -->
+    <string name="asr_config_title">AI 语音识别</string>
+    <string name="asr_config_header">把百炼 ASR 的 API Key 填在这里，老人端不依赖任何第三方服务器。配置只保存在这台手机。</string>
+    <string name="asr_config_provider">服务商：阿里云百炼</string>
+    <string name="asr_config_model">模型：%1$s</string>
+    <string name="asr_config_workspace_id">WorkspaceId：%1$s</string>
+    <string name="asr_config_api_key">API Key</string>
+    <string name="asr_config_api_key_placeholder">sk-…</string>
+    <string name="asr_config_test">测试一下</string>
+    <string name="asr_config_last_test">最近测试：%1$s</string>
+    <string name="asr_config_tts_play_desc">朗读</string>
 
     <!-- 空态 / 加载 / 网络 -->
     <string name="empty_no_reminders">还没有提醒，点上面的 + 加一个</string>

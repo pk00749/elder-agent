@@ -36,16 +36,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.elder.android.R
 import com.elder.android.data.db.DiaryEntryEntity
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
+import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -62,10 +66,10 @@ fun ElderDiaryRecentScreen(
     Surface(modifier = Modifier.fillMaxSize(), color = BrandColor.CardWhite) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
-                title = { Text("今日记录", fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.diary_recent_screen_title), fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
@@ -80,7 +84,7 @@ fun ElderDiaryRecentScreen(
                 FilterChip(
                     selected = state.range == DiaryRecentRange.TODAY,
                     onClick = { vm.setRange(DiaryRecentRange.TODAY) },
-                    label = { Text("今天", fontSize = FontSize.body()) },
+                    label = { Text(stringResource(R.string.diary_recent_today_tab), fontSize = FontSize.body()) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = BrandColor.Brand500,
                         selectedLabelColor = Color.White,
@@ -89,7 +93,7 @@ fun ElderDiaryRecentScreen(
                 FilterChip(
                     selected = state.range == DiaryRecentRange.LAST_7_DAYS,
                     onClick = { vm.setRange(DiaryRecentRange.LAST_7_DAYS) },
-                    label = { Text("近7天", fontSize = FontSize.body()) },
+                    label = { Text(stringResource(R.string.diary_recent_7d_tab), fontSize = FontSize.body()) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = BrandColor.Brand500,
                         selectedLabelColor = Color.White,
@@ -100,8 +104,8 @@ fun ElderDiaryRecentScreen(
             if (state.entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     val emptyMsg = when (state.range) {
-                        DiaryRecentRange.TODAY -> "今天还没记"
-                        DiaryRecentRange.LAST_7_DAYS -> "近7天还没有日志"
+                        DiaryRecentRange.TODAY -> stringResource(R.string.empty_no_diary)
+                        DiaryRecentRange.LAST_7_DAYS -> stringResource(R.string.empty_no_diary_7d)
                     }
                     Text(emptyMsg, fontSize = FontSize.body(), color = BrandColor.TextSecondary)
                 }
@@ -126,25 +130,25 @@ fun ElderDiaryRecentScreen(
     if (editingId != null) {
         AlertDialog(
             onDismissRequest = vm::cancelEdit,
-            title = { Text("手动改写", fontSize = FontSize.body(), fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.diary_recent_edit_dialog_title), fontSize = FontSize.body(), fontWeight = FontWeight.Bold) },
             text = {
                 OutlinedTextField(
                     value = state.editingDraft,
                     onValueChange = vm::updateDraft,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(160.dp),
-                    textStyle = TextStyle(fontSize = 22.sp),
+                        .height(Size.EditDialogFieldHeight),
+                    textStyle = TextStyle(fontSize = FontSize.BodyInputSp.sp),
                 )
             },
             confirmButton = {
                 TextButton(onClick = { vm.saveEdit() }) {
-                    Text("保存", color = BrandColor.Brand500, fontSize = FontSize.body())
+                    Text(stringResource(R.string.common_save), color = BrandColor.Brand500, fontSize = FontSize.body())
                 }
             },
             dismissButton = {
                 TextButton(onClick = vm::cancelEdit) {
-                    Text("取消", color = BrandColor.TextSecondary, fontSize = FontSize.body())
+                    Text(stringResource(R.string.common_cancel), color = BrandColor.TextSecondary, fontSize = FontSize.body())
                 }
             },
         )
@@ -167,7 +171,7 @@ private fun DiaryRow(entry: DiaryEntryEntity, onEdit: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = formatTime(entry.createdAt),
-                    fontSize = 20.sp,
+                    fontSize = FontSize.caption(),
                     color = BrandColor.TextSecondary,
                 )
                 Spacer(modifier = Modifier.height(Spacing.Xs))
@@ -178,7 +182,7 @@ private fun DiaryRow(entry: DiaryEntryEntity, onEdit: () -> Unit) {
                 )
             }
             IconButton(onClick = onEdit) {
-                Icon(Icons.Default.Edit, contentDescription = "改写", tint = BrandColor.Brand500)
+                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.diary_recent_edit_icon_desc), tint = BrandColor.Brand500)
             }
         }
     }
