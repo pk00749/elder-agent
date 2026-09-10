@@ -1,0 +1,448 @@
+Processing 'app/ui/build/.transforms/fe4e0141d40d3209c866f14ac1aa7e12/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/ui/component/ElderToastKt.dex'...
+Opened 'app/ui/build/.transforms/fe4e0141d40d3209c866f14ac1aa7e12/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/ui/component/ElderToastKt.dex', DEX version '038'
+Class #0            -
+  Class descriptor  : 'Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;'
+  Access flags      : 0x1011 (PUBLIC FINAL SYNTHETIC)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+    #0              : 'Lkotlin/jvm/functions/Function2;'
+  Static fields     -
+  Instance fields   -
+    #0              : (in Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;)
+      name          : 'f$0'
+      type          : 'Ljava/lang/String;'
+      access        : 0x1011 (PUBLIC FINAL SYNTHETIC)
+    #1              : (in Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;)
+      name          : 'f$1'
+      type          : 'Lkotlin/jvm/functions/Function0;'
+      access        : 0x1011 (PUBLIC FINAL SYNTHETIC)
+    #2              : (in Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;)
+      name          : 'f$2'
+      type          : 'I'
+      access        : 0x1011 (PUBLIC FINAL SYNTHETIC)
+  Direct methods    -
+    #0              : (in Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;)
+      name          : '<init>'
+      type          : '(Ljava/lang/String;Lkotlin/jvm/functions/Function0;I)V'
+      access        : 0x11001 (PUBLIC SYNTHETIC CONSTRUCTOR)
+      code          -
+      registers     : 4
+      ins           : 4
+      outs          : 1
+      insns size    : 10 16-bit code units
+000700:                                        |[000700] com.elder.android.ui.component.ElderToastKt$$ExternalSyntheticLambda0.<init>:(Ljava/lang/String;Lkotlin/jvm/functions/Function0;I)V
+000710: 7010 2600 0000                         |0000: invoke-direct {v0}, Ljava/lang/Object;.<init>:()V // method@0026
+000716: 5b01 0100                              |0003: iput-object v1, v0, Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;.f$0:Ljava/lang/String; // field@0001
+00071a: 5b02 0200                              |0005: iput-object v2, v0, Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;.f$1:Lkotlin/jvm/functions/Function0; // field@0002
+00071e: 5903 0300                              |0007: iput v3, v0, Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;.f$2:I // field@0003
+000722: 0e00                                   |0009: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=0
+      locals        :
+        0x0000 - 0x000a reg=0 this Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;
+        0x0000 - 0x000a reg=1 (null) Ljava/lang/String;
+        0x0000 - 0x000a reg=2 (null) Lkotlin/jvm/functions/Function0;
+        0x0000 - 0x000a reg=3 (null) I
+
+  Virtual methods   -
+    #0              : (in Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;)
+      name          : 'invoke'
+      type          : '(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 6
+      ins           : 3
+      outs          : 5
+      insns size    : 19 16-bit code units
+0006c8:                                        |[0006c8] com.elder.android.ui.component.ElderToastKt$$ExternalSyntheticLambda0.invoke:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+0006d8: 5430 0100                              |0000: iget-object v0, v3, Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;.f$0:Ljava/lang/String; // field@0001
+0006dc: 5431 0200                              |0002: iget-object v1, v3, Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;.f$1:Lkotlin/jvm/functions/Function0; // field@0002
+0006e0: 5232 0300                              |0004: iget v2, v3, Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;.f$2:I // field@0003
+0006e4: 1f04 0b00                              |0006: check-cast v4, Landroidx/compose/runtime/Composer; // type@000b
+0006e8: 1f05 1f00                              |0008: check-cast v5, Ljava/lang/Integer; // type@001f
+0006ec: 6e10 2500 0500                         |000a: invoke-virtual {v5}, Ljava/lang/Integer;.intValue:()I // method@0025
+0006f2: 0a05                                   |000d: move-result v5
+0006f4: 7155 1d00 1042                         |000e: invoke-static {v0, v1, v2, v4, v5}, Lcom/elder/android/ui/component/ElderToastKt;.$r8$lambda$cKCFWB_BidkwYf8Xeg2yhYhcXj4:(Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit; // method@001d
+0006fa: 0c04                                   |0011: move-result-object v4
+0006fc: 1104                                   |0012: return-object v4
+      catches       : (none)
+      positions     :
+        0x0000 line=0
+      locals        :
+        0x0000 - 0x0013 reg=3 this Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;
+        0x0000 - 0x0013 reg=4 (null) Ljava/lang/Object;
+        0x0000 - 0x0013 reg=5 (null) Ljava/lang/Object;
+
+  source_file_idx   : 28 (D8$$SyntheticClass)
+
+Class #1            -
+  Class descriptor  : 'Lcom/elder/android/ui/component/ElderToastKt;'
+  Access flags      : 0x0011 (PUBLIC FINAL)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+  Static fields     -
+    #0              : (in Lcom/elder/android/ui/component/ElderToastKt;)
+      name          : 'SHOW_DURATION_MS'
+      type          : 'J'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+      value         : 1500
+  Instance fields   -
+  Direct methods    -
+    #0              : (in Lcom/elder/android/ui/component/ElderToastKt;)
+      name          : '$r8$lambda$cKCFWB_BidkwYf8Xeg2yhYhcXj4'
+      type          : '(Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;'
+      access        : 0x1009 (PUBLIC STATIC SYNTHETIC)
+      code          -
+      registers     : 5
+      ins           : 5
+      outs          : 5
+      insns size    : 5 16-bit code units
+000758:                                        |[000758] com.elder.android.ui.component.ElderToastKt.$r8$lambda$cKCFWB_BidkwYf8Xeg2yhYhcXj4:(Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;
+000768: 7154 2100 1032                         |0000: invoke-static {v0, v1, v2, v3, v4}, Lcom/elder/android/ui/component/ElderToastKt;.ElderToast$lambda$4:(Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit; // method@0021
+00076e: 0c00                                   |0003: move-result-object v0
+000770: 1100                                   |0004: return-object v0
+      catches       : (none)
+      positions     :
+      locals        :
+
+    #1              : (in Lcom/elder/android/ui/component/ElderToastKt;)
+      name          : 'ElderToast'
+      type          : '(Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+      code          -
+      registers     : 21
+      ins           : 4
+      outs          : 9
+      insns size    : 292 16-bit code units
+0007c8:                                        |[0007c8] com.elder.android.ui.component.ElderToastKt.ElderToast:(Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+0007d8: 0800 1100                              |0000: move-object/from16 v0, v17
+0007dc: 0801 1200                              |0002: move-object/from16 v1, v18
+0007e0: 0202 1400                              |0004: move/from16 v2, v20
+0007e4: 1a03 8b00                              |0006: const-string v3, "onDismiss" // string@008b
+0007e8: 7120 2700 3100                         |0008: invoke-static {v1, v3}, Lkotlin/jvm/internal/Intrinsics;.checkNotNullParameter:(Ljava/lang/Object;Ljava/lang/String;)V // method@0027
+0007ee: 1403 8831 17a2                         |000b: const v3, #float -2.04905e-18 // #a2173188
+0007f4: 0804 1300                              |000e: move-object/from16 v4, v19
+0007f8: 7220 0c00 3400                         |0010: invoke-interface {v4, v3}, Landroidx/compose/runtime/Composer;.startRestartGroup:(I)Landroidx/compose/runtime/Composer; // method@000c
+0007fe: 0c0d                                   |0013: move-result-object v13
+000800: 1a04 1900                              |0014: const-string v4, "C(ElderToast)37@1391L44,38@1464L163,38@1440L187,50@1737L857,46@1632L962:ElderToast.kt#9c24vn" // string@0019
+000804: 7120 0f00 4d00                         |0016: invoke-static {v13, v4}, Landroidx/compose/runtime/ComposerKt;.sourceInformation:(Landroidx/compose/runtime/Composer;Ljava/lang/String;)V // method@000f
+00080a: 0204 1400                              |0019: move/from16 v4, v20
+00080e: dd05 0206                              |001b: and-int/lit8 v5, v2, #int 6 // #06
+000812: 1246                                   |001d: const/4 v6, #int 4 // #4
+000814: 1227                                   |001e: const/4 v7, #int 2 // #2
+000816: 3905 0c00                              |001f: if-nez v5, 002b // +000c
+00081a: 7220 0400 0d00                         |0021: invoke-interface {v13, v0}, Landroidx/compose/runtime/Composer;.changed:(Ljava/lang/Object;)Z // method@0004
+000820: 0a05                                   |0024: move-result v5
+000822: 3805 0400                              |0025: if-eqz v5, 0029 // +0004
+000826: 0165                                   |0027: move v5, v6
+000828: 2802                                   |0028: goto 002a // +0002
+00082a: 0175                                   |0029: move v5, v7
+00082c: b654                                   |002a: or-int/2addr v4, v5
+00082e: dd05 0230                              |002b: and-int/lit8 v5, v2, #int 48 // #30
+000832: 3905 0e00                              |002d: if-nez v5, 003b // +000e
+000836: 7220 0500 1d00                         |002f: invoke-interface {v13, v1}, Landroidx/compose/runtime/Composer;.changedInstance:(Ljava/lang/Object;)Z // method@0005
+00083c: 0a05                                   |0032: move-result v5
+00083e: 3805 0500                              |0033: if-eqz v5, 0038 // +0005
+000842: 1305 2000                              |0035: const/16 v5, #int 32 // #20
+000846: 2803                                   |0037: goto 003a // +0003
+000848: 1305 1000                              |0038: const/16 v5, #int 16 // #10
+00084c: b654                                   |003a: or-int/2addr v4, v5
+00084e: 014e                                   |003b: move v14, v4
+000850: dd04 0e13                              |003c: and-int/lit8 v4, v14, #int 19 // #13
+000854: 1305 1200                              |003e: const/16 v5, #int 18 // #12
+000858: 3354 0e00                              |0040: if-ne v4, v5, 004e // +000e
+00085c: 7210 0800 0d00                         |0042: invoke-interface {v13}, Landroidx/compose/runtime/Composer;.getSkipping:()Z // method@0008
+000862: 0a04                                   |0045: move-result v4
+000864: 3904 0300                              |0046: if-nez v4, 0049 // +0003
+000868: 2806                                   |0048: goto 004e // +0006
+00086a: 7210 0a00 0d00                         |0049: invoke-interface {v13}, Landroidx/compose/runtime/Composer;.skipToGroupEnd:()V // method@000a
+000870: 2900 c900                              |004c: goto/16 0115 // +00c9
+000874: 7100 0e00 0000                         |004e: invoke-static {}, Landroidx/compose/runtime/ComposerKt;.isTraceInProgress:()Z // method@000e
+00087a: 0a04                                   |0051: move-result v4
+00087c: 3804 0800                              |0052: if-eqz v4, 005a // +0008
+000880: 12f4                                   |0054: const/4 v4, #int -1 // #ff
+000882: 1a05 7400                              |0055: const-string v5, "com.elder.android.ui.component.ElderToast (ElderToast.kt:36)" // string@0074
+000886: 7140 1100 e354                         |0057: invoke-static {v3, v14, v4, v5}, Landroidx/compose/runtime/ComposerKt;.traceEventStart:(IIILjava/lang/String;)V // method@0011
+00088c: 1403 0482 2d3c                         |005a: const v3, #float 0.0105901 // #3c2d8204
+000892: 7220 0b00 3d00                         |005d: invoke-interface {v13, v3}, Landroidx/compose/runtime/Composer;.startReplaceGroup:(I)V // method@000b
+000898: 1a03 1a00                              |0060: const-string v3, "CC(remember):ElderToast.kt#9igjgp" // string@001a
+00089c: 7120 0f00 3d00                         |0062: invoke-static {v13, v3}, Landroidx/compose/runtime/ComposerKt;.sourceInformation:(Landroidx/compose/runtime/Composer;Ljava/lang/String;)V // method@000f
+0008a2: 1204                                   |0065: const/4 v4, #int 0 // #0
+0008a4: 0145                                   |0066: move v5, v4
+0008a6: 07d9                                   |0067: move-object v9, v13
+0008a8: 120a                                   |0068: const/4 v10, #int 0 // #0
+0008aa: 7210 0900 0900                         |0069: invoke-interface {v9}, Landroidx/compose/runtime/Composer;.rememberedValue:()Ljava/lang/Object; // method@0009
+0008b0: 0c0b                                   |006c: move-result-object v11
+0008b2: 120c                                   |006d: const/4 v12, #int 0 // #0
+0008b4: 620f 0000                              |006e: sget-object v15, Landroidx/compose/runtime/Composer;.Companion:Landroidx/compose/runtime/Composer$Companion; // field@0000
+0008b8: 6e10 0300 0f00                         |0070: invoke-virtual {v15}, Landroidx/compose/runtime/Composer$Companion;.getEmpty:()Ljava/lang/Object; // method@0003
+0008be: 0c0f                                   |0073: move-result-object v15
+0008c0: 1204                                   |0074: const/4 v4, #int 0 // #0
+0008c2: 33fb 1800                              |0075: if-ne v11, v15, 008d // +0018
+0008c6: 120f                                   |0077: const/4 v15, #int 0 // #0
+0008c8: 3800 0500                              |0078: if-eqz v0, 007d // +0005
+0008cc: 1310 0100                              |007a: const/16 v16, #int 1 // #1
+0008d0: 2803                                   |007c: goto 007f // +0003
+0008d2: 1310 0000                              |007d: const/16 v16, #int 0 // #0
+0008d6: 7701 2400 1000                         |007f: invoke-static/range {v16}, Ljava/lang/Boolean;.valueOf:(Z)Ljava/lang/Boolean; // method@0024
+0008dc: 0c08                                   |0082: move-result-object v8
+0008de: 7140 1600 4847                         |0083: invoke-static {v8, v4, v7, v4}, Landroidx/compose/runtime/SnapshotStateKt;.mutableStateOf$default:(Ljava/lang/Object;Landroidx/compose/runtime/SnapshotMutationPolicy;ILjava/lang/Object;)Landroidx/compose/runtime/MutableState; // method@0016
+0008e4: 0c07                                   |0086: move-result-object v7
+0008e6: 0000                                   |0087: nop // spacer
+0008e8: 7220 0d00 7900                         |0088: invoke-interface {v9, v7}, Landroidx/compose/runtime/Composer;.updateRememberedValue:(Ljava/lang/Object;)V // method@000d
+0008ee: 0000                                   |008b: nop // spacer
+0008f0: 2802                                   |008c: goto 008e // +0002
+0008f2: 07b7                                   |008d: move-object v7, v11
+0008f4: 0000                                   |008e: nop // spacer
+0008f6: 0000                                   |008f: nop // spacer
+0008f8: 077f                                   |0090: move-object v15, v7
+0008fa: 1f0f 0e00                              |0091: check-cast v15, Landroidx/compose/runtime/MutableState; // type@000e
+0008fe: 7210 0600 0d00                         |0093: invoke-interface {v13}, Landroidx/compose/runtime/Composer;.endReplaceGroup:()V // method@0006
+000904: 1405 9b8b 2d3c                         |0096: const v5, #float 0.0105924 // #3c2d8b9b
+00090a: 7220 0b00 5d00                         |0099: invoke-interface {v13, v5}, Landroidx/compose/runtime/Composer;.startReplaceGroup:(I)V // method@000b
+000910: 7120 0f00 3d00                         |009c: invoke-static {v13, v3}, Landroidx/compose/runtime/ComposerKt;.sourceInformation:(Landroidx/compose/runtime/Composer;Ljava/lang/String;)V // method@000f
+000916: dd03 0e0e                              |009f: and-int/lit8 v3, v14, #int 14 // #0e
+00091a: 3363 0400                              |00a1: if-ne v3, v6, 00a5 // +0004
+00091e: 1213                                   |00a3: const/4 v3, #int 1 // #1
+000920: 2802                                   |00a4: goto 00a6 // +0002
+000922: 1203                                   |00a5: const/4 v3, #int 0 // #0
+000924: dd05 0e70                              |00a6: and-int/lit8 v5, v14, #int 112 // #70
+000928: 1306 2000                              |00a8: const/16 v6, #int 32 // #20
+00092c: 3365 0400                              |00aa: if-ne v5, v6, 00ae // +0004
+000930: 1215                                   |00ac: const/4 v5, #int 1 // #1
+000932: 2802                                   |00ad: goto 00af // +0002
+000934: 1205                                   |00ae: const/4 v5, #int 0 // #0
+000936: b653                                   |00af: or-int/2addr v3, v5
+000938: 07d5                                   |00b0: move-object v5, v13
+00093a: 1206                                   |00b1: const/4 v6, #int 0 // #0
+00093c: 7210 0900 0500                         |00b2: invoke-interface {v5}, Landroidx/compose/runtime/Composer;.rememberedValue:()Ljava/lang/Object; // method@0009
+000942: 0c07                                   |00b5: move-result-object v7
+000944: 1208                                   |00b6: const/4 v8, #int 0 // #0
+000946: 3903 0d00                              |00b7: if-nez v3, 00c4 // +000d
+00094a: 6209 0000                              |00b9: sget-object v9, Landroidx/compose/runtime/Composer;.Companion:Landroidx/compose/runtime/Composer$Companion; // field@0000
+00094e: 6e10 0300 0900                         |00bb: invoke-virtual {v9}, Landroidx/compose/runtime/Composer$Companion;.getEmpty:()Ljava/lang/Object; // method@0003
+000954: 0c09                                   |00be: move-result-object v9
+000956: 3397 0300                              |00bf: if-ne v7, v9, 00c2 // +0003
+00095a: 2803                                   |00c1: goto 00c4 // +0003
+00095c: 0779                                   |00c2: move-object v9, v7
+00095e: 280e                                   |00c3: goto 00d1 // +000e
+000960: 1209                                   |00c4: const/4 v9, #int 0 // #0
+000962: 220a 1900                              |00c5: new-instance v10, Lcom/elder/android/ui/component/ElderToastKt$ElderToast$1$1; // type@0019
+000966: 7054 1b00 0af1                         |00c7: invoke-direct {v10, v0, v1, v15, v4}, Lcom/elder/android/ui/component/ElderToastKt$ElderToast$1$1;.<init>:(Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/MutableState;Lkotlin/coroutines/Continuation;)V // method@001b
+00096c: 1f0a 2600                              |00ca: check-cast v10, Lkotlin/jvm/functions/Function2; // type@0026
+000970: 07a9                                   |00cc: move-object v9, v10
+000972: 7220 0d00 9500                         |00cd: invoke-interface {v5, v9}, Landroidx/compose/runtime/Composer;.updateRememberedValue:(Ljava/lang/Object;)V // method@000d
+000978: 0000                                   |00d0: nop // spacer
+00097a: 0000                                   |00d1: nop // spacer
+00097c: 0000                                   |00d2: nop // spacer
+00097e: 1f09 2600                              |00d3: check-cast v9, Lkotlin/jvm/functions/Function2; // type@0026
+000982: 7210 0600 0d00                         |00d5: invoke-interface {v13}, Landroidx/compose/runtime/Composer;.endReplaceGroup:()V // method@0006
+000988: dd03 0e0e                              |00d8: and-int/lit8 v3, v14, #int 14 // #0e
+00098c: 7140 1200 903d                         |00da: invoke-static {v0, v9, v13, v3}, Landroidx/compose/runtime/EffectsKt;.LaunchedEffect:(Ljava/lang/Object;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V // method@0012
+000992: 7110 1f00 0f00                         |00dd: invoke-static {v15}, Lcom/elder/android/ui/component/ElderToastKt;.ElderToast$lambda$1:(Landroidx/compose/runtime/MutableState;)Z // method@001f
+000998: 0a03                                   |00e0: move-result v3
+00099a: 1205                                   |00e1: const/4 v5, #int 0 // #0
+00099c: 1236                                   |00e2: const/4 v6, #int 3 // #3
+00099e: 7140 0100 5446                         |00e3: invoke-static {v4, v5, v6, v4}, Landroidx/compose/animation/EnterExitTransitionKt;.fadeIn$default:(Landroidx/compose/animation/core/FiniteAnimationSpec;FILjava/lang/Object;)Landroidx/compose/animation/EnterTransition; // method@0001
+0009a4: 0c07                                   |00e6: move-result-object v7
+0009a6: 7140 0200 5446                         |00e7: invoke-static {v4, v5, v6, v4}, Landroidx/compose/animation/EnterExitTransitionKt;.fadeOut$default:(Landroidx/compose/animation/core/FiniteAnimationSpec;FILjava/lang/Object;)Landroidx/compose/animation/ExitTransition; // method@0002
+0009ac: 0c08                                   |00ea: move-result-object v8
+0009ae: 2204 1a00                              |00eb: new-instance v4, Lcom/elder/android/ui/component/ElderToastKt$ElderToast$2; // type@001a
+0009b2: 7020 1c00 0400                         |00ed: invoke-direct {v4, v0}, Lcom/elder/android/ui/component/ElderToastKt$ElderToast$2;.<init>:(Ljava/lang/String;)V // method@001c
+0009b8: 1305 3600                              |00f0: const/16 v5, #int 54 // #36
+0009bc: 1406 b0ef 4d7a                         |00f2: const v6, #float 2.67321e+35 // #7a4defb0
+0009c2: 1219                                   |00f5: const/4 v9, #int 1 // #1
+0009c4: 7155 1800 96d4                         |00f6: invoke-static {v6, v9, v4, v13, v5}, Landroidx/compose/runtime/internal/ComposableLambdaKt;.rememberComposableLambda:(IZLjava/lang/Object;Landroidx/compose/runtime/Composer;I)Landroidx/compose/runtime/internal/ComposableLambda; // method@0018
+0009ca: 0c04                                   |00f9: move-result-object v4
+0009cc: 0749                                   |00fa: move-object v9, v4
+0009ce: 1f09 2700                              |00fb: check-cast v9, Lkotlin/jvm/functions/Function3; // type@0027
+0009d2: 1205                                   |00fd: const/4 v5, #int 0 // #0
+0009d4: 120a                                   |00fe: const/4 v10, #int 0 // #0
+0009d6: 140b 800d 0300                         |00ff: const v11, #float 2.80349e-40 // #00030d80
+0009dc: 130c 1200                              |0102: const/16 v12, #int 18 // #12
+0009e0: 0134                                   |0104: move v4, v3
+0009e2: 0776                                   |0105: move-object v6, v7
+0009e4: 0787                                   |0106: move-object v7, v8
+0009e6: 07a8                                   |0107: move-object v8, v10
+0009e8: 07da                                   |0108: move-object v10, v13
+0009ea: 7709 0000 0400                         |0109: invoke-static/range {v4, v5, v6, v7, v8, v9, v10, v11, v12}, Landroidx/compose/animation/AnimatedVisibilityKt;.AnimatedVisibility:(ZLandroidx/compose/ui/Modifier;Landroidx/compose/animation/EnterTransition;Landroidx/compose/animation/ExitTransition;Ljava/lang/String;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V // method@0000
+0009f0: 7100 0e00 0000                         |010c: invoke-static {}, Landroidx/compose/runtime/ComposerKt;.isTraceInProgress:()Z // method@000e
+0009f6: 0a03                                   |010f: move-result v3
+0009f8: 3803 0500                              |0110: if-eqz v3, 0115 // +0005
+0009fc: 7100 1000 0000                         |0112: invoke-static {}, Landroidx/compose/runtime/ComposerKt;.traceEventEnd:()V // method@0010
+000a02: 7210 0700 0d00                         |0115: invoke-interface {v13}, Landroidx/compose/runtime/Composer;.endRestartGroup:()Landroidx/compose/runtime/ScopeUpdateScope; // method@0007
+000a08: 0c03                                   |0118: move-result-object v3
+000a0a: 3803 0a00                              |0119: if-eqz v3, 0123 // +000a
+000a0e: 2204 1800                              |011b: new-instance v4, Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0; // type@0018
+000a12: 7040 1900 0421                         |011d: invoke-direct {v4, v0, v1, v2}, Lcom/elder/android/ui/component/ElderToastKt$$ExternalSyntheticLambda0;.<init>:(Ljava/lang/String;Lkotlin/jvm/functions/Function0;I)V // method@0019
+000a18: 7220 1500 4300                         |0120: invoke-interface {v3, v4}, Landroidx/compose/runtime/ScopeUpdateScope;.updateScope:(Lkotlin/jvm/functions/Function2;)V // method@0015
+000a1e: 0e00                                   |0123: return-void
+      catches       : (none)
+      positions     :
+        0x000b line=37
+        0x0049 line=77
+        0x004e line=37
+        0x0065 line=38
+        0x0069 line=79
+        0x006e line=80
+        0x0077 line=81
+        0x0078 line=38
+        0x0087 line=81
+        0x0088 line=82
+        0x008b line=83
+        0x008d line=84
+        0x008e line=80
+        0x008f line=79
+        0x0090 line=38
+        0x0096 line=39
+        0x00b2 line=85
+        0x00b7 line=86
+        0x00c2 line=90
+        0x00c4 line=87
+        0x00c5 line=39
+        0x00cc line=87
+        0x00cd line=88
+        0x00d0 line=89
+        0x00d1 line=86
+        0x00d2 line=85
+        0x00d3 line=39
+        0x00dd line=48
+        0x00e1 line=49
+        0x00e7 line=50
+        0x00eb line=51
+        0x00fd line=47
+        0x0115 line=77
+      locals        :
+        0x0000 - 0x0014 reg=19 $composer Landroidx/compose/runtime/Composer;
+        0x001b - 0x003c reg=4 $dirty I
+        0x0078 - 0x0087 reg=15 $i$a$-cache-ElderToastKt$ElderToast$visible$2 I
+        0x0088 - 0x008c reg=7 value$iv Ljava/lang/Object;
+        0x006d - 0x008f reg=11 it$iv Ljava/lang/Object;
+        0x006e - 0x008f reg=12 $i$a$-let-ComposerKt$cache$1$iv I
+        0x0067 - 0x0090 reg=5 invalid$iv Z
+        0x0068 - 0x0090 reg=9 $this$cache$iv Landroidx/compose/runtime/Composer;
+        0x0069 - 0x0090 reg=10 $i$f$cache I
+        0x00c5 - 0x00cc reg=9 $i$a$-cache-ElderToastKt$ElderToast$1 I
+        0x00cd - 0x00d1 reg=9 value$iv Ljava/lang/Object;
+        0x00b6 - 0x00d2 reg=7 it$iv Ljava/lang/Object;
+        0x00b7 - 0x00d2 reg=8 $i$a$-let-ComposerKt$cache$1$iv I
+        0x00b0 - 0x00d3 reg=3 invalid$iv Z
+        0x00b1 - 0x00d3 reg=5 $this$cache$iv Landroidx/compose/runtime/Composer;
+        0x00b2 - 0x00d3 reg=6 $i$f$cache I
+        0x0093 - 0x0115 reg=15 visible$delegate Landroidx/compose/runtime/MutableState;
+        0x0014 - 0x0124 reg=13 $composer Landroidx/compose/runtime/Composer;
+        0x003c - 0x0124 reg=14 $dirty I
+        0x0000 - 0x0124 reg=17 message Ljava/lang/String;
+        0x0000 - 0x0124 reg=18 onDismiss Lkotlin/jvm/functions/Function0;
+        0x0000 - 0x0124 reg=20 $changed I
+
+    #2              : (in Lcom/elder/android/ui/component/ElderToastKt;)
+      name          : 'ElderToast$lambda$1'
+      type          : '(Landroidx/compose/runtime/MutableState;)Z'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+      code          -
+      registers     : 5
+      ins           : 1
+      outs          : 1
+      insns size    : 17 16-bit code units
+000724:                                        |[000724] com.elder.android.ui.component.ElderToastKt.ElderToast$lambda$1:(Landroidx/compose/runtime/MutableState;)Z
+000734: 0740                                   |0000: move-object v0, v4
+000736: 1f00 1300                              |0001: check-cast v0, Landroidx/compose/runtime/State; // type@0013
+00073a: 1201                                   |0003: const/4 v1, #int 0 // #0
+00073c: 1202                                   |0004: const/4 v2, #int 0 // #0
+00073e: 1203                                   |0005: const/4 v3, #int 0 // #0
+000740: 7210 1700 0000                         |0006: invoke-interface {v0}, Landroidx/compose/runtime/State;.getValue:()Ljava/lang/Object; // method@0017
+000746: 0c00                                   |0009: move-result-object v0
+000748: 1f00 1e00                              |000a: check-cast v0, Ljava/lang/Boolean; // type@001e
+00074c: 6e10 2300 0000                         |000c: invoke-virtual {v0}, Ljava/lang/Boolean;.booleanValue:()Z // method@0023
+000752: 0a00                                   |000f: move-result v0
+000754: 0f00                                   |0010: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=38
+        0x0006 line=91
+        0x0010 line=38
+      locals        :
+        0x0003 - 0x000a reg=0 $this$getValue$iv Landroidx/compose/runtime/State;
+        0x0004 - 0x000a reg=1 thisObj$iv Ljava/lang/Object;
+        0x0005 - 0x000a reg=2 property$iv Lkotlin/reflect/KProperty;
+        0x0006 - 0x000a reg=3 $i$f$getValue I
+        0x0000 - 0x0011 reg=4 $visible$delegate Landroidx/compose/runtime/MutableState;
+
+    #3              : (in Lcom/elder/android/ui/component/ElderToastKt;)
+      name          : 'ElderToast$lambda$2'
+      type          : '(Landroidx/compose/runtime/MutableState;Z)V'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+      code          -
+      registers     : 7
+      ins           : 2
+      outs          : 2
+      insns size    : 13 16-bit code units
+00079c:                                        |[00079c] com.elder.android.ui.component.ElderToastKt.ElderToast$lambda$2:(Landroidx/compose/runtime/MutableState;Z)V
+0007ac: 1200                                   |0000: const/4 v0, #int 0 // #0
+0007ae: 1201                                   |0001: const/4 v1, #int 0 // #0
+0007b0: 7110 2400 0600                         |0002: invoke-static {v6}, Ljava/lang/Boolean;.valueOf:(Z)Ljava/lang/Boolean; // method@0024
+0007b6: 0c02                                   |0005: move-result-object v2
+0007b8: 0753                                   |0006: move-object v3, v5
+0007ba: 1204                                   |0007: const/4 v4, #int 0 // #0
+0007bc: 7220 1300 2300                         |0008: invoke-interface {v3, v2}, Landroidx/compose/runtime/MutableState;.setValue:(Ljava/lang/Object;)V // method@0013
+0007c2: 0000                                   |000b: nop // spacer
+0007c4: 0e00                                   |000c: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=38
+        0x0008 line=92
+        0x000b line=93
+        0x000c line=38
+      locals        :
+        0x0001 - 0x000c reg=0 thisObj$iv Ljava/lang/Object;
+        0x0002 - 0x000c reg=1 property$iv Lkotlin/reflect/KProperty;
+        0x0006 - 0x000c reg=2 value$iv Ljava/lang/Object;
+        0x0007 - 0x000c reg=3 $this$setValue$iv Landroidx/compose/runtime/MutableState;
+        0x0008 - 0x000c reg=4 $i$f$setValue I
+        0x0000 - 0x000d reg=5 $visible$delegate Landroidx/compose/runtime/MutableState;
+        0x0000 - 0x000d reg=6 <set-?> Z
+
+    #4              : (in Lcom/elder/android/ui/component/ElderToastKt;)
+      name          : 'ElderToast$lambda$4'
+      type          : '(Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+      code          -
+      registers     : 6
+      ins           : 5
+      outs          : 4
+      insns size    : 12 16-bit code units
+000774:                                        |[000774] com.elder.android.ui.component.ElderToastKt.ElderToast$lambda$4:(Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;
+000784: de00 0301                              |0000: or-int/lit8 v0, v3, #int 1 // #01
+000788: 7110 1400 0000                         |0002: invoke-static {v0}, Landroidx/compose/runtime/RecomposeScopeImplKt;.updateChangedFlags:(I)I // method@0014
+00078e: 0a00                                   |0005: move-result v0
+000790: 7140 1e00 2104                         |0006: invoke-static {v1, v2, v4, v0}, Lcom/elder/android/ui/component/ElderToastKt;.ElderToast:(Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V // method@001e
+000796: 6200 0500                              |0009: sget-object v0, Lkotlin/Unit;.INSTANCE:Lkotlin/Unit; // field@0005
+00079a: 1100                                   |000b: return-object v0
+      catches       : (none)
+      positions     :
+      locals        :
+
+    #5              : (in Lcom/elder/android/ui/component/ElderToastKt;)
+      name          : 'access$ElderToast$lambda$2'
+      type          : '(Landroidx/compose/runtime/MutableState;Z)V'
+      access        : 0x1019 (PUBLIC STATIC FINAL SYNTHETIC)
+      code          -
+      registers     : 2
+      ins           : 2
+      outs          : 2
+      insns size    : 4 16-bit code units
+000a20:                                        |[000a20] com.elder.android.ui.component.ElderToastKt.access$ElderToast$lambda$2:(Landroidx/compose/runtime/MutableState;Z)V
+000a30: 7120 2000 1000                         |0000: invoke-static {v0, v1}, Lcom/elder/android/ui/component/ElderToastKt;.ElderToast$lambda$2:(Landroidx/compose/runtime/MutableState;Z)V // method@0020
+000a36: 0e00                                   |0003: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=1
+      locals        :
+        0x0000 - 0x0004 reg=0 $visible$delegate Landroidx/compose/runtime/MutableState;
+        0x0000 - 0x0004 reg=1 <set-?> Z
+
+  Virtual methods   -
+  source_file_idx   : 33 (ElderToast.kt)
+

@@ -1,0 +1,486 @@
+Processing 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/Size.dex'...
+Opened 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/Size.dex', DEX version '038'
+Class #0            -
+  Class descriptor  : 'Lcom/elder/android/design/tokens/Size;'
+  Access flags      : 0x0011 (PUBLIC FINAL)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+  Static fields     -
+    #0              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : '$stable'
+      type          : 'I'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #1              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'AgentReplyAreaHeight'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #2              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'BackButtonHeight'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #3              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'HomeDiaryButtonHeight'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #4              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'HomeGreetingHeight'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #5              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'HomeReminderCardHeight'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #6              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'INSTANCE'
+      type          : 'Lcom/elder/android/design/tokens/Size;'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #7              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'PillCornerRadius'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #8              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'PressButtonSize'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #9              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'PrimaryButtonHeight'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #10              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'ProgressBarHeight'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #11              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'QrDisplayHeight'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #12              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'SecondaryButtonHeight'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #13              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'ToastBottomMargin'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #14              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'TodayRecordIcon'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+  Instance fields   -
+  Direct methods    -
+    #0              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : '<clinit>'
+      type          : '()V'
+      access        : 0x10008 (STATIC CONSTRUCTOR)
+      code          -
+      registers     : 3
+      ins           : 0
+      outs          : 1
+      insns size    : 138 16-bit code units
+00040c:                                        |[00040c] com.elder.android.design.tokens.Size.<clinit>:()V
+00041c: 2200 0400                              |0000: new-instance v0, Lcom/elder/android/design/tokens/Size; // type@0004
+000420: 7010 0200 0000                         |0002: invoke-direct {v0}, Lcom/elder/android/design/tokens/Size;.<init>:()V // method@0002
+000426: 6900 0600                              |0005: sput-object v0, Lcom/elder/android/design/tokens/Size;.INSTANCE:Lcom/elder/android/design/tokens/Size; // field@0006
+00042a: 1300 c800                              |0007: const/16 v0, #int 200 // #c8
+00042e: 1201                                   |0009: const/4 v1, #int 0 // #0
+000430: 8202                                   |000a: int-to-float v2, v0
+000432: 7110 0000 0200                         |000b: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+000438: 0a00                                   |000e: move-result v0
+00043a: 6700 0400                              |000f: sput v0, Lcom/elder/android/design/tokens/Size;.HomeGreetingHeight:F // field@0004
+00043e: 1300 7800                              |0011: const/16 v0, #int 120 // #78
+000442: 1201                                   |0013: const/4 v1, #int 0 // #0
+000444: 8202                                   |0014: int-to-float v2, v0
+000446: 7110 0000 0200                         |0015: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+00044c: 0a00                                   |0018: move-result v0
+00044e: 6700 0500                              |0019: sput v0, Lcom/elder/android/design/tokens/Size;.HomeReminderCardHeight:F // field@0005
+000452: 1300 7800                              |001b: const/16 v0, #int 120 // #78
+000456: 1201                                   |001d: const/4 v1, #int 0 // #0
+000458: 8202                                   |001e: int-to-float v2, v0
+00045a: 7110 0000 0200                         |001f: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+000460: 0a00                                   |0022: move-result v0
+000462: 6700 0300                              |0023: sput v0, Lcom/elder/android/design/tokens/Size;.HomeDiaryButtonHeight:F // field@0003
+000466: 1300 2000                              |0025: const/16 v0, #int 32 // #20
+00046a: 1201                                   |0027: const/4 v1, #int 0 // #0
+00046c: 8202                                   |0028: int-to-float v2, v0
+00046e: 7110 0000 0200                         |0029: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+000474: 0a00                                   |002c: move-result v0
+000476: 6700 0e00                              |002d: sput v0, Lcom/elder/android/design/tokens/Size;.TodayRecordIcon:F // field@000e
+00047a: 1300 0800                              |002f: const/16 v0, #int 8 // #8
+00047e: 1201                                   |0031: const/4 v1, #int 0 // #0
+000480: 8202                                   |0032: int-to-float v2, v0
+000482: 7110 0000 0200                         |0033: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+000488: 0a00                                   |0036: move-result v0
+00048a: 6700 0a00                              |0037: sput v0, Lcom/elder/android/design/tokens/Size;.ProgressBarHeight:F // field@000a
+00048e: 1300 6000                              |0039: const/16 v0, #int 96 // #60
+000492: 1201                                   |003b: const/4 v1, #int 0 // #0
+000494: 8202                                   |003c: int-to-float v2, v0
+000496: 7110 0000 0200                         |003d: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+00049c: 0a00                                   |0040: move-result v0
+00049e: 6700 0d00                              |0041: sput v0, Lcom/elder/android/design/tokens/Size;.ToastBottomMargin:F // field@000d
+0004a2: 1300 6000                              |0043: const/16 v0, #int 96 // #60
+0004a6: 1201                                   |0045: const/4 v1, #int 0 // #0
+0004a8: 8202                                   |0046: int-to-float v2, v0
+0004aa: 7110 0000 0200                         |0047: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+0004b0: 0a00                                   |004a: move-result v0
+0004b2: 6700 0900                              |004b: sput v0, Lcom/elder/android/design/tokens/Size;.PrimaryButtonHeight:F // field@0009
+0004b6: 1300 4800                              |004d: const/16 v0, #int 72 // #48
+0004ba: 1201                                   |004f: const/4 v1, #int 0 // #0
+0004bc: 8202                                   |0050: int-to-float v2, v0
+0004be: 7110 0000 0200                         |0051: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+0004c4: 0a00                                   |0054: move-result v0
+0004c6: 6700 0c00                              |0055: sput v0, Lcom/elder/android/design/tokens/Size;.SecondaryButtonHeight:F // field@000c
+0004ca: 1300 c800                              |0057: const/16 v0, #int 200 // #c8
+0004ce: 1201                                   |0059: const/4 v1, #int 0 // #0
+0004d0: 8202                                   |005a: int-to-float v2, v0
+0004d2: 7110 0000 0200                         |005b: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+0004d8: 0a00                                   |005e: move-result v0
+0004da: 6700 0100                              |005f: sput v0, Lcom/elder/android/design/tokens/Size;.AgentReplyAreaHeight:F // field@0001
+0004de: 1300 a000                              |0061: const/16 v0, #int 160 // #a0
+0004e2: 1201                                   |0063: const/4 v1, #int 0 // #0
+0004e4: 8202                                   |0064: int-to-float v2, v0
+0004e6: 7110 0000 0200                         |0065: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+0004ec: 0a00                                   |0068: move-result v0
+0004ee: 6700 0800                              |0069: sput v0, Lcom/elder/android/design/tokens/Size;.PressButtonSize:F // field@0008
+0004f2: 1300 5000                              |006b: const/16 v0, #int 80 // #50
+0004f6: 1201                                   |006d: const/4 v1, #int 0 // #0
+0004f8: 8202                                   |006e: int-to-float v2, v0
+0004fa: 7110 0000 0200                         |006f: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+000500: 0a00                                   |0072: move-result v0
+000502: 6700 0700                              |0073: sput v0, Lcom/elder/android/design/tokens/Size;.PillCornerRadius:F // field@0007
+000506: 1300 3800                              |0075: const/16 v0, #int 56 // #38
+00050a: 1201                                   |0077: const/4 v1, #int 0 // #0
+00050c: 8202                                   |0078: int-to-float v2, v0
+00050e: 7110 0000 0200                         |0079: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+000514: 0a00                                   |007c: move-result v0
+000516: 6700 0200                              |007d: sput v0, Lcom/elder/android/design/tokens/Size;.BackButtonHeight:F // field@0002
+00051a: 1300 a000                              |007f: const/16 v0, #int 160 // #a0
+00051e: 1201                                   |0081: const/4 v1, #int 0 // #0
+000520: 8202                                   |0082: int-to-float v2, v0
+000522: 7110 0000 0200                         |0083: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0000
+000528: 0a00                                   |0086: move-result v0
+00052a: 6700 0b00                              |0087: sput v0, Lcom/elder/android/design/tokens/Size;.QrDisplayHeight:F // field@000b
+00052e: 0e00                                   |0089: return-void
+      catches       : (none)
+      positions     :
+        0x0007 line=82
+        0x000a line=103
+        0x000f line=82
+        0x0011 line=83
+        0x0014 line=104
+        0x0019 line=83
+        0x001b line=84
+        0x001e line=105
+        0x0023 line=84
+        0x0025 line=86
+        0x0028 line=106
+        0x002d line=86
+        0x002f line=88
+        0x0032 line=107
+        0x0037 line=88
+        0x0039 line=90
+        0x003c line=108
+        0x0041 line=90
+        0x0043 line=92
+        0x0046 line=109
+        0x004b line=92
+        0x004d line=93
+        0x0050 line=110
+        0x0055 line=93
+        0x0057 line=95
+        0x005a line=111
+        0x005f line=95
+        0x0061 line=96
+        0x0064 line=112
+        0x0069 line=96
+        0x006b line=97
+        0x006e line=113
+        0x0073 line=97
+        0x0075 line=98
+        0x0078 line=114
+        0x007d line=98
+        0x007f line=100
+        0x0082 line=115
+        0x0087 line=100
+      locals        :
+        0x0009 - 0x000f reg=0 $this$dp$iv I
+        0x000a - 0x000f reg=1 $i$f$getDp I
+        0x0013 - 0x0019 reg=0 $this$dp$iv I
+        0x0014 - 0x0019 reg=1 $i$f$getDp I
+        0x001d - 0x0023 reg=0 $this$dp$iv I
+        0x001e - 0x0023 reg=1 $i$f$getDp I
+        0x0027 - 0x002d reg=0 $this$dp$iv I
+        0x0028 - 0x002d reg=1 $i$f$getDp I
+        0x0031 - 0x0037 reg=0 $this$dp$iv I
+        0x0032 - 0x0037 reg=1 $i$f$getDp I
+        0x003b - 0x0041 reg=0 $this$dp$iv I
+        0x003c - 0x0041 reg=1 $i$f$getDp I
+        0x0045 - 0x004b reg=0 $this$dp$iv I
+        0x0046 - 0x004b reg=1 $i$f$getDp I
+        0x004f - 0x0055 reg=0 $this$dp$iv I
+        0x0050 - 0x0055 reg=1 $i$f$getDp I
+        0x0059 - 0x005f reg=0 $this$dp$iv I
+        0x005a - 0x005f reg=1 $i$f$getDp I
+        0x0063 - 0x0069 reg=0 $this$dp$iv I
+        0x0064 - 0x0069 reg=1 $i$f$getDp I
+        0x006d - 0x0073 reg=0 $this$dp$iv I
+        0x006e - 0x0073 reg=1 $i$f$getDp I
+        0x0077 - 0x007d reg=0 $this$dp$iv I
+        0x0078 - 0x007d reg=1 $i$f$getDp I
+        0x0081 - 0x0087 reg=0 $this$dp$iv I
+        0x0082 - 0x0087 reg=1 $i$f$getDp I
+
+    #1              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : '<init>'
+      type          : '()V'
+      access        : 0x10002 (PRIVATE CONSTRUCTOR)
+      code          -
+      registers     : 1
+      ins           : 1
+      outs          : 1
+      insns size    : 4 16-bit code units
+000530:                                        |[000530] com.elder.android.design.tokens.Size.<init>:()V
+000540: 7010 1000 0000                         |0000: invoke-direct {v0}, Ljava/lang/Object;.<init>:()V // method@0010
+000546: 0e00                                   |0003: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=80
+      locals        :
+        0x0000 - 0x0004 reg=0 this Lcom/elder/android/design/tokens/Size;
+
+  Virtual methods   -
+    #0              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getAgentReplyAreaHeight-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0002d4:                                        |[0002d4] com.elder.android.design.tokens.Size.getAgentReplyAreaHeight-D9Ej5fM:()F
+0002e4: 6000 0100                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.AgentReplyAreaHeight:F // field@0001
+0002e8: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=95
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #1              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getBackButtonHeight-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0002ec:                                        |[0002ec] com.elder.android.design.tokens.Size.getBackButtonHeight-D9Ej5fM:()F
+0002fc: 6000 0200                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.BackButtonHeight:F // field@0002
+000300: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=98
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #2              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getHomeDiaryButtonHeight-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000304:                                        |[000304] com.elder.android.design.tokens.Size.getHomeDiaryButtonHeight-D9Ej5fM:()F
+000314: 6000 0300                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.HomeDiaryButtonHeight:F // field@0003
+000318: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=84
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #3              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getHomeGreetingHeight-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+00031c:                                        |[00031c] com.elder.android.design.tokens.Size.getHomeGreetingHeight-D9Ej5fM:()F
+00032c: 6000 0400                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.HomeGreetingHeight:F // field@0004
+000330: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=82
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #4              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getHomeReminderCardHeight-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000334:                                        |[000334] com.elder.android.design.tokens.Size.getHomeReminderCardHeight-D9Ej5fM:()F
+000344: 6000 0500                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.HomeReminderCardHeight:F // field@0005
+000348: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=83
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #5              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getPillCornerRadius-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+00034c:                                        |[00034c] com.elder.android.design.tokens.Size.getPillCornerRadius-D9Ej5fM:()F
+00035c: 6000 0700                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.PillCornerRadius:F // field@0007
+000360: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=97
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #6              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getPressButtonSize-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000364:                                        |[000364] com.elder.android.design.tokens.Size.getPressButtonSize-D9Ej5fM:()F
+000374: 6000 0800                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.PressButtonSize:F // field@0008
+000378: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=96
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #7              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getPrimaryButtonHeight-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+00037c:                                        |[00037c] com.elder.android.design.tokens.Size.getPrimaryButtonHeight-D9Ej5fM:()F
+00038c: 6000 0900                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.PrimaryButtonHeight:F // field@0009
+000390: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=92
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #8              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getProgressBarHeight-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000394:                                        |[000394] com.elder.android.design.tokens.Size.getProgressBarHeight-D9Ej5fM:()F
+0003a4: 6000 0a00                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.ProgressBarHeight:F // field@000a
+0003a8: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=88
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #9              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getQrDisplayHeight-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0003ac:                                        |[0003ac] com.elder.android.design.tokens.Size.getQrDisplayHeight-D9Ej5fM:()F
+0003bc: 6000 0b00                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.QrDisplayHeight:F // field@000b
+0003c0: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=100
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #10              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getSecondaryButtonHeight-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0003c4:                                        |[0003c4] com.elder.android.design.tokens.Size.getSecondaryButtonHeight-D9Ej5fM:()F
+0003d4: 6000 0c00                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.SecondaryButtonHeight:F // field@000c
+0003d8: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=93
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #11              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getToastBottomMargin-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0003dc:                                        |[0003dc] com.elder.android.design.tokens.Size.getToastBottomMargin-D9Ej5fM:()F
+0003ec: 6000 0d00                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.ToastBottomMargin:F // field@000d
+0003f0: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=90
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+    #12              : (in Lcom/elder/android/design/tokens/Size;)
+      name          : 'getTodayRecordIcon-D9Ej5fM'
+      type          : '()F'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0003f4:                                        |[0003f4] com.elder.android.design.tokens.Size.getTodayRecordIcon-D9Ej5fM:()F
+000404: 6000 0e00                              |0000: sget v0, Lcom/elder/android/design/tokens/Size;.TodayRecordIcon:F // field@000e
+000408: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=86
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/Size;
+
+  source_file_idx   : 11 (Dimens.kt)
+

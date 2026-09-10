@@ -528,3 +528,71 @@ v2.1 不引入新数据模型；以下 v2.0 字段必须保持，服务端 SDK /
 
 - 迁移脚本 `services/*/migrations/v2_1.py`：双写期内新字段 nullable，老 enum 拒绝写入
 - 集成测试 `tests/integration/test_schema_v21.py` 跑遍上述字段约束；任何回归 → CI 红
+
+### A.8 阿里云百炼 ASR（v3.0 MVP 客户端唯一上游）
+
+> v3.0 MVP 老人端独立运行（无服务端），客户端直连阿里云百炼（DashScope 协议）`Qwen-Audio-3.0-ASR-Flash-Streaming`。本节记录 v3.0 起唯一 ASR 集成的代码约束。
+
+**§A.8.1 上游固定项（hardcoded constants）**
+
+```kotlin
+// app/src/main/java/com/elder/data/asr/AsrApiClient.kt
+companion object {
+    const val BAILIAN_WORKSPACE_ID = "llm-svrk4hi977f8t2fe"   // 租户 ID，非密钥
+    const val BAILIAN_MODEL = "Qwen-Audio-3.0-ASR-Flash-Streaming"
+    const val BAILIAN_PROVIDER = "bailian"                     // 写入 §5.11 diary_entry.asr_provider
+    const val WS_URL = "wss://dashscope.aliyuncs.com/api-ws/v1/inference"
+    const val AUDIO_FORMAT = "m4a"                              // 与 AudioRecorder 一致
+    const val SAMPLE_RATE = 16000                               // AudioRecorder 16kHz/mono
+}
+```
+
+- `BAILIAN_WORKSPACE_ID` 不是密钥（暴露在请求体里），§8 允许进代码；测试与 prod 一致
+- `BAILIAN_MODEL` 不是密钥（DashScope 公开模型），§8 允许进代码
+- `BAILIAN_PROVIDER` 是 PR §3.1.9 落库字符串，给 `diary_entry.asr_provider` 字段使用
+
+**§A.8.2 协议（DashScope WebSocket duplex）**
+
+- 端点：`wss://dashscope.aliyuncs.com/api-ws/v1/inference`
+- Auth：`Authorization: Bearer <API_KEY>`（API Key 由用户在 §3.1.9 设置页输入，Keystore-wrapped 密文落盘 §5.11 `api_key_enc`）
+- 三段流：
+  1. `run-task` — 设 `model` / `parameters.sample_rate=16000` / `parameters.format="m4a"` / `parameters.language_hints=["zh","yue"]`
+  2. `continue-task` — `payload.input.audio = <base64 of m4a file bytes>`
+  3. `finish-task` — 关闭本次任务
+- 收服务端 `result-generated`（带 `transcription.sentence_end=true` 取最终句）→ `task-finished`（收尾）或 `task-failed`（映射 AppError）
+
+**§A.8.3 错误映射**
+
+| 场景 | AppError | code |
+|------|----------|------|
+| `task-failed` `status_code` ∈ {401, 403} | `AsrAuthFailed` | `ASR_AUTH_FAILED` |
+| `task-failed` `status_code == 429` | `AsrRateLimited` | `ASR_RATE_LIMITED` |
+| `task-failed` `status_code` ∈ [400, 499] | `AsrBadRequest` | `ASR_BAD_REQUEST` |
+| `task-failed` `status_code` ∈ [500, 599] | `AsrUpstream` | `ASR_UPSTREAM` |
+| WebSocket `onFailure` / IOException | `AsrUpstream` | `ASR_UPSTREAM` |
+| 30 秒 timeout（`ASR_TIMEOUT_MS`） | `AsrUpstream` | `ASR_UPSTREAM` |
+| `transcription.text` 空串 | `AsrEmptyTranscript` | `ASR_EMPTY_TRANSCRIPT` |
+| API Key 传空 | `AsrAuthFailed` | `ASR_AUTH_FAILED` |
+
+**§A.8.4 客户端 Room schema（§5.11 `asr_config` v3.0.1）**
+
+- `provider` / `endpoint` / `model` / `extra_headers_json` / `audio_format` 列**删除**（asr_config 不在 §18 锁定列表，`DROP TABLE asr_config` + `CREATE TABLE` 是允许的 schema 变更路径）
+- 保留 `id` / `api_key_enc` / `updated_at` / `last_test_result`（`last_tested_at` 同义合并到 `updated_at`）
+- Room 迁移 `MIGRATION_1_2`（version 1→2）强制丢弃旧 DashScope/Whisper/Custom 配置；用户必须在 §3.1.9 重输百炼 API Key
+- DiaryEntry `asrProvider` / `asrModel` 字段保留（diary_entry 在 §18 锁定列表），统一写 `BAILIAN_PROVIDER` / `BAILIAN_MODEL`
+
+**§A.8.5 旧 §A.1 千问 ASR 封装的处理**
+
+- `packages/common/elder_common/upstream/asr.py` 与 `AsrApiClient` 旧签名（`transcribe(provider, endpoint, apiKey, model, audioFile, extraHeaders, audioFormat)`）同步下线：
+  - 服务端 `elder_common.upstream.asr.recognize` 仍保留（v2.x 服务端可能回滚为 v2.1 架构）；本 MVP 不调用
+  - 客户端 `AsrApiClient.transcribe(apiKey, audioFile)` 是 v3.0 唯一签名
+- §A.1 旧千问 ASR 描述保留作为 v2.x 回滚参考；v3.0 不读 §A.1
+
+**§A.8.6 测试约束**
+
+- 测试用 `MockWebServer` + `MockResponse.withWebSocketUpgrade(WebSocketListener)`，模拟服务端
+- 覆盖 `run-task → continue-task → finish-task → result-generated → task-finished` 成功流
+- 覆盖 `task-failed` 401 / 429 / 422 / 502 → AppError 映射
+- 覆盖空 `transcription.text` → `AsrEmptyTranscript`
+- 覆盖 API Key 空串 → `AsrAuthFailed`（不进 WS）
+- 真实百炼 endpoint **禁止**调用（§14 mock 约束）

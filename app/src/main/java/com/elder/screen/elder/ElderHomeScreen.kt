@@ -1,171 +1,168 @@
-// §3.1.5 老人端主屏（PR 4 实装）—— 3 元素：问候 + 今日提醒卡 + 写日记按钮
+// §3.1.5 老人端主屏（v3.0 MVP 版）
+// 主屏元素恰好 2 个（v3.0 收窄，移除今日提醒卡；设置改为可见按钮 PR #2）
 package com.elder.android.screen.elder
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elder.android.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
-import com.elder.android.di.ServiceLocator
-import com.elder.android.network.dto.Reminder
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @Composable
 fun ElderHomeScreen(
-    onOpenRecent: () -> Unit,
     onStartDiary: () -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenBind: () -> Unit = {},
-    onOpenReminder: (String) -> Unit = {},
+    onOpenRecent: () -> Unit,
+    vm: ElderHomeViewModel = viewModel(),
 ) {
-    val snap by ServiceLocator.tokenStore.snapshot.collectAsState(initial = null)
-    val elderId = snap?.elderId ?: snap?.userId
-    var reminders by remember { mutableStateOf<List<Reminder>>(emptyList()) }
-    val df = remember { SimpleDateFormat("M 月 d 日 EEE HH:mm", Locale.CHINA) }
-    val todayText = df.format(Date())
+    val uiState by vm.uiState.collectAsStateWithLifecycle()
 
-    // 隐藏设置入口：5 次连续点击问候（PRD §3.1.8）
-    val tapTimes = remember { IntArray(1) }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BrandColor.CardWhite),
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = BrandColor.CardWhite,
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Row(
+            // 区域 A：问候（高 240dp，v3.0 收窄后单元素独占；§3.1.5 MVP）
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(Size.HomeGreetingHeight)
-                    .background(BrandColor.CardWhite)
-                    .padding(horizontal = Spacing.Lg),
-                verticalAlignment = Alignment.CenterVertically,
+                    .height(Size.HomeGreetingArea),
+                contentAlignment = Alignment.Center,
             ) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            tapTimes[0]++
-                            if (tapTimes[0] >= 5) {
-                                tapTimes[0] = 0
-                                onOpenSettings()
-                            }
-                        },
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = greeting(),
+                        text = uiState.greeting,
                         fontSize = FontSize.BodyHugeSp.sp,
+                        fontWeight = FontWeight.Bold,
                         color = BrandColor.TextPrimary,
                     )
-                    Spacer(Modifier.size(Spacing.Sm))
-                    Text(todayText, fontSize = FontSize.body(), color = BrandColor.TextSecondary)
+                    Spacer(modifier = Modifier.height(Spacing.Sm))
+                    Text(
+                        text = uiState.dateLine,
+                        fontSize = FontSize.body(),
+                        color = BrandColor.TextSecondary,
+                    )
+                    if (uiState.showAsrHint) {
+                        Spacer(modifier = Modifier.height(Spacing.Sm))
+                        Text(
+                            text = stringResource(R.string.home_asr_unconfigured),
+                            fontSize = FontSize.BodySmallSp.sp,
+                            color = BrandColor.Error500,
+                            modifier = Modifier
+                                .clickable { onOpenSettings() }
+                                .padding(Spacing.Xs),
+                        )
+                    }
                 }
-                Icon(
-                Icons.Default.Edit,
-                contentDescription = stringResource(R.string.home_today_records_icon_desc),
+                // 今日记录图标（右上 32dp；§3.1.7）— 点击进时间轴屏
+                Box(
                     modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(Spacing.Md)
                         .size(Size.TodayRecordIcon)
+                        .clip(CircleShape)
+                        .background(if (uiState.todayRecorded) BrandColor.Brand500 else Color.Transparent)
                         .clickable { onOpenRecent() },
-                    tint = BrandColor.TextSecondary,
-                )
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.home_today_records_icon_desc),
+                        tint = if (uiState.todayRecorded) Color.White else BrandColor.TextSecondary,
+                        modifier = Modifier.size(Size.IconMd),
+                    )
+                }
             }
-            ReminderCard(
-                reminders = reminders,
-                onClick = { id -> onOpenReminder(id) },
+
+            // 区域 C：写日记按钮（高 200dp，v3.0 占满）
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(Size.HomeReminderCardHeight)
-                    .padding(horizontal = Spacing.Md),
-            )
-            Spacer(Modifier.weight(1f))
-            Button(
-                onClick = onStartDiary,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = BrandColor.Brand500, contentColor = BrandColor.CardWhite,
-                ),
-                shape = RoundedCornerShape(Corner.Button),
+                    .height(Size.HomeDiaryArea)
+                    .padding(Spacing.Md),
+                contentAlignment = Alignment.Center,
+            ) {
+                Button(
+                    onClick = onStartDiary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(Size.HomeDiaryButton),
+                    shape = RoundedCornerShape(Corner.Button),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrandColor.Brand500,
+                        contentColor = Color.White,
+                    ),
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_diary_button),
+                        fontSize = FontSize.button(),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+
+            // 区域 D：设置入口（PR #2 §3.1.8：可见按钮替代 5 次点击隐藏手势）
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(Size.HomeDiaryButtonHeight)
-                    .padding(horizontal = Spacing.Md),
-            ) { Text(stringResource(R.string.home_diary_button), fontSize = FontSize.button()) }
-            Spacer(Modifier.height(Spacing.Lg))
-        }
-    }
-
-    LaunchedEffect(elderId) {
-        if (elderId != null) {
-            runCatching { ServiceLocator.apiClient.reminderApi.listReminders() }
-                .onSuccess { res -> reminders = res.reminders.filter { it.elderId == elderId && it.status == "active" } }
-        }
-    }
-}
-
-@Composable
-private fun ReminderCard(reminders: List<Reminder>, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .background(BrandColor.BgGray, RoundedCornerShape(Corner.Card))
-            .padding(Spacing.Md)
-            .clickable(enabled = reminders.isNotEmpty()) { reminders.firstOrNull()?.let { onClick(it.id) } },
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            if (reminders.isEmpty()) {
-                Text(stringResource(R.string.home_no_reminders_today), fontSize = FontSize.body(), color = BrandColor.TextSecondary)
-            } else {
-                val first = reminders.first()
-                Text(
-                    text = if (first.type == "medication") "💊 该吃药啦" else "🏥 该去看医生啦",
-                    fontSize = FontSize.body(),
-                    color = BrandColor.TextPrimary,
-                )
+                    .height(Size.SecondaryButtonHeight)
+                    .padding(horizontal = Spacing.Md, vertical = Spacing.Xs),
+                contentAlignment = Alignment.Center,
+            ) {
+                Button(
+                    onClick = onOpenSettings,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(Corner.Button),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrandColor.BgGray,
+                        contentColor = BrandColor.TextSecondary,
+                    ),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(Size.IconMd),
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.Sm))
+                    Text(
+                        text = stringResource(R.string.home_settings_button),
+                        fontSize = FontSize.body(),
+                    )
+                }
             }
         }
-    }
-}
-
-private fun greeting(): String {
-    val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
-    return when {
-        hour < 11 -> "早上好"
-        hour < 14 -> "中午好"
-        hour < 18 -> "下午好"
-        else -> "晚上好"
     }
 }
