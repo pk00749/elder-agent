@@ -50,6 +50,13 @@ android {
                 // LocalDependencyResolver 用单一 depdir 找 <depdir>/<shortName>.jar；放一个 flat 目录
                 // 同时装 SDK 33 / 34 两个 i6 jar（Java 11 字节码；asm 9.7.1 能读）
                 it.systemProperty("robolectric.dependency.dir", "${System.getProperty("user.home")}/.m2/repository/org/robolectric/all-jars")
+                // §A.8 LiveTest：把 -PDASHSCOPE_API_KEY=... 透传到 test JVM 的 systemProperty，
+                // 这样 AsrApiClientLiveTest 里的 System.getProperty("DASHSCOPE_API_KEY") 才能拿到
+                // （Gradle -P 默认只到 Gradle 自己的脚本，不到 forked test JVM）。
+                // 不传 = 空字符串 = LiveTest 的 assumeTrue 走 skip 路径（CI 友好）。
+                if (project.hasProperty("DASHSCOPE_API_KEY")) {
+                    it.systemProperty("DASHSCOPE_API_KEY", project.property("DASHSCOPE_API_KEY") as String)
+                }
             }
         }
     }

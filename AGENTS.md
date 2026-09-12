@@ -531,7 +531,7 @@ v2.1 不引入新数据模型；以下 v2.0 字段必须保持，服务端 SDK /
 
 ### A.8 阿里云百炼 ASR（v3.0 MVP 客户端唯一上游）
 
-> v3.0 MVP 老人端独立运行（无服务端），客户端直连阿里云百炼（DashScope 协议）`Qwen-Audio-3.0-ASR-Flash-Streaming`。本节记录 v3.0 起唯一 ASR 集成的代码约束。
+> v3.0 MVP 老人端独立运行（无服务端），客户端直连阿里云百炼 Realtime ASR：`qwen-audio-3.0-realtime-plus`。本节记录 v3.0 起唯一 ASR 集成的代码约束。
 
 **§A.8.1 上游固定项（hardcoded constants）**
 
@@ -539,39 +539,39 @@ v2.1 不引入新数据模型；以下 v2.0 字段必须保持，服务端 SDK /
 // app/src/main/java/com/elder/data/asr/AsrApiClient.kt
 companion object {
     const val BAILIAN_WORKSPACE_ID = "llm-svrk4hi977f8t2fe"   // 租户 ID，非密钥
-    const val BAILIAN_MODEL = "Qwen-Audio-3.0-ASR-Flash-Streaming"
+    const val BAILIAN_MODEL = "qwen-audio-3.0-realtime-plus"
     const val BAILIAN_PROVIDER = "bailian"                     // 写入 §5.11 diary_entry.asr_provider
-    const val WS_URL = "wss://dashscope.aliyuncs.com/api-ws/v1/inference"
-    const val AUDIO_FORMAT = "m4a"                              // 与 AudioRecorder 一致
+    const val BAILIAN_REGION = "cn-beijing"
+    // 对齐 scripts/realtime_quickstart.py；WorkspaceId 与 model 共同决定连接目标
+    val WS_URL = "wss://$BAILIAN_WORKSPACE_ID.$BAILIAN_REGION.maas.aliyuncs.com/api-ws/v1/realtime?model=$BAILIAN_MODEL"
+    const val AUDIO_FORMAT = "pcm"                              // AudioRecorder 实时回调裸 PCM
     const val SAMPLE_RATE = 16000                               // AudioRecorder 16kHz/mono
 }
 ```
 
-- `BAILIAN_WORKSPACE_ID` 不是密钥（暴露在请求体里），§8 允许进代码；测试与 prod 一致
-- `BAILIAN_MODEL` 不是密钥（DashScope 公开模型），§8 允许进代码
-- `BAILIAN_PROVIDER` 是 PR §3.1.9 落库字符串，给 `diary_entry.asr_provider` 字段使用
+> endpoint、model、鉴权必须与 `scripts/realtime_quickstart.py` 保持同一协议族。模型需要在 workspace 中开通，否则握手或 `session.update` 会失败。
 
-**§A.8.2 协议（DashScope WebSocket duplex）**
+**§A.8.2 协议（Qwen-Audio Realtime WebSocket）**
 
-- 端点：`wss://dashscope.aliyuncs.com/api-ws/v1/inference`
+- 端点：`wss://$BAILIAN_WORKSPACE_ID.$BAILIAN_REGION.maas.aliyuncs.com/api-ws/v1/realtime?model=$BAILIAN_MODEL`
 - Auth：`Authorization: Bearer <API_KEY>`（API Key 由用户在 §3.1.9 设置页输入，Keystore-wrapped 密文落盘 §5.11 `api_key_enc`）
-- 三段流：
-  1. `run-task` — 设 `model` / `parameters.sample_rate=16000` / `parameters.format="m4a"` / `parameters.language_hints=["zh","yue"]`
-  2. `continue-task` — `payload.input.audio = <base64 of m4a file bytes>`
-  3. `finish-task` — 关闭本次任务
-- 收服务端 `result-generated`（带 `transcription.sentence_end=true` 取最终句）→ `task-finished`（收尾）或 `task-failed`（映射 AppError）
+- 建连后先发 `session.update`，配置 `modalities=["text"]` 和 `turn_detection=null`（Manual 模式）
+- 录音期间持续发送 `input_audio_buffer.append`，`audio` 为 16kHz/16bit/mono PCM 的 Base64
+- `conversation.item.input_audio_transcription.delta` 的 `text + stash` 是实时显示文本
+- 用户停止录音后发送 `input_audio_buffer.commit`，等待 `conversation.item.input_audio_transcription.completed.transcript` 作为最终文本
+- 不发送 `response.create`，避免触发无关的模型回复
 
 **§A.8.3 错误映射**
 
 | 场景 | AppError | code |
 |------|----------|------|
-| `task-failed` `status_code` ∈ {401, 403} | `AsrAuthFailed` | `ASR_AUTH_FAILED` |
-| `task-failed` `status_code == 429` | `AsrRateLimited` | `ASR_RATE_LIMITED` |
-| `task-failed` `status_code` ∈ [400, 499] | `AsrBadRequest` | `ASR_BAD_REQUEST` |
-| `task-failed` `status_code` ∈ [500, 599] | `AsrUpstream` | `ASR_UPSTREAM` |
+| WebSocket 握手 HTTP 401 / 403，或 error.code 表示鉴权失败 | `AsrAuthFailed` | `ASR_AUTH_FAILED` |
+| error.code / error.message 表示限流 | `AsrRateLimited` | `ASR_RATE_LIMITED` |
+| error.type=`invalid_request_error` / error.code 表示参数错误 | `AsrBadRequest` | `ASR_BAD_REQUEST` |
+| WebSocket 失败、server_error、audio transcriber failed | `AsrUpstream` | `ASR_UPSTREAM` |
 | WebSocket `onFailure` / IOException | `AsrUpstream` | `ASR_UPSTREAM` |
-| 30 秒 timeout（`ASR_TIMEOUT_MS`） | `AsrUpstream` | `ASR_UPSTREAM` |
-| `transcription.text` 空串 | `AsrEmptyTranscript` | `ASR_EMPTY_TRANSCRIPT` |
+| session.updated 或 transcription.completed 超时 | `AsrUpstream` | `ASR_UPSTREAM` |
+| completed.transcript 空串 | `AsrEmptyTranscript` | `ASR_EMPTY_TRANSCRIPT` |
 | API Key 传空 | `AsrAuthFailed` | `ASR_AUTH_FAILED` |
 
 **§A.8.4 客户端 Room schema（§5.11 `asr_config` v3.0.1）**
@@ -591,8 +591,8 @@ companion object {
 **§A.8.6 测试约束**
 
 - 测试用 `MockWebServer` + `MockResponse.withWebSocketUpgrade(WebSocketListener)`，模拟服务端
-- 覆盖 `run-task → continue-task → finish-task → result-generated → task-finished` 成功流
-- 覆盖 `task-failed` 401 / 429 / 422 / 502 → AppError 映射
-- 覆盖空 `transcription.text` → `AsrEmptyTranscript`
+- 覆盖 `session.update → append × N → delta → commit → completed` 成功流
+- 覆盖 WebSocket 401 和 Realtime error → AppError 映射
+- 覆盖空 `completed.transcript` → `AsrEmptyTranscript`
 - 覆盖 API Key 空串 → `AsrAuthFailed`（不进 WS）
-- 真实百炼 endpoint **禁止**调用（§14 mock 约束）
+- 常规 CI 禁止真实调用；提供显式 API Key 时可运行 `AsrApiClientLiveTest` 做真实链路验证
