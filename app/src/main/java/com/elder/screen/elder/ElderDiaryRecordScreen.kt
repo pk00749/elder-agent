@@ -15,12 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,13 +32,16 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -74,8 +75,13 @@ fun ElderDiaryRecordScreen(
         else vm.dismissError()
     }
 
+    // §4.6 §G.1 不二次引导：仅在权限检查真正跑完之后才把 StartState（"权限被拒绝"文案 + 授权按钮）
+    // 渲染出来；刚进屏那一帧权限还没查完，先用空 Box 占位，避免已授权用户也闪一下"权限被拒绝"。
+    var permissionChecked by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         vm.onEnter()
+        permissionChecked = true
         if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
             vm.startRecording()
         } else {
@@ -91,10 +97,13 @@ fun ElderDiaryRecordScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.diary_recording_title), fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        vm.cancel()
-                        onBack()
-                    }) {
+                    IconButton(
+                        onClick = {
+                            vm.cancel()
+                            onBack()
+                        },
+                        modifier = Modifier.size(Size.TouchTargetMin),
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
@@ -124,7 +133,12 @@ fun ElderDiaryRecordScreen(
                         transcript = savedTranscript,
                         onDone = onDone,
                     )
-                    else -> StartState(onStart = vm::startRecording, permLauncher = permLauncher)
+                    // 已检查且还没授权 -> StartState（"权限被拒绝" + 授权按钮）；刚进屏权限还没查完 -> 空 Box
+                    permissionChecked && ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED -> StartState(
+                        onStart = vm::startRecording,
+                        permLauncher = permLauncher,
+                    )
+                    else -> Box(modifier = Modifier.fillMaxSize())
                 }
             }
         }
@@ -143,7 +157,7 @@ fun ElderDiaryRecordScreen(
 }
 
 @Composable
-private fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
+internal fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = stringResource(R.string.diary_recording_recording, (state.elapsedMs / 60000).toInt(), ((state.elapsedMs / 1000) % 60).toInt()),
@@ -151,6 +165,30 @@ private fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
             fontWeight = FontWeight.Bold,
             color = BrandColor.Error500,
         )
+        state.transcript?.takeIf { it.isNotBlank() }?.let { partial ->
+            Spacer(modifier = Modifier.height(Spacing.Md))
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = BrandColor.BgGray,
+                shape = RoundedCornerShape(Corner.Card),
+            ) {
+                Column(modifier = Modifier.padding(Spacing.Md)) {
+                    Text(
+                        text = stringResource(R.string.diary_recording_transcribing),
+                        fontSize = FontSize.body(),
+                        color = BrandColor.TextSecondary,
+                    )
+                    Spacer(modifier = Modifier.height(Spacing.Sm))
+                    Text(
+                        text = partial,
+                        fontSize = FontSize.body(),
+                        color = BrandColor.TextPrimary,
+                        maxLines = 6,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
         Spacer(modifier = Modifier.height(Spacing.Xl))
         Button(
             onClick = onStop,
@@ -160,7 +198,7 @@ private fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
             shape = RoundedCornerShape(percent = 50),
             colors = ButtonDefaults.buttonColors(
                 containerColor = BrandColor.Brand500,
-                contentColor = Color.White,
+                contentColor = BrandColor.CardWhite,
             ),
         ) {
             Text(
@@ -169,34 +207,9 @@ private fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
                 fontWeight = FontWeight.Bold,
             )
         }
-        // PR #5：160dp 圆按钮下方加 72dp 全宽次级按钮冗余，避免单点风险
-        // 对应 ui-ux-pro-max：Touch & Interaction — 主 + 次级双按钮
-        // 两个按钮共享 onStop 回调，任何一处都触发停止 + ASR
+        // v3.0.2：移除 72dp 全宽次级"停止录音"按钮（PR #5 加的冗余双按钮），只留 160dp 主圆按钮。
+        // 反馈"重复按钮"问题：单按钮更清晰，避免老人误触。
         Spacer(modifier = Modifier.height(Spacing.Lg))
-        Button(
-            onClick = onStop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(Size.SecondaryButtonHeight),
-            shape = RoundedCornerShape(Corner.Button),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = BrandColor.BgGray,
-                contentColor = BrandColor.TextSecondary,
-            ),
-        ) {
-            // core icons 没有 Stop，用 Close（X 视觉同表达"停止"）+ 文本"停止录音"双冗余
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = null,
-                modifier = Modifier.size(Size.IconMd),
-            )
-            Spacer(modifier = Modifier.width(Spacing.Sm))
-            Text(
-                text = stringResource(R.string.diary_recording_stop_secondary),
-                fontSize = FontSize.body(),
-                fontWeight = FontWeight.Bold,
-            )
-        }
     }
 }
 
@@ -238,7 +251,7 @@ private fun RecordedState(
             shape = RoundedCornerShape(Corner.Button),
             colors = ButtonDefaults.buttonColors(
                 containerColor = BrandColor.Brand500,
-                contentColor = Color.White,
+                contentColor = BrandColor.CardWhite,
             ),
         ) {
             Text(stringResource(R.string.diary_recording_back), fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
@@ -266,7 +279,7 @@ private fun StartState(
             shape = RoundedCornerShape(Corner.Button),
             colors = ButtonDefaults.buttonColors(
                 containerColor = BrandColor.Brand500,
-                contentColor = Color.White,
+                contentColor = BrandColor.CardWhite,
             ),
         ) {
             Text(stringResource(R.string.diary_recording_auth_and_start), fontSize = FontSize.button(), fontWeight = FontWeight.Bold)

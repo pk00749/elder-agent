@@ -74,12 +74,18 @@ class AsrConfigViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 }
             }.onFailure { e ->
-                val msg = (e as? AppError)?.message ?: e.message ?: "测试失败"
+                // 空转写 = "服务端成功接收 + 音频非语音"，对"测试 API Key 是否通"来说已经算成功；不要让用户误以为失败
+                val (msg, topErr) = when (e) {
+                    is AppError.AsrEmptyTranscript ->
+                        "✓ 连接正常（测试音频无语音，正式录音可识别）" to null
+                    is AppError -> (e.message ?: "测试失败") to (e.message ?: "测试失败")
+                    else -> (e.message ?: "测试失败") to (e.message ?: "测试失败")
+                }
                 _state.update {
                     it.copy(
                         isTesting = false,
                         lastTestResult = """{"error":"$msg"}""",
-                        topError = msg,
+                        topError = topErr,
                     )
                 }
             }
@@ -111,8 +117,8 @@ class AsrConfigViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * 生成一段 5 秒 440Hz 正弦波 WAV 作为测试音频（§3.1.9 安全边界）
-     * 第三方 ASR 多半接受 m4a/mp3/wav/pcm16；这里用 PCM WAV 兜底。
+     * 生成一段 5 秒 440Hz 正弦波 WAV（PCM 16-bit/16kHz/mono）作为测试音频（§3.1.9 安全边界）
+     * Realtime 服务端按 PCM 接收；该测试音频无语音，回空文本由 test() 视为连接成功。
      */
     private fun createSineWaveSample(cacheDir: File): File {
         val out = File(cacheDir, "asr_test_${System.currentTimeMillis()}.wav")
