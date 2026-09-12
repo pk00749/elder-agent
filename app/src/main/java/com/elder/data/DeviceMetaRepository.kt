@@ -9,9 +9,12 @@ import com.elder.android.data.db.ElderDatabase
 import com.elder.android.data.db.FontScale
 import java.util.TimeZone
 import java.util.UUID
+import kotlinx.coroutines.flow.Flow
 
 class DeviceMetaRepository(private val dao: DeviceMetaDao) {
     suspend fun get(): DeviceMetaEntity? = dao.get()
+
+    fun observe(): Flow<DeviceMetaEntity?> = dao.observe()
 
     suspend fun ensureInitialized(now: Long = System.currentTimeMillis()): DeviceMetaEntity {
         dao.get()?.let { return it }

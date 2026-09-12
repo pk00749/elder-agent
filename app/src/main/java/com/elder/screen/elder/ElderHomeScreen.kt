@@ -19,13 +19,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -38,8 +38,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -109,7 +109,7 @@ fun ElderHomeScreen(
                             .fillMaxWidth()
                             .padding(horizontal = Spacing.Md, vertical = Spacing.Sm)
                             .heightIn(min = Size.SecondaryButtonHeight)
-                            .clickable { onOpenSettings() }
+                            .clickable(role = Role.Button) { onOpenSettings() }
                             .semantics { testTag = "home_asr_hint_card" },
                         shape = RoundedCornerShape(Corner.Card),
                         color = BrandColor.BgGray,
@@ -125,32 +125,87 @@ fun ElderHomeScreen(
                                 tint = BrandColor.Error500,
                                 modifier = Modifier.size(Size.IconMd),
                             )
-                            Spacer(modifier = Modifier.width(Spacing.Sm))
-                            Text(
-                                text = stringResource(R.string.home_asr_unconfigured),
-                                fontSize = FontSize.body(),
-                                color = BrandColor.Error500,
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.home_asr_unconfigured),
+                                    fontSize = FontSize.body(),
+                                    color = BrandColor.Error500,
+                                )
+                                Text(
+                                    text = stringResource(R.string.home_asr_open_settings),
+                                    fontSize = FontSize.caption(),
+                                    color = BrandColor.TextSecondary,
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = BrandColor.TextSecondary,
+                                modifier = Modifier.size(Size.IconMd),
                             )
                         }
                     }
                 }
-                // 今日记录图标（右上 32dp；§3.1.7）— 点击进时间轴屏
-                Box(
+                // 老人端顶部动作统一为 56dp 高、图标 + 可见文字，避免纯图标不可识别。
+                Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(Spacing.Md)
-                        .size(Size.TodayRecordIcon)
-                        .clip(CircleShape)
-                        .background(if (uiState.todayRecorded) BrandColor.Brand500 else Color.Transparent)
-                        .clickable { onOpenRecent() },
-                    contentAlignment = Alignment.Center,
+                        .semantics { testTag = "home_settings_area" },
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = stringResource(R.string.home_today_records_icon_desc),
-                        tint = if (uiState.todayRecorded) Color.White else BrandColor.TextSecondary,
-                        modifier = Modifier.size(Size.IconMd),
-                    )
+                    Button(
+                        onClick = onOpenSettings,
+                        modifier = Modifier
+                            .height(Size.TouchTargetMin)
+                            .widthIn(min = Size.TopActionMinWidth)
+                            .semantics { testTag = "home_settings_button" }
+                            .clip(RoundedCornerShape(Corner.Button)),
+                        shape = RoundedCornerShape(Corner.Button),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = BrandColor.BgGray,
+                            contentColor = BrandColor.TextSecondary,
+                        ),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = null,
+                            tint = BrandColor.TextSecondary,
+                            modifier = Modifier.size(Size.IconMd),
+                        )
+                        Spacer(modifier = Modifier.width(Spacing.Sm))
+                        Text(
+                            text = stringResource(R.string.home_settings_button),
+                            fontSize = FontSize.BodySmallSp.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    Button(
+                        onClick = onOpenRecent,
+                        modifier = Modifier
+                            .height(Size.TouchTargetMin)
+                            .widthIn(min = Size.TopActionMinWidth)
+                            .semantics { testTag = "home_today_records_button" }
+                            .clip(RoundedCornerShape(Corner.Button)),
+                        shape = RoundedCornerShape(Corner.Button),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (uiState.todayRecorded) BrandColor.Brand500 else BrandColor.BgGray,
+                            contentColor = if (uiState.todayRecorded) BrandColor.CardWhite else BrandColor.TextSecondary,
+                        ),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null,
+                            tint = if (uiState.todayRecorded) BrandColor.CardWhite else BrandColor.TextSecondary,
+                            modifier = Modifier.size(Size.IconMd),
+                        )
+                        Spacer(modifier = Modifier.width(Spacing.Sm))
+                        Text(
+                            text = stringResource(R.string.home_today_records_button),
+                            fontSize = FontSize.BodySmallSp.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 }
             }
 
@@ -171,7 +226,7 @@ fun ElderHomeScreen(
                     shape = RoundedCornerShape(Corner.Button),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = BrandColor.Brand500,
-                        contentColor = Color.White,
+                        contentColor = BrandColor.CardWhite,
                     ),
                 ) {
                     Text(
@@ -182,39 +237,6 @@ fun ElderHomeScreen(
                 }
             }
 
-            // 区域 D：设置入口（PR #2 §3.1.8：可见按钮替代 5 次点击隐藏手势）
-            // PR #3：wrapContentHeight 依赖自然高度，不参与 weight 比例分配
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(horizontal = Spacing.Md, vertical = Spacing.Xs)
-                    .semantics { testTag = "home_settings_area" },
-                contentAlignment = Alignment.Center,
-            ) {
-                Button(
-                    onClick = onOpenSettings,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(Size.SecondaryButtonHeight),
-                    shape = RoundedCornerShape(Corner.Button),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = BrandColor.BgGray,
-                        contentColor = BrandColor.TextSecondary,
-                    ),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = null,
-                        modifier = Modifier.size(Size.IconMd),
-                    )
-                    Spacer(modifier = Modifier.width(Spacing.Sm))
-                    Text(
-                        text = stringResource(R.string.home_settings_button),
-                        fontSize = FontSize.body(),
-                    )
-                }
-            }
         }
     }
 }

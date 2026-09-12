@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DeviceMetaDao {
@@ -13,6 +14,9 @@ interface DeviceMetaDao {
 
     @Query("SELECT * FROM device_meta WHERE id = 1 LIMIT 1")
     suspend fun get(): DeviceMetaEntity?
+
+    @Query("SELECT * FROM device_meta WHERE id = 1 LIMIT 1")
+    fun observe(): Flow<DeviceMetaEntity?>
 
     @Query("UPDATE device_meta SET last_active_at = :now WHERE id = 1")
     suspend fun touchActive(now: Long)

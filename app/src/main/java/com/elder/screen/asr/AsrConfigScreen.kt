@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,16 +24,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -39,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elder.android.R
@@ -72,26 +78,19 @@ fun AsrConfigScreen(
         modifier = Modifier.fillMaxSize(),
         color = BrandColor.CardWhite,
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .imePadding(),
+            ) {
             TopAppBar(
                 title = { Text(stringResource(R.string.asr_config_title), fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
-                    }
-                },
-                actions = {
-                    // PR #5：✓ emoji 升级为 IconButton + Icons.Default.Check，对应 prd.md §18 红线
-                    // a11y 可读"保存"语义；启用态绑 allRequiredValid，禁用态 Icon tint 灰
                     IconButton(
-                        onClick = vm::save,
-                        enabled = state.allRequiredValid,
+                        onClick = onBack,
+                        modifier = Modifier.size(Size.TouchTargetMin),
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = stringResource(R.string.common_save),
-                            tint = if (state.allRequiredValid) BrandColor.Brand500 else BrandColor.TextSecondary,
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -99,15 +98,30 @@ fun AsrConfigScreen(
                 ),
             )
 
+            var showAdvanced by remember { mutableStateOf(false) }
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
                     .padding(horizontal = Spacing.Md),
                 verticalArrangement = Arrangement.spacedBy(Spacing.Md),
                 contentPadding = PaddingValues(vertical = Spacing.Md),
             ) {
                 item { HeaderCard() }
-                item { BailianConfigCard() }
+                item {
+                    TextButton(onClick = { showAdvanced = !showAdvanced }) {
+                        Text(
+                            text = stringResource(
+                                if (showAdvanced) R.string.asr_config_advanced_hide
+                                else R.string.asr_config_advanced_show,
+                            ),
+                            color = BrandColor.TextSecondary,
+                            fontSize = FontSize.BodySmallSp.sp,
+                        )
+                    }
+                }
+                if (showAdvanced) {
+                    item { BailianConfigCard() }
+                }
                 item {
                     LabeledField(
                         label = stringResource(R.string.asr_config_api_key),
@@ -141,6 +155,33 @@ fun AsrConfigScreen(
                             )
                         }
                     }
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = Spacing.Md, vertical = Spacing.Md),
+            ) {
+                Button(
+                    onClick = vm::save,
+                    enabled = state.allRequiredValid,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(Size.PrimaryButtonHeight),
+                    shape = RoundedCornerShape(Corner.Button),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrandColor.Brand500,
+                        contentColor = BrandColor.CardWhite,
+                        disabledContainerColor = BrandColor.BgGray,
+                    ),
+                ) {
+                    Text(
+                        text = stringResource(R.string.common_save),
+                        fontSize = FontSize.button(),
+                        fontWeight = FontWeight.Bold,
+                    )
                 }
             }
         }
@@ -224,23 +265,26 @@ private fun TestButton(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    Button(
+    OutlinedButton(
         onClick = onClick,
         enabled = enabled && !isLoading,
         modifier = Modifier
             .fillMaxWidth()
-            .height(Size.PrimaryButtonHeight),
+            .height(Size.SecondaryButtonHeight),
         shape = RoundedCornerShape(Corner.Button),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = BrandColor.Brand500,
-            contentColor = Color.White,
-            disabledContainerColor = BrandColor.BgGray,
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = BrandColor.Brand500,
+            disabledContentColor = BrandColor.TextSecondary,
         ),
     ) {
         if (isLoading) {
-            CircularProgressIndicator(color = Color.White)
+            CircularProgressIndicator(color = BrandColor.Brand500)
         } else {
-            Text(stringResource(R.string.asr_config_test), fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.asr_config_test),
+                fontSize = FontSize.body(FontLevel.LARGE),
+                fontWeight = FontWeight.Bold,
+            )
         }
     }
 }

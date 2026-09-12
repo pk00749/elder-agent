@@ -30,7 +30,24 @@ sealed class AppError(
     class AsrAuthFailed(cause: Throwable? = null) : AppError(Code.ASR_AUTH_FAILED, Code.ASR_AUTH_FAILED.userMessage, cause)
     class AsrRateLimited(cause: Throwable? = null) : AppError(Code.ASR_RATE_LIMITED, Code.ASR_RATE_LIMITED.userMessage, cause)
     class AsrBadRequest(cause: Throwable? = null) : AppError(Code.ASR_BAD_REQUEST, Code.ASR_BAD_REQUEST.userMessage, cause)
-    class AsrUpstream(cause: Throwable? = null) : AppError(Code.ASR_UPSTREAM, Code.ASR_UPSTREAM.userMessage, cause)
+    class AsrUpstream(
+        cause: Throwable? = null,
+        val serverErrorCode: String? = null,
+        val serverErrorMessage: String? = null,
+    ) : AppError(
+        Code.ASR_UPSTREAM,
+        buildString {
+            append(Code.ASR_UPSTREAM.userMessage)
+            if (!serverErrorCode.isNullOrEmpty() || !serverErrorMessage.isNullOrEmpty()) {
+                append(" (server ")
+                append(serverErrorCode ?: "?")
+                append(": ")
+                append(serverErrorMessage ?: "?")
+                append(")")
+            }
+        },
+        cause,
+    )
     class AsrResponseInvalid(cause: Throwable? = null) : AppError(Code.ASR_RESPONSE_INVALID, Code.ASR_RESPONSE_INVALID.userMessage, cause)
     class AsrNotConfigured : AppError(Code.ASR_NOT_CONFIGURED, Code.ASR_NOT_CONFIGURED.userMessage)
     class AsrEmptyTranscript : AppError(Code.ASR_EMPTY_TRANSCRIPT, Code.ASR_EMPTY_TRANSCRIPT.userMessage)

@@ -20,8 +20,10 @@
     <string name="home_greeting_evening">晚上好</string>
     <string name="home_no_reminders_today">今日暂无提醒</string>
     <string name="home_today_records_icon_desc">今日记录</string>
-    <string name="home_diary_button">点击开始写日志</string>
-    <string name="home_asr_unconfigured">请在设置 → AI 语音识别 配置 API</string>
+    <string name="home_today_records_button">记录</string>
+    <string name="home_diary_button">按下开始说</string>
+    <string name="home_asr_unconfigured">语音功能还没准备好</string>
+    <string name="home_asr_open_settings">去设置</string>
     <string name="home_settings_button">设置</string>
 
     <!-- §3.2.1 家属主屏 -->
@@ -102,7 +104,6 @@
     <string name="diary_recording_mic_denied">需要麦克风权限才能写日记</string>
     <!-- PR-A 新增，MVP 录音闭环专用（不动既有字段，AGENTS.md §18） -->
     <string name="diary_recording_stop">点击停止</string>
-    <string name="diary_recording_stop_secondary">停止录音</string>
     <string name="diary_recording_title">写日志</string>
     <string name="diary_recording_transcribing">转写中…</string>
     <string name="diary_recording_auth_and_start">授权并开始</string>
@@ -129,7 +130,9 @@
     <string name="settings_asr_configured">已配置</string>
     <string name="settings_asr_not_configured">未配置</string>
     <string name="settings_font_size">字体大小</string>
+    <string name="settings_font_preview">这是调整后的文字大小</string>
     <string name="settings_tts_switch">语音播报</string>
+    <string name="settings_tts_unavailable">暂不可用，接入后会在这里开启</string>
     <string name="settings_on">开</string>
     <string name="settings_off">关</string>
     <string name="settings_volume">媒体音量</string>
@@ -157,14 +160,16 @@
     <string name="asr_config_test">测试一下</string>
     <string name="asr_config_last_test">最近测试：%1$s</string>
     <string name="asr_config_tts_play_desc">朗读</string>
+    <string name="asr_config_advanced_show">查看高级信息</string>
+    <string name="asr_config_advanced_hide">收起高级信息</string>
 
     <!-- 空态 / 加载 / 网络 -->
     <string name="empty_no_reminders">还没有提醒，点上面的 + 加一个</string>
     <string name="empty_no_diary">今天还没记</string>
     <string name="empty_no_diary_7d">近7天还没有日志</string>
     <string name="loading_text">加载中…</string>
-    <string name="network_error_text">网络好像断了，正在重试…</string>
-    <string name="network_retry_button">重试</string>
+    <string name="network_error_text">没连上网络，请点下面重试</string>
+    <string name="network_retry_button">重新试试</string>
 
     <!-- Toast -->
     <string name="toast_network_error">网络好像断了，再试一次</string>

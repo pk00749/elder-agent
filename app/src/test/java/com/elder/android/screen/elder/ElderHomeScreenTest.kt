@@ -7,12 +7,14 @@ import android.app.Application
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import com.elder.android.di.ServiceLocator
+import com.elder.android.design.tokens.Size
 import com.elder.android.testing.ElderRobolectricTestRunner
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -59,6 +61,36 @@ class ElderHomeScreenTest {
         assertEquals(2, captured)
     }
 
+    @Test
+    fun topActions_stayAboveDiaryButton() {
+        composeRule.setContent {
+            ElderHomeScreen(
+                onStartDiary = {},
+                onOpenSettings = {},
+                onOpenRecent = {},
+                vm = vm,
+            )
+        }
+        composeRule.waitForIdle()
+
+        val settings = composeRule.onNodeWithTag("home_settings_button")
+            .getUnclippedBoundsInRoot()
+        val todayRecords = composeRule.onNodeWithTag("home_today_records_button")
+            .getUnclippedBoundsInRoot()
+        val diaryArea = composeRule.onNodeWithTag("home_diary_area")
+            .getUnclippedBoundsInRoot()
+
+        assertTrue(
+            "设置按钮不应位于底部，必须在写日记区域上方",
+            settings.bottom < diaryArea.top,
+        )
+        assertTrue(
+            "今日记录按钮不应位于底部，必须在写日记区域上方",
+            todayRecords.bottom < diaryArea.top,
+        )
+        composeRule.onNodeWithText("记录").assertExists()
+    }
+
     /**
      * PR #3：weight 0.4 / 0.6 比例在 5" (w360dp-h640dp) 上应保证
      *   - 3 个区域 Box 全部存在（结构合法）
@@ -83,10 +115,13 @@ class ElderHomeScreenTest {
         composeRule.onNodeWithTag("home_greeting_area").assertExists()
         composeRule.onNodeWithTag("home_diary_area").assertExists()
         composeRule.onNodeWithTag("home_settings_area").assertExists()
+        composeRule.onNodeWithTag("home_settings_button")
+            .assertHeightIsAtLeast(Size.TouchTargetMin)
+        composeRule.onNodeWithTag("home_today_records_button")
+            .assertHeightIsAtLeast(Size.TouchTargetMin)
 
-        // 写日志文本节点存在 — R.string.home_diary_button = "点击开始写日志"
-        composeRule.onNodeWithText("点击开始写日志").assertExists()
-        // 设置按钮存在 — wrapContentHeight 不会被 weight 挤掉
+        // 主按钮文案与动作一致，设置按钮不参与 weight 分配
+        composeRule.onNodeWithText("按下开始说").assertExists()
         composeRule.onNodeWithText("设置").assertExists()
 
         // 写日志区像素高度必须 > 问候区（weight 0.6 > 0.4 强制约束）
@@ -119,7 +154,6 @@ class ElderHomeScreenTest {
         composeRule.onNodeWithTag("home_greeting_area").assertExists()
         composeRule.onNodeWithTag("home_diary_area").assertExists()
         composeRule.onNodeWithTag("home_settings_area").assertExists()
-        // 设置按钮文本可见
         composeRule.onNodeWithText("设置").assertExists()
     }
 
@@ -137,7 +171,7 @@ class ElderHomeScreenTest {
             )
         }
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("点击开始写日志").assertExists()
+        composeRule.onNodeWithText("按下开始说").assertExists()
         composeRule.onNodeWithText("设置").assertExists()
     }
 }

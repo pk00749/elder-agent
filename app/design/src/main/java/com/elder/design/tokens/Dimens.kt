@@ -35,6 +35,9 @@ object FontSize {
     val ButtonLargeSp = 38
     val ButtonXLargeSp = 44
     val TtsButtonSp = 24
+    val BodyDefaultLineHeightSp = 34
+    val BodyInputLineHeightSp = 30
+    val LabelLineHeightSp = 30
 
     fun body(level: FontLevel = FontLevel.DEFAULT) = when (level) {
         FontLevel.DEFAULT -> BodyDefaultSp.sp
@@ -80,6 +83,11 @@ object Motion {
 }
 
 object Size {
+    // 老人端触控基准：Material 最低 48dp，老人端统一提升到 56dp
+    val TouchTargetMin = 56.dp
+    val TopActionMinWidth = 112.dp
+    val SegmentButtonHeight = 56.dp
+    val WarningCardMinHeight = 120.dp
     // 主屏区域高度（§3.1.5 v3.0 MVP）
     val HomeGreetingArea = 240.dp
     val HomeDiaryArea = 200.dp
@@ -88,7 +96,7 @@ object Size {
     val AsrCardBorderWidth = 2.dp
     // 图标（§3.1.7 今日记录图标）
     val IconMd = 24.dp
-    val TodayRecordIcon = 32.dp
+    val TodayRecordIcon = TouchTargetMin
     // ASR 未配置提示红点（§3.1.5）
     val WarningDotSize = 12.dp
     // 进度条（§4.10）

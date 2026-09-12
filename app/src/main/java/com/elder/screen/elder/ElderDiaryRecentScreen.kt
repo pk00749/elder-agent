@@ -1,8 +1,6 @@
 // §3.1.7 老人端「今日记录」时间轴屏（v3.0 MVP 版）
 package com.elder.android.screen.elder
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,11 +20,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -33,9 +35,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +47,6 @@ import com.elder.android.R
 import com.elder.android.data.db.DiaryEntryEntity
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
-import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
@@ -69,7 +68,10 @@ fun ElderDiaryRecentScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.diary_recent_screen_title), fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.size(Size.TouchTargetMin),
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
@@ -85,19 +87,25 @@ fun ElderDiaryRecentScreen(
                 FilterChip(
                     selected = state.range == DiaryRecentRange.TODAY,
                     onClick = { vm.setRange(DiaryRecentRange.TODAY) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(Size.SegmentButtonHeight),
                     label = { Text(stringResource(R.string.diary_recent_today_tab), fontSize = FontSize.body()) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = BrandColor.Brand500,
-                        selectedLabelColor = Color.White,
+                        selectedLabelColor = BrandColor.CardWhite,
                     ),
                 )
                 FilterChip(
                     selected = state.range == DiaryRecentRange.LAST_7_DAYS,
                     onClick = { vm.setRange(DiaryRecentRange.LAST_7_DAYS) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(Size.SegmentButtonHeight),
                     label = { Text(stringResource(R.string.diary_recent_7d_tab), fontSize = FontSize.body()) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = BrandColor.Brand500,
-                        selectedLabelColor = Color.White,
+                        selectedLabelColor = BrandColor.CardWhite,
                     ),
                 )
             }
@@ -111,7 +119,6 @@ fun ElderDiaryRecentScreen(
                 }
                 ElderEmptyState(
                     text = emptyMsg,
-                    onTtsClick = { vm.ttsPlay(emptyMsg) },
                 )
             } else {
                 LazyColumn(
@@ -122,6 +129,7 @@ fun ElderDiaryRecentScreen(
                     items(items = state.entries, key = { it.id }) { entry: DiaryEntryEntity ->
                         DiaryRow(
                             entry = entry,
+                            range = state.range,
                             onEdit = { vm.startEdit(entry.id, entry.text) },
                         )
                     }
@@ -160,37 +168,55 @@ fun ElderDiaryRecentScreen(
 }
 
 @Composable
-private fun DiaryRow(entry: DiaryEntryEntity, onEdit: () -> Unit) {
+private fun DiaryRow(
+    entry: DiaryEntryEntity,
+    range: DiaryRecentRange,
+    onEdit: () -> Unit,
+) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onEdit),
+        modifier = Modifier.fillMaxWidth(),
         color = BrandColor.BgGray,
         shape = RoundedCornerShape(Corner.Card),
     ) {
-        Row(
+        Column(
             modifier = Modifier.padding(Spacing.Md),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalArrangement = Arrangement.spacedBy(Spacing.Sm),
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = formatTime(entry.createdAt),
-                    fontSize = FontSize.caption(),
-                    color = BrandColor.TextSecondary,
+            Text(
+                text = formatEntryTime(entry.createdAt, range),
+                fontSize = FontSize.caption(),
+                color = BrandColor.TextSecondary,
+            )
+            Text(
+                text = entry.text,
+                fontSize = FontSize.body(),
+                color = BrandColor.TextPrimary,
+            )
+            OutlinedButton(
+                onClick = onEdit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Size.TouchTargetMin),
+                shape = RoundedCornerShape(Corner.Button),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandColor.Brand500),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = null,
+                    modifier = Modifier.size(Size.IconMd),
                 )
-                Spacer(modifier = Modifier.height(Spacing.Xs))
+                Spacer(modifier = Modifier.width(Spacing.Sm))
                 Text(
-                    text = entry.text,
-                    fontSize = FontSize.body(),
-                    color = BrandColor.TextPrimary,
+                    text = stringResource(R.string.diary_recent_edit_icon_desc),
+                    fontSize = FontSize.BodySmallSp.sp,
+                    fontWeight = FontWeight.Bold,
                 )
-            }
-            IconButton(onClick = onEdit) {
-                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.diary_recent_edit_icon_desc), tint = BrandColor.Brand500)
             }
         }
     }
 }
 
-private fun formatTime(ms: Long): String =
-    SimpleDateFormat("HH:mm", Locale.US).format(Date(ms))
+private fun formatEntryTime(ms: Long, range: DiaryRecentRange): String {
+    val pattern = if (range == DiaryRecentRange.TODAY) "HH:mm" else "M月d日 HH:mm"
+    return SimpleDateFormat(pattern, Locale.CHINA).format(Date(ms))
+}

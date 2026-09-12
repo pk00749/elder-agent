@@ -1,4 +1,4 @@
-// §3.1.8 老人端设置（隐藏入口，v3.0 MVP 版）
+// §3.1.8 老人端设置（主屏可见入口，v3.0 MVP 版）
 package com.elder.android.screen.elder
 
 import android.content.Intent
@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -39,7 +41,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -75,7 +76,10 @@ fun ElderSettingsScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.settings_title), fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.size(Size.TouchTargetMin),
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
@@ -94,6 +98,7 @@ fun ElderSettingsScreen(
                 })
                 Divider()
                 SettingRow5About(versionName = state.versionName)
+                Spacer(modifier = Modifier.height(Spacing.Lg))
                 Divider()
                 SettingRow6Logout(onClick = vm::requestLogout)
             }
@@ -132,8 +137,9 @@ private fun SettingRow1Asr(configured: Boolean, onClick: () -> Unit) {
         subtitle = if (configured) stringResource(R.string.settings_asr_configured) else stringResource(R.string.settings_asr_not_configured),
         onClick = onClick,
         trailing = {
-        if (!configured) RedDot()
-    })
+            if (!configured) RedDot()
+        },
+    )
 }
 
 @Composable
@@ -143,40 +149,54 @@ private fun SettingRow2FontScale(current: FontScale, onPick: (FontScale) -> Unit
         .padding(Spacing.Md)) {
         Text(stringResource(R.string.settings_font_size), fontSize = FontSize.body(), color = BrandColor.TextPrimary)
         Spacer(modifier = Modifier.height(Spacing.Sm))
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.Sm)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Sm),
+        ) {
             listOf(FontScale.DEFAULT, FontScale.LARGE, FontScale.XLARGE).forEach { f ->
                 FilterChip(
                     selected = current == f,
                     onClick = { onPick(f) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(Size.SegmentButtonHeight),
                     label = { Text(labelOf(f), fontSize = FontSize.BodySmallSp.sp) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = BrandColor.Brand500,
-                        selectedLabelColor = Color.White,
+                        selectedLabelColor = BrandColor.CardWhite,
                     ),
                 )
             }
         }
+        Spacer(modifier = Modifier.height(Spacing.Sm))
+        Text(
+            text = stringResource(R.string.settings_font_preview),
+            fontSize = FontSize.body(),
+            color = BrandColor.TextSecondary,
+        )
     }
 }
 
+@Composable
 private fun labelOf(f: FontScale) = when (f) {
-    FontScale.DEFAULT -> "默认"
-    FontScale.LARGE -> "大"
-    FontScale.XLARGE -> "特大"
+    FontScale.DEFAULT -> stringResource(R.string.settings_font_normal)
+    FontScale.LARGE -> stringResource(R.string.settings_font_large)
+    FontScale.XLARGE -> stringResource(R.string.settings_font_xlarge)
 }
 
 @Composable
 private fun SettingRow3Tts(enabled: Boolean, onChange: (Boolean) -> Unit) {
-    // PR #5：onClick = null，整行不挂 clickable，Switch 自身 onCheckedChange 不被外层吞掉
+    // 真实 TTS 尚未接入：禁用开关，避免老人反复点击无反馈。
     SettingRow(
         title = stringResource(R.string.settings_tts_switch),
-        subtitle = if (enabled) stringResource(R.string.settings_on) else stringResource(R.string.settings_off),
+        subtitle = stringResource(R.string.settings_tts_unavailable),
         trailing = {
             Switch(
                 checked = enabled,
                 onCheckedChange = onChange,
+                enabled = false,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
+                    checkedThumbColor = BrandColor.CardWhite,
                     checkedTrackColor = BrandColor.Brand500,
                 ),
             )
@@ -192,12 +212,17 @@ private fun SettingRow4Volume(onClick: () -> Unit) {
 
 @Composable
 private fun SettingRow5About(versionName: String) {
-    SettingRow(title = stringResource(R.string.settings_about), subtitle = stringResource(R.string.settings_version, versionName), onClick = {})
+    SettingRow(title = stringResource(R.string.settings_about), subtitle = stringResource(R.string.settings_version, versionName))
 }
 
 @Composable
 private fun SettingRow6Logout(onClick: () -> Unit) {
-    SettingRow(title = stringResource(R.string.settings_logout), subtitle = stringResource(R.string.settings_logout_subtitle), onClick = onClick)
+    SettingRow(
+        title = stringResource(R.string.settings_logout),
+        subtitle = stringResource(R.string.settings_logout_subtitle),
+        onClick = onClick,
+        danger = true,
+    )
 }
 
 @Composable
@@ -208,20 +233,33 @@ private fun SettingRow(
     // 避免吞掉 trailing slot 里 Switch 自身 onCheckedChange 事件
     trailing: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
+    danger: Boolean = false,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(Size.ListRowMinHeight)
+            .heightIn(min = Size.ListRowMinHeight)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(horizontal = Spacing.Md),
+            .padding(horizontal = Spacing.Md, vertical = Spacing.Sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = FontSize.body(), color = BrandColor.TextPrimary)
+            Text(
+                title,
+                fontSize = FontSize.body(),
+                color = if (danger) BrandColor.Error500 else BrandColor.TextPrimary,
+            )
             Text(subtitle, fontSize = FontSize.caption(), color = BrandColor.TextSecondary)
         }
         trailing?.invoke()
+        if (onClick != null) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = if (danger) BrandColor.Error500 else BrandColor.TextSecondary,
+                modifier = Modifier.size(Size.IconMd),
+            )
+        }
     }
 }
 

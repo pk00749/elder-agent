@@ -58,7 +58,7 @@ class ElderHomeViewModel(app: Application) : AndroidViewModel(app) {
     private fun combineState() {
         viewModelScope.launch {
             asrRepo.observe().collect { cfg ->
-                _uiState.update { it.copy(showAsrHint = cfg == null) }
+                _uiState.update { it.copy(showAsrHint = cfg?.isConfigured != true) }
             }
         }
         viewModelScope.launch {
