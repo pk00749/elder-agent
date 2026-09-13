@@ -5,23 +5,22 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,15 +33,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -57,6 +57,7 @@ import com.elder.android.design.tokens.Spacing
 import com.elder.android.ui.component.ElderToast
 import com.elder.android.ui.component.LoadingState
 import com.elder.android.ui.component.NetworkYellowBar
+import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,7 +92,7 @@ fun ElderDiaryRecordScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = BrandColor.CardWhite,
+        color = BrandColor.BgGray,
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
@@ -107,7 +108,7 @@ fun ElderDiaryRecordScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
-               colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
             )
 
             // PR #4：ASR 上游失败（非 ASR_AUTH_FAILED）时顶部展示黄条 + 重试按钮
@@ -120,7 +121,8 @@ fun ElderDiaryRecordScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(Spacing.Md),
+                    .padding(Spacing.Md)
+                    .navigationBarsPadding(),
                 contentAlignment = Alignment.Center,
             ) {
                 val savedTranscript = state.transcript
@@ -135,7 +137,6 @@ fun ElderDiaryRecordScreen(
                     )
                     // 已检查且还没授权 -> StartState（"权限被拒绝" + 授权按钮）；刚进屏权限还没查完 -> 空 Box
                     permissionChecked && ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED -> StartState(
-                        onStart = vm::startRecording,
                         permLauncher = permLauncher,
                     )
                     else -> Box(modifier = Modifier.fillMaxSize())
@@ -158,44 +159,38 @@ fun ElderDiaryRecordScreen(
 
 @Composable
 internal fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier.fillMaxSize()) {
         Text(
-            text = stringResource(R.string.diary_recording_recording, (state.elapsedMs / 60000).toInt(), ((state.elapsedMs / 1000) % 60).toInt()),
+            text = stringResource(
+                R.string.diary_recording_recording,
+                (state.elapsedMs / 60000).toInt(),
+                ((state.elapsedMs / 1000) % 60).toInt(),
+            ),
             fontSize = FontSize.body(FontLevel.LARGE),
             fontWeight = FontWeight.Bold,
             color = BrandColor.Error500,
         )
-        state.transcript?.takeIf { it.isNotBlank() }?.let { partial ->
-            Spacer(modifier = Modifier.height(Spacing.Md))
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = BrandColor.BgGray,
-                shape = RoundedCornerShape(Corner.Card),
-            ) {
-                Column(modifier = Modifier.padding(Spacing.Md)) {
-                    Text(
-                        text = stringResource(R.string.diary_recording_transcribing),
-                        fontSize = FontSize.body(),
-                        color = BrandColor.TextSecondary,
-                    )
-                    Spacer(modifier = Modifier.height(Spacing.Sm))
-                    Text(
-                        text = partial,
-                        fontSize = FontSize.body(),
-                        color = BrandColor.TextPrimary,
-                        maxLines = 6,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(Spacing.Xl))
+        Spacer(modifier = Modifier.height(Spacing.Xs))
+        Text(
+            text = stringResource(R.string.diary_recording_transcribing),
+            fontSize = FontSize.body(),
+            color = BrandColor.TextSecondary,
+        )
+        Spacer(modifier = Modifier.height(Spacing.Md))
+        TranscriptPaper(
+            text = state.transcript,
+            placeholder = stringResource(R.string.diary_recording_transcript_placeholder),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        )
+        Spacer(modifier = Modifier.height(Spacing.Md))
         Button(
             onClick = onStop,
             modifier = Modifier
-                .size(Size.PressButtonSize)
-                .clip(CircleShape),
-            shape = RoundedCornerShape(percent = 50),
+                .fillMaxWidth()
+                .height(Size.PrimaryButtonHeight),
+            shape = RoundedCornerShape(Corner.Button),
             colors = ButtonDefaults.buttonColors(
                 containerColor = BrandColor.Brand500,
                 contentColor = BrandColor.CardWhite,
@@ -203,13 +198,10 @@ internal fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
         ) {
             Text(
                 text = stringResource(R.string.diary_recording_stop),
-                fontSize = FontSize.body(),
+                fontSize = FontSize.button(),
                 fontWeight = FontWeight.Bold,
             )
         }
-        // v3.0.2：移除 72dp 全宽次级"停止录音"按钮（PR #5 加的冗余双按钮），只留 160dp 主圆按钮。
-        // 反馈"重复按钮"问题：单按钮更清晰，避免老人误触。
-        Spacer(modifier = Modifier.height(Spacing.Lg))
     }
 }
 
@@ -220,8 +212,7 @@ private fun RecordedState(
     onDone: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxSize(),
     ) {
         Text(
             text = stringResource(R.string.diary_recording_done_check) + " " + stringResource(R.string.diary_recording_done_duration, (durationMs / 60000).toInt(), ((durationMs / 1000) % 60).toInt()),
@@ -229,20 +220,15 @@ private fun RecordedState(
             fontWeight = FontWeight.Bold,
             color = BrandColor.Brand500,
         )
-        Spacer(modifier = Modifier.height(Spacing.Lg))
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = BrandColor.BgGray,
-            shape = RoundedCornerShape(Corner.Card),
-        ) {
-            Text(
-                text = transcript,
-                modifier = Modifier.padding(Spacing.Md),
-                fontSize = FontSize.body(),
-                color = BrandColor.TextPrimary,
-            )
-        }
-        Spacer(modifier = Modifier.height(Spacing.Lg))
+        Spacer(modifier = Modifier.height(Spacing.Md))
+        TranscriptPaper(
+            text = transcript,
+            placeholder = "",
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        )
+        Spacer(modifier = Modifier.height(Spacing.Md))
         Button(
             onClick = onDone,
             modifier = Modifier
@@ -260,8 +246,79 @@ private fun RecordedState(
 }
 
 @Composable
+private fun TranscriptPaper(
+    text: String?,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+) {
+    val transcript = text?.takeIf { it.isNotBlank() }
+    val scrollState = rememberScrollState()
+
+    LaunchedEffect(transcript) {
+        snapshotFlow { scrollState.maxValue }.collect { maxValue ->
+            scrollState.scrollTo(maxValue)
+        }
+    }
+
+    Surface(
+        modifier = modifier,
+        color = BrandColor.CardWhite,
+        shape = RoundedCornerShape(Corner.Card),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .drawBehind {
+                    val marginX = Spacing.Lg.toPx()
+                    val ruleEndX = size.width - Spacing.Md.toPx()
+                    val ruleSpacing = Size.TranscriptRuleSpacing.toPx()
+                    val ruleWidth = Size.TranscriptRuleWidth.toPx()
+
+                    var ruleY = Spacing.Lg.toPx()
+                    while (ruleY < size.height) {
+                        drawLine(
+                            color = BrandColor.PaperRule,
+                            start = Offset(marginX, ruleY),
+                            end = Offset(ruleEndX, ruleY),
+                            strokeWidth = ruleWidth,
+                        )
+                        ruleY += ruleSpacing
+                    }
+
+                    drawLine(
+                        color = BrandColor.PaperMargin,
+                        start = Offset(marginX, 0f),
+                        end = Offset(marginX, size.height),
+                        strokeWidth = Size.AsrCardBorderWidth.toPx(),
+                    )
+                }
+                .padding(
+                    start = Spacing.Xl,
+                    top = Spacing.Lg,
+                    end = Spacing.Md,
+                    bottom = Spacing.Md,
+                ),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState),
+            ) {
+                Text(
+                    text = transcript ?: placeholder,
+                    fontSize = FontSize.body(FontLevel.XLARGE),
+                    lineHeight = FontSize.TranscriptLineHeightSp.sp,
+                    fontWeight = if (transcript == null) FontWeight.Normal else FontWeight.Medium,
+                    color = if (transcript == null) BrandColor.TextSecondary else BrandColor.TextPrimary,
+                )
+                Spacer(modifier = Modifier.height(Spacing.Xxl))
+            }
+        }
+    }
+}
+
+@Composable
 private fun StartState(
-    onStart: () -> Unit,
     permLauncher: androidx.activity.result.ActivityResultLauncher<String>,
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -285,9 +342,4 @@ private fun StartState(
             Text(stringResource(R.string.diary_recording_auth_and_start), fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
         }
     }
-}
-
-private fun formatSec(ms: Long): String {
-    val sec = ms / 1000
-    return "%d:%02d".format(sec / 60, sec % 60)
 }

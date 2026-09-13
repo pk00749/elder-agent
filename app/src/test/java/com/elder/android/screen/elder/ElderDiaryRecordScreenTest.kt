@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Application
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -41,7 +42,7 @@ class ElderDiaryRecordScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("点击停止").assertExists()
+        composeRule.onNodeWithText("点击停止").assertIsDisplayed()
         composeRule.onAllNodesWithText("停止录音").assertCountEquals(0)
     }
 
@@ -58,8 +59,20 @@ class ElderDiaryRecordScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("转写中…").assertExists()
-        composeRule.onNodeWithText("今天天气很好").assertExists()
+        composeRule.onNodeWithText("转写中…").assertIsDisplayed()
+        composeRule.onNodeWithText("今天天气很好").assertIsDisplayed()
+    }
+
+    @Test
+    fun recordingActive_withoutDelta_showsTranscriptPlaceholder() {
+        composeRule.setContent {
+            RecordingActive(
+                state = DiaryRecordUiState(isRecording = true, elapsedMs = 1_000),
+                onStop = {},
+            )
+        }
+
+        composeRule.onNodeWithText("正在听，您说的话会显示在这里…").assertIsDisplayed()
     }
 
     @Test

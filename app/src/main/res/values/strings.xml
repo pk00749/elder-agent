@@ -106,6 +106,7 @@
     <string name="diary_recording_stop">点击停止</string>
     <string name="diary_recording_title">写日志</string>
     <string name="diary_recording_transcribing">转写中…</string>
+    <string name="diary_recording_transcript_placeholder">正在听，您说的话会显示在这里…</string>
     <string name="diary_recording_auth_and_start">授权并开始</string>
     <string name="diary_recording_done_check">✓ 已录音</string>
     <string name="diary_recording_done_duration">%1$02d:%2$02d</string>
