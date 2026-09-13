@@ -528,3 +528,71 @@ v2.1 不引入新数据模型；以下 v2.0 字段必须保持，服务端 SDK /
 
 - 迁移脚本 `services/*/migrations/v2_1.py`：双写期内新字段 nullable，老 enum 拒绝写入
 - 集成测试 `tests/integration/test_schema_v21.py` 跑遍上述字段约束；任何回归 → CI 红
+
+### A.8 阿里云百炼 ASR（v3.0 MVP 客户端唯一上游）
+
+> v3.0 MVP 老人端独立运行（无服务端），客户端直连阿里云百炼 Realtime ASR：`qwen-audio-3.0-realtime-plus`。本节记录 v3.0 起唯一 ASR 集成的代码约束。
+
+**§A.8.1 上游固定项（hardcoded constants）**
+
+```kotlin
+// app/src/main/java/com/elder/data/asr/AsrApiClient.kt
+companion object {
+    const val BAILIAN_WORKSPACE_ID = "llm-svrk4hi977f8t2fe"   // 租户 ID，非密钥
+    const val BAILIAN_MODEL = "qwen-audio-3.0-realtime-plus"
+    const val BAILIAN_PROVIDER = "bailian"                     // 写入 §5.11 diary_entry.asr_provider
+    const val BAILIAN_REGION = "cn-beijing"
+    // 对齐 scripts/realtime_quickstart.py；WorkspaceId 与 model 共同决定连接目标
+    val WS_URL = "wss://$BAILIAN_WORKSPACE_ID.$BAILIAN_REGION.maas.aliyuncs.com/api-ws/v1/realtime?model=$BAILIAN_MODEL"
+    const val AUDIO_FORMAT = "pcm"                              // AudioRecorder 实时回调裸 PCM
+    const val SAMPLE_RATE = 16000                               // AudioRecorder 16kHz/mono
+}
+```
+
+> endpoint、model、鉴权必须与 `scripts/realtime_quickstart.py` 保持同一协议族。模型需要在 workspace 中开通，否则握手或 `session.update` 会失败。
+
+**§A.8.2 协议（Qwen-Audio Realtime WebSocket）**
+
+- 端点：`wss://$BAILIAN_WORKSPACE_ID.$BAILIAN_REGION.maas.aliyuncs.com/api-ws/v1/realtime?model=$BAILIAN_MODEL`
+- Auth：`Authorization: Bearer <API_KEY>`（API Key 由用户在 §3.1.9 设置页输入，Keystore-wrapped 密文落盘 §5.11 `api_key_enc`）
+- 建连后先发 `session.update`，配置 `modalities=["text"]` 和 `turn_detection=null`（Manual 模式）
+- 录音期间持续发送 `input_audio_buffer.append`，`audio` 为 16kHz/16bit/mono PCM 的 Base64
+- `conversation.item.input_audio_transcription.delta` 的 `text + stash` 是实时显示文本
+- 用户停止录音后发送 `input_audio_buffer.commit`，等待 `conversation.item.input_audio_transcription.completed.transcript` 作为最终文本
+- 不发送 `response.create`，避免触发无关的模型回复
+
+**§A.8.3 错误映射**
+
+| 场景 | AppError | code |
+|------|----------|------|
+| WebSocket 握手 HTTP 401 / 403，或 error.code 表示鉴权失败 | `AsrAuthFailed` | `ASR_AUTH_FAILED` |
+| error.code / error.message 表示限流 | `AsrRateLimited` | `ASR_RATE_LIMITED` |
+| error.type=`invalid_request_error` / error.code 表示参数错误 | `AsrBadRequest` | `ASR_BAD_REQUEST` |
+| WebSocket 失败、server_error、audio transcriber failed | `AsrUpstream` | `ASR_UPSTREAM` |
+| WebSocket `onFailure` / IOException | `AsrUpstream` | `ASR_UPSTREAM` |
+| session.updated 或 transcription.completed 超时 | `AsrUpstream` | `ASR_UPSTREAM` |
+| completed.transcript 空串 | `AsrEmptyTranscript` | `ASR_EMPTY_TRANSCRIPT` |
+| API Key 传空 | `AsrAuthFailed` | `ASR_AUTH_FAILED` |
+
+**§A.8.4 客户端 Room schema（§5.11 `asr_config` v3.0.1）**
+
+- `provider` / `endpoint` / `model` / `extra_headers_json` / `audio_format` 列**删除**（asr_config 不在 §18 锁定列表，`DROP TABLE asr_config` + `CREATE TABLE` 是允许的 schema 变更路径）
+- 保留 `id` / `api_key_enc` / `updated_at` / `last_test_result`（`last_tested_at` 同义合并到 `updated_at`）
+- Room 迁移 `MIGRATION_1_2`（version 1→2）强制丢弃旧 DashScope/Whisper/Custom 配置；用户必须在 §3.1.9 重输百炼 API Key
+- DiaryEntry `asrProvider` / `asrModel` 字段保留（diary_entry 在 §18 锁定列表），统一写 `BAILIAN_PROVIDER` / `BAILIAN_MODEL`
+
+**§A.8.5 旧 §A.1 千问 ASR 封装的处理**
+
+- `packages/common/elder_common/upstream/asr.py` 与 `AsrApiClient` 旧签名（`transcribe(provider, endpoint, apiKey, model, audioFile, extraHeaders, audioFormat)`）同步下线：
+  - 服务端 `elder_common.upstream.asr.recognize` 仍保留（v2.x 服务端可能回滚为 v2.1 架构）；本 MVP 不调用
+  - 客户端 `AsrApiClient.transcribe(apiKey, audioFile)` 是 v3.0 唯一签名
+- §A.1 旧千问 ASR 描述保留作为 v2.x 回滚参考；v3.0 不读 §A.1
+
+**§A.8.6 测试约束**
+
+- 测试用 `MockWebServer` + `MockResponse.withWebSocketUpgrade(WebSocketListener)`，模拟服务端
+- 覆盖 `session.update → append × N → delta → commit → completed` 成功流
+- 覆盖 WebSocket 401 和 Realtime error → AppError 映射
+- 覆盖空 `completed.transcript` → `AsrEmptyTranscript`
+- 覆盖 API Key 空串 → `AsrAuthFailed`（不进 WS）
+- 常规 CI 禁止真实调用；提供显式 API Key 时可运行 `AsrApiClientLiveTest` 做真实链路验证

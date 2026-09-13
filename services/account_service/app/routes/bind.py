@@ -197,11 +197,21 @@ async def list_pending(
     items: list[PendingItem] = []
     for a in attempts:
         fam = await family_user.find_by_id(str(a.family_user_id))
+        # §3.2.8 / v2.1.2：MVP 阶段 family_user 可能只有 device_token，没有 phone
+        # 显示策略：优先 phone 尾 4；否则 device_token 前 8 位；都没有则空
+        if fam is None:
+            display_name = ""
+        elif fam.phone:
+            display_name = phone_tail(fam.phone)
+        elif fam.device_token:
+            display_name = fam.device_token[:8]
+        else:
+            display_name = ""
         items.append(
             PendingItem(
                 bind_attempt_id=str(a.id),
                 family_user_id=str(a.family_user_id),
-                family_user_name=fam.phone if fam else "",  # §3.2.8：缺 name 用 phone tail
+                family_user_name=display_name,
                 family_user_phone_tail=phone_tail(fam.phone) if fam else "",
                 bind_code=a.bind_code,
                 created_at=a.created_at.isoformat(),

@@ -59,6 +59,7 @@ services:
     environment:
       COS_BASE_URL: http://mock-upstream:8080/cos
       SMS_BASE_URL: http://mock-upstream:8080/sms
+      # v2.1.2 MVP-DEFER：SMS 端点已下线；env 变量保留，v2.x 接 SMS 时直接复用
       JWT_SECRET: dev-only-jwt-secret-please-change-in-prod-32+
       MOCK_INFRA: enabled
     ports:

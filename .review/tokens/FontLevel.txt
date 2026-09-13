@@ -1,0 +1,170 @@
+Processing 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/FontLevel.dex'...
+Opened 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/FontLevel.dex', DEX version '038'
+Class #0            -
+  Class descriptor  : 'Lcom/elder/android/design/tokens/FontLevel;'
+  Access flags      : 0x4011 (PUBLIC FINAL ENUM)
+  Superclass        : 'Ljava/lang/Enum;'
+  Interfaces        -
+  Static fields     -
+    #0              : (in Lcom/elder/android/design/tokens/FontLevel;)
+      name          : '$ENTRIES'
+      type          : 'Lkotlin/enums/EnumEntries;'
+      access        : 0x101a (PRIVATE STATIC FINAL SYNTHETIC)
+    #1              : (in Lcom/elder/android/design/tokens/FontLevel;)
+      name          : '$VALUES'
+      type          : '[Lcom/elder/android/design/tokens/FontLevel;'
+      access        : 0x101a (PRIVATE STATIC FINAL SYNTHETIC)
+    #2              : (in Lcom/elder/android/design/tokens/FontLevel;)
+      name          : 'DEFAULT'
+      type          : 'Lcom/elder/android/design/tokens/FontLevel;'
+      access        : 0x4019 (PUBLIC STATIC FINAL ENUM)
+    #3              : (in Lcom/elder/android/design/tokens/FontLevel;)
+      name          : 'LARGE'
+      type          : 'Lcom/elder/android/design/tokens/FontLevel;'
+      access        : 0x4019 (PUBLIC STATIC FINAL ENUM)
+    #4              : (in Lcom/elder/android/design/tokens/FontLevel;)
+      name          : 'XLARGE'
+      type          : 'Lcom/elder/android/design/tokens/FontLevel;'
+      access        : 0x4019 (PUBLIC STATIC FINAL ENUM)
+  Instance fields   -
+  Direct methods    -
+    #0              : (in Lcom/elder/android/design/tokens/FontLevel;)
+      name          : '$values'
+      type          : '()[Lcom/elder/android/design/tokens/FontLevel;'
+      access        : 0x101a (PRIVATE STATIC FINAL SYNTHETIC)
+      code          -
+      registers     : 3
+      ins           : 0
+      outs          : 3
+      insns size    : 11 16-bit code units
+000290:                                        |[000290] com.elder.android.design.tokens.FontLevel.$values:()[Lcom/elder/android/design/tokens/FontLevel;
+0002a0: 6200 0200                              |0000: sget-object v0, Lcom/elder/android/design/tokens/FontLevel;.DEFAULT:Lcom/elder/android/design/tokens/FontLevel; // field@0002
+0002a4: 6201 0300                              |0002: sget-object v1, Lcom/elder/android/design/tokens/FontLevel;.LARGE:Lcom/elder/android/design/tokens/FontLevel; // field@0003
+0002a8: 6202 0400                              |0004: sget-object v2, Lcom/elder/android/design/tokens/FontLevel;.XLARGE:Lcom/elder/android/design/tokens/FontLevel; // field@0004
+0002ac: 2430 0c00 1002                         |0006: filled-new-array {v0, v1, v2}, [Lcom/elder/android/design/tokens/FontLevel; // type@000c
+0002b2: 0c00                                   |0009: move-result-object v0
+0002b4: 1100                                   |000a: return-object v0
+      catches       : (none)
+      positions     :
+      locals        :
+
+    #1              : (in Lcom/elder/android/design/tokens/FontLevel;)
+      name          : '<clinit>'
+      type          : '()V'
+      access        : 0x10008 (STATIC CONSTRUCTOR)
+      code          -
+      registers     : 3
+      ins           : 0
+      outs          : 3
+      insns size    : 47 16-bit code units
+0002f4:                                        |[0002f4] com.elder.android.design.tokens.FontLevel.<clinit>:()V
+000304: 2200 0100                              |0000: new-instance v0, Lcom/elder/android/design/tokens/FontLevel; // type@0001
+000308: 1a01 0d00                              |0002: const-string v1, "DEFAULT" // string@000d
+00030c: 1202                                   |0004: const/4 v2, #int 0 // #0
+00030e: 7030 0200 1002                         |0005: invoke-direct {v0, v1, v2}, Lcom/elder/android/design/tokens/FontLevel;.<init>:(Ljava/lang/String;I)V // method@0002
+000314: 6900 0200                              |0008: sput-object v0, Lcom/elder/android/design/tokens/FontLevel;.DEFAULT:Lcom/elder/android/design/tokens/FontLevel; // field@0002
+000318: 2200 0100                              |000a: new-instance v0, Lcom/elder/android/design/tokens/FontLevel; // type@0001
+00031c: 1a01 1100                              |000c: const-string v1, "LARGE" // string@0011
+000320: 1212                                   |000e: const/4 v2, #int 1 // #1
+000322: 7030 0200 1002                         |000f: invoke-direct {v0, v1, v2}, Lcom/elder/android/design/tokens/FontLevel;.<init>:(Ljava/lang/String;I)V // method@0002
+000328: 6900 0300                              |0012: sput-object v0, Lcom/elder/android/design/tokens/FontLevel;.LARGE:Lcom/elder/android/design/tokens/FontLevel; // field@0003
+00032c: 2200 0100                              |0014: new-instance v0, Lcom/elder/android/design/tokens/FontLevel; // type@0001
+000330: 1a01 2200                              |0016: const-string v1, "XLARGE" // string@0022
+000334: 1222                                   |0018: const/4 v2, #int 2 // #2
+000336: 7030 0200 1002                         |0019: invoke-direct {v0, v1, v2}, Lcom/elder/android/design/tokens/FontLevel;.<init>:(Ljava/lang/String;I)V // method@0002
+00033c: 6900 0400                              |001c: sput-object v0, Lcom/elder/android/design/tokens/FontLevel;.XLARGE:Lcom/elder/android/design/tokens/FontLevel; // field@0004
+000340: 7100 0000 0000                         |001e: invoke-static {}, Lcom/elder/android/design/tokens/FontLevel;.$values:()[Lcom/elder/android/design/tokens/FontLevel; // method@0000
+000346: 0c00                                   |0021: move-result-object v0
+000348: 6900 0100                              |0022: sput-object v0, Lcom/elder/android/design/tokens/FontLevel;.$VALUES:[Lcom/elder/android/design/tokens/FontLevel; // field@0001
+00034c: 6200 0100                              |0024: sget-object v0, Lcom/elder/android/design/tokens/FontLevel;.$VALUES:[Lcom/elder/android/design/tokens/FontLevel; // field@0001
+000350: 1f00 0d00                              |0026: check-cast v0, [Ljava/lang/Enum; // type@000d
+000354: 7110 0900 0000                         |0028: invoke-static {v0}, Lkotlin/enums/EnumEntriesKt;.enumEntries:([Ljava/lang/Enum;)Lkotlin/enums/EnumEntries; // method@0009
+00035a: 0c00                                   |002b: move-result-object v0
+00035c: 6900 0000                              |002c: sput-object v0, Lcom/elder/android/design/tokens/FontLevel;.$ENTRIES:Lkotlin/enums/EnumEntries; // field@0000
+000360: 0e00                                   |002e: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=56
+      locals        :
+
+    #2              : (in Lcom/elder/android/design/tokens/FontLevel;)
+      name          : '<init>'
+      type          : '(Ljava/lang/String;I)V'
+      access        : 0x10002 (PRIVATE CONSTRUCTOR)
+      code          -
+      registers     : 3
+      ins           : 3
+      outs          : 3
+      insns size    : 4 16-bit code units
+000364:                                        |[000364] com.elder.android.design.tokens.FontLevel.<init>:(Ljava/lang/String;I)V
+000374: 7030 0600 1002                         |0000: invoke-direct {v0, v1, v2}, Ljava/lang/Enum;.<init>:(Ljava/lang/String;I)V // method@0006
+00037a: 0e00                                   |0003: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=56
+      locals        :
+        0x0000 - 0x0004 reg=0 this Lcom/elder/android/design/tokens/FontLevel;
+        0x0000 - 0x0004 reg=1 $enum$name Ljava/lang/String;
+        0x0000 - 0x0004 reg=2 $enum$ordinal I
+
+    #3              : (in Lcom/elder/android/design/tokens/FontLevel;)
+      name          : 'getEntries'
+      type          : '()Lkotlin/enums/EnumEntries;'
+      access        : 0x0009 (PUBLIC STATIC)
+      code          -
+      registers     : 1
+      ins           : 0
+      outs          : 0
+      insns size    : 3 16-bit code units
+0002dc:                                        |[0002dc] com.elder.android.design.tokens.FontLevel.getEntries:()Lkotlin/enums/EnumEntries;
+0002ec: 6200 0000                              |0000: sget-object v0, Lcom/elder/android/design/tokens/FontLevel;.$ENTRIES:Lkotlin/enums/EnumEntries; // field@0000
+0002f0: 1100                                   |0002: return-object v0
+      catches       : (none)
+      positions     :
+        0x0002 line=56
+      locals        :
+
+    #4              : (in Lcom/elder/android/design/tokens/FontLevel;)
+      name          : 'valueOf'
+      type          : '(Ljava/lang/String;)Lcom/elder/android/design/tokens/FontLevel;'
+      access        : 0x0009 (PUBLIC STATIC)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 2
+      insns size    : 9 16-bit code units
+00026c:                                        |[00026c] com.elder.android.design.tokens.FontLevel.valueOf:(Ljava/lang/String;)Lcom/elder/android/design/tokens/FontLevel;
+00027c: 1c00 0100                              |0000: const-class v0, Lcom/elder/android/design/tokens/FontLevel; // type@0001
+000280: 7120 0700 1000                         |0002: invoke-static {v0, v1}, Ljava/lang/Enum;.valueOf:(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum; // method@0007
+000286: 0c00                                   |0005: move-result-object v0
+000288: 1f00 0100                              |0006: check-cast v0, Lcom/elder/android/design/tokens/FontLevel; // type@0001
+00028c: 1100                                   |0008: return-object v0
+      catches       : (none)
+      positions     :
+        0x0006 line=56
+      locals        :
+        0x0000 - 0x0009 reg=1 value Ljava/lang/String;
+
+    #5              : (in Lcom/elder/android/design/tokens/FontLevel;)
+      name          : 'values'
+      type          : '()[Lcom/elder/android/design/tokens/FontLevel;'
+      access        : 0x0009 (PUBLIC STATIC)
+      code          -
+      registers     : 1
+      ins           : 0
+      outs          : 1
+      insns size    : 9 16-bit code units
+0002b8:                                        |[0002b8] com.elder.android.design.tokens.FontLevel.values:()[Lcom/elder/android/design/tokens/FontLevel;
+0002c8: 6200 0100                              |0000: sget-object v0, Lcom/elder/android/design/tokens/FontLevel;.$VALUES:[Lcom/elder/android/design/tokens/FontLevel; // field@0001
+0002cc: 6e10 0800 0000                         |0002: invoke-virtual {v0}, Ljava/lang/Object;.clone:()Ljava/lang/Object; // method@0008
+0002d2: 0c00                                   |0005: move-result-object v0
+0002d4: 1f00 0c00                              |0006: check-cast v0, [Lcom/elder/android/design/tokens/FontLevel; // type@000c
+0002d8: 1100                                   |0008: return-object v0
+      catches       : (none)
+      positions     :
+        0x0006 line=56
+      locals        :
+
+  Virtual methods   -
+  source_file_idx   : 14 (Dimens.kt)
+

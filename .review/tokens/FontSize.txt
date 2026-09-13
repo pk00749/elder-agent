@@ -1,0 +1,557 @@
+Processing 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/FontSize.dex'...
+Opened 'app/design/build/.transforms/ff53c5cc81c6ce4735c697123aba4f20/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/design/tokens/FontSize.dex', DEX version '038'
+Class #0            -
+  Class descriptor  : 'Lcom/elder/android/design/tokens/FontSize;'
+  Access flags      : 0x0011 (PUBLIC FINAL)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+  Static fields     -
+    #0              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : '$stable'
+      type          : 'I'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #1              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'BodyDefaultSp'
+      type          : 'I'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #2              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'BodyHugeSp'
+      type          : 'I'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #3              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'BodyLargeSp'
+      type          : 'I'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #4              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'BodyXLargeSp'
+      type          : 'I'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #5              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'ButtonDefaultSp'
+      type          : 'I'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #6              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'ButtonLargeSp'
+      type          : 'I'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #7              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'ButtonXLargeSp'
+      type          : 'I'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #8              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'INSTANCE'
+      type          : 'Lcom/elder/android/design/tokens/FontSize;'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+    #9              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'TitleDefaultSp'
+      type          : 'I'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #10              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'TitleLargeSp'
+      type          : 'I'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #11              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'TitleXLargeSp'
+      type          : 'I'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #12              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'TtsButtonSp'
+      type          : 'I'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+  Instance fields   -
+  Direct methods    -
+    #0              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : '<clinit>'
+      type          : '()V'
+      access        : 0x10008 (STATIC CONSTRUCTOR)
+      code          -
+      registers     : 4
+      ins           : 0
+      outs          : 1
+      insns size    : 42 16-bit code units
+0006bc:                                        |[0006bc] com.elder.android.design.tokens.FontSize.<clinit>:()V
+0006cc: 2200 0600                              |0000: new-instance v0, Lcom/elder/android/design/tokens/FontSize; // type@0006
+0006d0: 7010 0300 0000                         |0002: invoke-direct {v0}, Lcom/elder/android/design/tokens/FontSize;.<init>:()V // method@0003
+0006d6: 6900 0a00                              |0005: sput-object v0, Lcom/elder/android/design/tokens/FontSize;.INSTANCE:Lcom/elder/android/design/tokens/FontSize; // field@000a
+0006da: 1300 1800                              |0007: const/16 v0, #int 24 // #18
+0006de: 6700 0300                              |0009: sput v0, Lcom/elder/android/design/tokens/FontSize;.BodyDefaultSp:I // field@0003
+0006e2: 1301 1c00                              |000b: const/16 v1, #int 28 // #1c
+0006e6: 6701 0500                              |000d: sput v1, Lcom/elder/android/design/tokens/FontSize;.BodyLargeSp:I // field@0005
+0006ea: 1301 2000                              |000f: const/16 v1, #int 32 // #20
+0006ee: 6701 0600                              |0011: sput v1, Lcom/elder/android/design/tokens/FontSize;.BodyXLargeSp:I // field@0006
+0006f2: 1302 2800                              |0013: const/16 v2, #int 40 // #28
+0006f6: 6702 0400                              |0015: sput v2, Lcom/elder/android/design/tokens/FontSize;.BodyHugeSp:I // field@0004
+0006fa: 6701 0b00                              |0017: sput v1, Lcom/elder/android/design/tokens/FontSize;.TitleDefaultSp:I // field@000b
+0006fe: 1302 2600                              |0019: const/16 v2, #int 38 // #26
+000702: 6702 0c00                              |001b: sput v2, Lcom/elder/android/design/tokens/FontSize;.TitleLargeSp:I // field@000c
+000706: 1303 2c00                              |001d: const/16 v3, #int 44 // #2c
+00070a: 6703 0d00                              |001f: sput v3, Lcom/elder/android/design/tokens/FontSize;.TitleXLargeSp:I // field@000d
+00070e: 6701 0700                              |0021: sput v1, Lcom/elder/android/design/tokens/FontSize;.ButtonDefaultSp:I // field@0007
+000712: 6702 0800                              |0023: sput v2, Lcom/elder/android/design/tokens/FontSize;.ButtonLargeSp:I // field@0008
+000716: 6703 0900                              |0025: sput v3, Lcom/elder/android/design/tokens/FontSize;.ButtonXLargeSp:I // field@0009
+00071a: 6700 0e00                              |0027: sput v0, Lcom/elder/android/design/tokens/FontSize;.TtsButtonSp:I // field@000e
+00071e: 0e00                                   |0029: return-void
+      catches       : (none)
+      positions     :
+        0x0007 line=25
+        0x000b line=26
+        0x000f line=27
+        0x0013 line=28
+        0x0017 line=29
+        0x0019 line=30
+        0x001d line=31
+        0x0021 line=32
+        0x0023 line=33
+        0x0025 line=34
+        0x0027 line=35
+      locals        :
+
+    #1              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : '<init>'
+      type          : '()V'
+      access        : 0x10002 (PRIVATE CONSTRUCTOR)
+      code          -
+      registers     : 1
+      ins           : 1
+      outs          : 1
+      insns size    : 4 16-bit code units
+000720:                                        |[000720] com.elder.android.design.tokens.FontSize.<init>:()V
+000730: 7010 1600 0000                         |0000: invoke-direct {v0}, Ljava/lang/Object;.<init>:()V // method@0016
+000736: 0e00                                   |0003: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=24
+      locals        :
+        0x0000 - 0x0004 reg=0 this Lcom/elder/android/design/tokens/FontSize;
+
+    #2              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'body-kPz2Gy4$default'
+      type          : '(Lcom/elder/android/design/tokens/FontSize;Lcom/elder/android/design/tokens/FontLevel;ILjava/lang/Object;)J'
+      access        : 0x1009 (PUBLIC STATIC SYNTHETIC)
+      code          -
+      registers     : 4
+      ins           : 4
+      outs          : 2
+      insns size    : 11 16-bit code units
+0004b0:                                        |[0004b0] com.elder.android.design.tokens.FontSize.body-kPz2Gy4$default:(Lcom/elder/android/design/tokens/FontSize;Lcom/elder/android/design/tokens/FontLevel;ILjava/lang/Object;)J
+0004c0: dd02 0201                              |0000: and-int/lit8 v2, v2, #int 1 // #01
+0004c4: 3802 0400                              |0002: if-eqz v2, 0006 // +0004
+0004c8: 6201 0000                              |0004: sget-object v1, Lcom/elder/android/design/tokens/FontLevel;.DEFAULT:Lcom/elder/android/design/tokens/FontLevel; // field@0000
+0004cc: 6e20 0400 1000                         |0006: invoke-virtual {v0, v1}, Lcom/elder/android/design/tokens/FontSize;.body-kPz2Gy4:(Lcom/elder/android/design/tokens/FontLevel;)J // method@0004
+0004d2: 0b00                                   |0009: move-result-wide v0
+0004d4: 1000                                   |000a: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=37
+      locals        :
+        0x0000 - 0x000b reg=0 (null) Lcom/elder/android/design/tokens/FontSize;
+        0x0000 - 0x000b reg=1 (null) Lcom/elder/android/design/tokens/FontLevel;
+        0x0000 - 0x000b reg=2 (null) I
+        0x0000 - 0x000b reg=3 (null) Ljava/lang/Object;
+
+    #3              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'button-kPz2Gy4$default'
+      type          : '(Lcom/elder/android/design/tokens/FontSize;Lcom/elder/android/design/tokens/FontLevel;ILjava/lang/Object;)J'
+      access        : 0x1009 (PUBLIC STATIC SYNTHETIC)
+      code          -
+      registers     : 4
+      ins           : 4
+      outs          : 2
+      insns size    : 11 16-bit code units
+000554:                                        |[000554] com.elder.android.design.tokens.FontSize.button-kPz2Gy4$default:(Lcom/elder/android/design/tokens/FontSize;Lcom/elder/android/design/tokens/FontLevel;ILjava/lang/Object;)J
+000564: dd02 0201                              |0000: and-int/lit8 v2, v2, #int 1 // #01
+000568: 3802 0400                              |0002: if-eqz v2, 0006 // +0004
+00056c: 6201 0000                              |0004: sget-object v1, Lcom/elder/android/design/tokens/FontLevel;.DEFAULT:Lcom/elder/android/design/tokens/FontLevel; // field@0000
+000570: 6e20 0600 1000                         |0006: invoke-virtual {v0, v1}, Lcom/elder/android/design/tokens/FontSize;.button-kPz2Gy4:(Lcom/elder/android/design/tokens/FontLevel;)J // method@0006
+000576: 0b00                                   |0009: move-result-wide v0
+000578: 1000                                   |000a: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=47
+      locals        :
+        0x0000 - 0x000b reg=0 (null) Lcom/elder/android/design/tokens/FontSize;
+        0x0000 - 0x000b reg=1 (null) Lcom/elder/android/design/tokens/FontLevel;
+        0x0000 - 0x000b reg=2 (null) I
+        0x0000 - 0x000b reg=3 (null) Ljava/lang/Object;
+
+    #4              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'title-kPz2Gy4$default'
+      type          : '(Lcom/elder/android/design/tokens/FontSize;Lcom/elder/android/design/tokens/FontLevel;ILjava/lang/Object;)J'
+      access        : 0x1009 (PUBLIC STATIC SYNTHETIC)
+      code          -
+      registers     : 4
+      ins           : 4
+      outs          : 2
+      insns size    : 11 16-bit code units
+000618:                                        |[000618] com.elder.android.design.tokens.FontSize.title-kPz2Gy4$default:(Lcom/elder/android/design/tokens/FontSize;Lcom/elder/android/design/tokens/FontLevel;ILjava/lang/Object;)J
+000628: dd02 0201                              |0000: and-int/lit8 v2, v2, #int 1 // #01
+00062c: 3802 0400                              |0002: if-eqz v2, 0006 // +0004
+000630: 6201 0000                              |0004: sget-object v1, Lcom/elder/android/design/tokens/FontLevel;.DEFAULT:Lcom/elder/android/design/tokens/FontLevel; // field@0000
+000634: 6e20 1400 1000                         |0006: invoke-virtual {v0, v1}, Lcom/elder/android/design/tokens/FontSize;.title-kPz2Gy4:(Lcom/elder/android/design/tokens/FontLevel;)J // method@0014
+00063a: 0b00                                   |0009: move-result-wide v0
+00063c: 1000                                   |000a: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=42
+      locals        :
+        0x0000 - 0x000b reg=0 (null) Lcom/elder/android/design/tokens/FontSize;
+        0x0000 - 0x000b reg=1 (null) Lcom/elder/android/design/tokens/FontLevel;
+        0x0000 - 0x000b reg=2 (null) I
+        0x0000 - 0x000b reg=3 (null) Ljava/lang/Object;
+
+  Virtual methods   -
+    #0              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'body-kPz2Gy4'
+      type          : '(Lcom/elder/android/design/tokens/FontLevel;)J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 4
+      ins           : 2
+      outs          : 2
+      insns size    : 54 16-bit code units
+0004d8:                                        |[0004d8] com.elder.android.design.tokens.FontSize.body-kPz2Gy4:(Lcom/elder/android/design/tokens/FontLevel;)J
+0004e8: 1a00 4600                              |0000: const-string v0, "level" // string@0046
+0004ec: 7120 1800 0300                         |0002: invoke-static {v3, v0}, Lkotlin/jvm/internal/Intrinsics;.checkNotNullParameter:(Ljava/lang/Object;Ljava/lang/String;)V // method@0018
+0004f2: 6200 0100                              |0005: sget-object v0, Lcom/elder/android/design/tokens/FontSize$WhenMappings;.$EnumSwitchMapping$0:[I // field@0001
+0004f6: 6e10 0100 0300                         |0007: invoke-virtual {v3}, Lcom/elder/android/design/tokens/FontLevel;.ordinal:()I // method@0001
+0004fc: 0a01                                   |000a: move-result v1
+0004fe: 4400 0001                              |000b: aget v0, v0, v1
+000502: 2b00 1f00 0000                         |000d: packed-switch v0, 0000002c // +0000001f
+000508: 2200 0b00                              |0010: new-instance v0, Lkotlin/NoWhenBranchMatchedException; // type@000b
+00050c: 7010 1700 0000                         |0012: invoke-direct {v0}, Lkotlin/NoWhenBranchMatchedException;.<init>:()V // method@0017
+000512: 2700                                   |0015: throw v0
+000514: 6000 0600                              |0016: sget v0, Lcom/elder/android/design/tokens/FontSize;.BodyXLargeSp:I // field@0006
+000518: 7110 0000 0000                         |0018: invoke-static {v0}, Landroidx/compose/ui/unit/TextUnitKt;.getSp:(I)J // method@0000
+00051e: 0b00                                   |001b: move-result-wide v0
+000520: 280e                                   |001c: goto 002a // +000e
+000522: 6000 0500                              |001d: sget v0, Lcom/elder/android/design/tokens/FontSize;.BodyLargeSp:I // field@0005
+000526: 7110 0000 0000                         |001f: invoke-static {v0}, Landroidx/compose/ui/unit/TextUnitKt;.getSp:(I)J // method@0000
+00052c: 0b00                                   |0022: move-result-wide v0
+00052e: 2807                                   |0023: goto 002a // +0007
+000530: 6000 0300                              |0024: sget v0, Lcom/elder/android/design/tokens/FontSize;.BodyDefaultSp:I // field@0003
+000534: 7110 0000 0000                         |0026: invoke-static {v0}, Landroidx/compose/ui/unit/TextUnitKt;.getSp:(I)J // method@0000
+00053a: 0b00                                   |0029: move-result-wide v0
+00053c: 1000                                   |002a: return-wide v0
+00053e: 0000                                   |002b: nop // spacer
+000540: 0001 0300 0100 0000 1700 0000 1000 ... |002c: packed-switch-data (10 units)
+      catches       : (none)
+      positions     :
+        0x0005 line=37
+        0x0016 line=40
+        0x001d line=39
+        0x0024 line=38
+        0x002a line=41
+      locals        :
+        0x0000 - 0x0036 reg=2 this Lcom/elder/android/design/tokens/FontSize;
+        0x0000 - 0x0036 reg=3 level Lcom/elder/android/design/tokens/FontLevel;
+
+    #1              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'button-kPz2Gy4'
+      type          : '(Lcom/elder/android/design/tokens/FontLevel;)J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 4
+      ins           : 2
+      outs          : 2
+      insns size    : 54 16-bit code units
+00057c:                                        |[00057c] com.elder.android.design.tokens.FontSize.button-kPz2Gy4:(Lcom/elder/android/design/tokens/FontLevel;)J
+00058c: 1a00 4600                              |0000: const-string v0, "level" // string@0046
+000590: 7120 1800 0300                         |0002: invoke-static {v3, v0}, Lkotlin/jvm/internal/Intrinsics;.checkNotNullParameter:(Ljava/lang/Object;Ljava/lang/String;)V // method@0018
+000596: 6200 0100                              |0005: sget-object v0, Lcom/elder/android/design/tokens/FontSize$WhenMappings;.$EnumSwitchMapping$0:[I // field@0001
+00059a: 6e10 0100 0300                         |0007: invoke-virtual {v3}, Lcom/elder/android/design/tokens/FontLevel;.ordinal:()I // method@0001
+0005a0: 0a01                                   |000a: move-result v1
+0005a2: 4400 0001                              |000b: aget v0, v0, v1
+0005a6: 2b00 1f00 0000                         |000d: packed-switch v0, 0000002c // +0000001f
+0005ac: 2200 0b00                              |0010: new-instance v0, Lkotlin/NoWhenBranchMatchedException; // type@000b
+0005b0: 7010 1700 0000                         |0012: invoke-direct {v0}, Lkotlin/NoWhenBranchMatchedException;.<init>:()V // method@0017
+0005b6: 2700                                   |0015: throw v0
+0005b8: 6000 0900                              |0016: sget v0, Lcom/elder/android/design/tokens/FontSize;.ButtonXLargeSp:I // field@0009
+0005bc: 7110 0000 0000                         |0018: invoke-static {v0}, Landroidx/compose/ui/unit/TextUnitKt;.getSp:(I)J // method@0000
+0005c2: 0b00                                   |001b: move-result-wide v0
+0005c4: 280e                                   |001c: goto 002a // +000e
+0005c6: 6000 0800                              |001d: sget v0, Lcom/elder/android/design/tokens/FontSize;.ButtonLargeSp:I // field@0008
+0005ca: 7110 0000 0000                         |001f: invoke-static {v0}, Landroidx/compose/ui/unit/TextUnitKt;.getSp:(I)J // method@0000
+0005d0: 0b00                                   |0022: move-result-wide v0
+0005d2: 2807                                   |0023: goto 002a // +0007
+0005d4: 6000 0700                              |0024: sget v0, Lcom/elder/android/design/tokens/FontSize;.ButtonDefaultSp:I // field@0007
+0005d8: 7110 0000 0000                         |0026: invoke-static {v0}, Landroidx/compose/ui/unit/TextUnitKt;.getSp:(I)J // method@0000
+0005de: 0b00                                   |0029: move-result-wide v0
+0005e0: 1000                                   |002a: return-wide v0
+0005e2: 0000                                   |002b: nop // spacer
+0005e4: 0001 0300 0100 0000 1700 0000 1000 ... |002c: packed-switch-data (10 units)
+      catches       : (none)
+      positions     :
+        0x0005 line=47
+        0x0016 line=50
+        0x001d line=49
+        0x0024 line=48
+        0x002a line=51
+      locals        :
+        0x0000 - 0x0036 reg=2 this Lcom/elder/android/design/tokens/FontSize;
+        0x0000 - 0x0036 reg=3 level Lcom/elder/android/design/tokens/FontLevel;
+
+    #2              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'caption-XSAIIZE'
+      type          : '()J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 3
+      ins           : 1
+      outs          : 1
+      insns size    : 7 16-bit code units
+0005f8:                                        |[0005f8] com.elder.android.design.tokens.FontSize.caption-XSAIIZE:()J
+000608: 1300 1400                              |0000: const/16 v0, #int 20 // #14
+00060c: 7110 0000 0000                         |0002: invoke-static {v0}, Landroidx/compose/ui/unit/TextUnitKt;.getSp:(I)J // method@0000
+000612: 0b00                                   |0005: move-result-wide v0
+000614: 1000                                   |0006: return-wide v0
+      catches       : (none)
+      positions     :
+        0x0000 line=53
+      locals        :
+        0x0000 - 0x0007 reg=2 this Lcom/elder/android/design/tokens/FontSize;
+
+    #3              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'getBodyDefaultSp'
+      type          : '()I'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0003a8:                                        |[0003a8] com.elder.android.design.tokens.FontSize.getBodyDefaultSp:()I
+0003b8: 6000 0300                              |0000: sget v0, Lcom/elder/android/design/tokens/FontSize;.BodyDefaultSp:I // field@0003
+0003bc: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=25
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/FontSize;
+
+    #4              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'getBodyHugeSp'
+      type          : '()I'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0003c0:                                        |[0003c0] com.elder.android.design.tokens.FontSize.getBodyHugeSp:()I
+0003d0: 6000 0400                              |0000: sget v0, Lcom/elder/android/design/tokens/FontSize;.BodyHugeSp:I // field@0004
+0003d4: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=28
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/FontSize;
+
+    #5              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'getBodyLargeSp'
+      type          : '()I'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0003d8:                                        |[0003d8] com.elder.android.design.tokens.FontSize.getBodyLargeSp:()I
+0003e8: 6000 0500                              |0000: sget v0, Lcom/elder/android/design/tokens/FontSize;.BodyLargeSp:I // field@0005
+0003ec: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=26
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/FontSize;
+
+    #6              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'getBodyXLargeSp'
+      type          : '()I'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+0003f0:                                        |[0003f0] com.elder.android.design.tokens.FontSize.getBodyXLargeSp:()I
+000400: 6000 0600                              |0000: sget v0, Lcom/elder/android/design/tokens/FontSize;.BodyXLargeSp:I // field@0006
+000404: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=27
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/FontSize;
+
+    #7              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'getButtonDefaultSp'
+      type          : '()I'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000408:                                        |[000408] com.elder.android.design.tokens.FontSize.getButtonDefaultSp:()I
+000418: 6000 0700                              |0000: sget v0, Lcom/elder/android/design/tokens/FontSize;.ButtonDefaultSp:I // field@0007
+00041c: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=32
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/FontSize;
+
+    #8              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'getButtonLargeSp'
+      type          : '()I'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000420:                                        |[000420] com.elder.android.design.tokens.FontSize.getButtonLargeSp:()I
+000430: 6000 0800                              |0000: sget v0, Lcom/elder/android/design/tokens/FontSize;.ButtonLargeSp:I // field@0008
+000434: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=33
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/FontSize;
+
+    #9              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'getButtonXLargeSp'
+      type          : '()I'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000438:                                        |[000438] com.elder.android.design.tokens.FontSize.getButtonXLargeSp:()I
+000448: 6000 0900                              |0000: sget v0, Lcom/elder/android/design/tokens/FontSize;.ButtonXLargeSp:I // field@0009
+00044c: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=34
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/FontSize;
+
+    #10              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'getTitleDefaultSp'
+      type          : '()I'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000450:                                        |[000450] com.elder.android.design.tokens.FontSize.getTitleDefaultSp:()I
+000460: 6000 0b00                              |0000: sget v0, Lcom/elder/android/design/tokens/FontSize;.TitleDefaultSp:I // field@000b
+000464: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=29
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/FontSize;
+
+    #11              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'getTitleLargeSp'
+      type          : '()I'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000468:                                        |[000468] com.elder.android.design.tokens.FontSize.getTitleLargeSp:()I
+000478: 6000 0c00                              |0000: sget v0, Lcom/elder/android/design/tokens/FontSize;.TitleLargeSp:I // field@000c
+00047c: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=30
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/FontSize;
+
+    #12              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'getTitleXLargeSp'
+      type          : '()I'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000480:                                        |[000480] com.elder.android.design.tokens.FontSize.getTitleXLargeSp:()I
+000490: 6000 0d00                              |0000: sget v0, Lcom/elder/android/design/tokens/FontSize;.TitleXLargeSp:I // field@000d
+000494: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=31
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/FontSize;
+
+    #13              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'getTtsButtonSp'
+      type          : '()I'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 2
+      ins           : 1
+      outs          : 0
+      insns size    : 3 16-bit code units
+000498:                                        |[000498] com.elder.android.design.tokens.FontSize.getTtsButtonSp:()I
+0004a8: 6000 0e00                              |0000: sget v0, Lcom/elder/android/design/tokens/FontSize;.TtsButtonSp:I // field@000e
+0004ac: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=35
+      locals        :
+        0x0000 - 0x0003 reg=1 this Lcom/elder/android/design/tokens/FontSize;
+
+    #14              : (in Lcom/elder/android/design/tokens/FontSize;)
+      name          : 'title-kPz2Gy4'
+      type          : '(Lcom/elder/android/design/tokens/FontLevel;)J'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 4
+      ins           : 2
+      outs          : 2
+      insns size    : 54 16-bit code units
+000640:                                        |[000640] com.elder.android.design.tokens.FontSize.title-kPz2Gy4:(Lcom/elder/android/design/tokens/FontLevel;)J
+000650: 1a00 4600                              |0000: const-string v0, "level" // string@0046
+000654: 7120 1800 0300                         |0002: invoke-static {v3, v0}, Lkotlin/jvm/internal/Intrinsics;.checkNotNullParameter:(Ljava/lang/Object;Ljava/lang/String;)V // method@0018
+00065a: 6200 0100                              |0005: sget-object v0, Lcom/elder/android/design/tokens/FontSize$WhenMappings;.$EnumSwitchMapping$0:[I // field@0001
+00065e: 6e10 0100 0300                         |0007: invoke-virtual {v3}, Lcom/elder/android/design/tokens/FontLevel;.ordinal:()I // method@0001
+000664: 0a01                                   |000a: move-result v1
+000666: 4400 0001                              |000b: aget v0, v0, v1
+00066a: 2b00 1f00 0000                         |000d: packed-switch v0, 0000002c // +0000001f
+000670: 2200 0b00                              |0010: new-instance v0, Lkotlin/NoWhenBranchMatchedException; // type@000b
+000674: 7010 1700 0000                         |0012: invoke-direct {v0}, Lkotlin/NoWhenBranchMatchedException;.<init>:()V // method@0017
+00067a: 2700                                   |0015: throw v0
+00067c: 6000 0d00                              |0016: sget v0, Lcom/elder/android/design/tokens/FontSize;.TitleXLargeSp:I // field@000d
+000680: 7110 0000 0000                         |0018: invoke-static {v0}, Landroidx/compose/ui/unit/TextUnitKt;.getSp:(I)J // method@0000
+000686: 0b00                                   |001b: move-result-wide v0
+000688: 280e                                   |001c: goto 002a // +000e
+00068a: 6000 0c00                              |001d: sget v0, Lcom/elder/android/design/tokens/FontSize;.TitleLargeSp:I // field@000c
+00068e: 7110 0000 0000                         |001f: invoke-static {v0}, Landroidx/compose/ui/unit/TextUnitKt;.getSp:(I)J // method@0000
+000694: 0b00                                   |0022: move-result-wide v0
+000696: 2807                                   |0023: goto 002a // +0007
+000698: 6000 0b00                              |0024: sget v0, Lcom/elder/android/design/tokens/FontSize;.TitleDefaultSp:I // field@000b
+00069c: 7110 0000 0000                         |0026: invoke-static {v0}, Landroidx/compose/ui/unit/TextUnitKt;.getSp:(I)J // method@0000
+0006a2: 0b00                                   |0029: move-result-wide v0
+0006a4: 1000                                   |002a: return-wide v0
+0006a6: 0000                                   |002b: nop // spacer
+0006a8: 0001 0300 0100 0000 1700 0000 1000 ... |002c: packed-switch-data (10 units)
+      catches       : (none)
+      positions     :
+        0x0005 line=42
+        0x0016 line=45
+        0x001d line=44
+        0x0024 line=43
+        0x002a line=46
+      locals        :
+        0x0000 - 0x0036 reg=2 this Lcom/elder/android/design/tokens/FontSize;
+        0x0000 - 0x0036 reg=3 level Lcom/elder/android/design/tokens/FontLevel;
+
+  source_file_idx   : 18 (Dimens.kt)
+

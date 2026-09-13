@@ -9,12 +9,14 @@ from elder_common.repos import elder_profile as ep_repo
 from elder_common.repos import family_user as fu_repo
 from elder_common.schemas.binding import BindingCreate, BindingRole
 from elder_common.schemas.elder_profile import ElderProfileCreate
-from elder_common.schemas.family_user import FamilyUserCreate
+from elder_common.schemas.family_user import FamilyUserCreateMvp
 
 
 async def _new_family_with_elder() -> tuple[str, str, str]:
     """创建 family + elder + binding —— 返回 (family_token, elder_token, elder_id)。"""
-    fam = await fu_repo.create(FamilyUserCreate(phone="13800138900"))
+    fam = await fu_repo.create_mvp(
+        FamilyUserCreateMvp(phone="", device_token="fam-device-X-test-only-1234")
+    )
     fam_token = issue_token(str(fam.id), "family")
 
     elder = await ep_repo.create(

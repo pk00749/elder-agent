@@ -19,12 +19,17 @@ object BrandColor {
     val BgGray = Color(0xFFF0F0F0)
     val CardWhite = Color(0xFFFFFFFF)
     val WarmOrange = Color(0xFFE07A3C)
+    // §3.1.2 信纸转写区的派生色，不新增品牌色（prd.md §I-1）
+    val PaperRule = TextSecondary.copy(alpha = 0.18f)
+    val PaperMargin = Brand500.copy(alpha = 0.28f)
 }
 
 object FontSize {
     val BodyDefaultSp = 24
     val BodyLargeSp = 28
     val BodyXLargeSp = 32
+    val BodySmallSp = 18
+    val BodyInputSp = 22
     val BodyHugeSp = 40
     val TitleDefaultSp = 32
     val TitleLargeSp = 38
@@ -33,6 +38,10 @@ object FontSize {
     val ButtonLargeSp = 38
     val ButtonXLargeSp = 44
     val TtsButtonSp = 24
+    val BodyDefaultLineHeightSp = 34
+    val BodyInputLineHeightSp = 30
+    val LabelLineHeightSp = 30
+    val TranscriptLineHeightSp = 48
 
     fun body(level: FontLevel = FontLevel.DEFAULT) = when (level) {
         FontLevel.DEFAULT -> BodyDefaultSp.sp
@@ -78,12 +87,22 @@ object Motion {
 }
 
 object Size {
-    // 主屏区域高度（§3.1.5）
-    val HomeGreetingHeight = 200.dp
-    val HomeReminderCardHeight = 120.dp
-    val HomeDiaryButtonHeight = 120.dp
+    // 老人端触控基准：Material 最低 48dp，老人端统一提升到 56dp
+    val TouchTargetMin = 56.dp
+    val TopActionMinWidth = 112.dp
+    val SegmentButtonHeight = 56.dp
+    val WarningCardMinHeight = 120.dp
+    // 主屏区域高度（§3.1.5 v3.0 MVP）
+    val HomeGreetingArea = 240.dp
+    val HomeDiaryArea = 200.dp
+    val HomeDiaryButton = 120.dp
+    // PR #5：ASR 提示红卡 BorderStroke 宽度（红边粗细，视觉权重匹配红 Error 提示）
+    val AsrCardBorderWidth = 2.dp
     // 图标（§3.1.7 今日记录图标）
-    val TodayRecordIcon = 32.dp
+    val IconMd = 24.dp
+    val TodayRecordIcon = TouchTargetMin
+    // ASR 未配置提示红点（§3.1.5）
+    val WarningDotSize = 12.dp
     // 进度条（§4.10）
     val ProgressBarHeight = 8.dp
     // Toast 距底（§4.8）
@@ -96,6 +115,13 @@ object Size {
     val PressButtonSize = 160.dp
     val PillCornerRadius = 80.dp
     val BackButtonHeight = 56.dp
+    // §3.1.2 信纸转写区
+    val TranscriptRuleWidth = 1.dp
+    val TranscriptRuleSpacing = 48.dp
     // §3.2.7 / §3.1.8 第 4 项 二维码显示
     val QrDisplayHeight = 160.dp
+    // 列表行（§3.1.7 时间轴 / §3.1.8 设置行）
+    val ListRowMinHeight = 72.dp
+    // 弹窗编辑文本框（§3.1.7 改写弹窗）
+    val EditDialogFieldHeight = 160.dp
 }

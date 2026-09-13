@@ -1,207 +1,345 @@
-// §3.1.2 AI 访谈写日志 —— 按住说话 + DSH agent 流
-// MVP：录音 → 上传（mock）→ ASR → turn → finalize → summary
+// §3.1.2 单次录音 → ASR → 本地日记（v3.0 MVP 录音屏）
 package com.elder.android.screen.elder
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elder.android.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
+import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
-import com.elder.android.di.ServiceLocator
-import com.elder.android.network.dto.AgentDiaryStartRequest
-import com.elder.android.network.dto.AgentFinalizeRequest
-import com.elder.android.network.dto.AgentTurnRequest
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.elder.android.ui.component.ElderToast
+import com.elder.android.ui.component.LoadingState
+import com.elder.android.ui.component.NetworkYellowBar
+import kotlinx.coroutines.flow.collect
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ElderDiaryRecordScreen(
     onBack: () -> Unit,
-    onFinalized: (sessionId: String) -> Unit,
+    onDone: () -> Unit,
+    vm: ElderDiaryRecordViewModel = viewModel(),
 ) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var sessionId by remember { mutableStateOf<String?>(null) }
-    var maxTurns by remember { mutableStateOf(8) }
-    var turnNo by remember { mutableStateOf(0) }
-    var assistantText by remember { mutableStateOf<String?>(null) }
-    var assistantAudioUrl by remember { mutableStateOf<String?>(null) }
-    var turnsLeft by remember { mutableStateOf(maxTurns) }
-    var isHolding by remember { mutableStateOf(false) }
-    var isSending by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    val recorder = remember { ServiceLocator.audioRecorder }
-    val tts = remember { ServiceLocator.ttsPlayer }
-    val ttsText = assistantText
+    val ctx = LocalContext.current
+    val state by vm.uiState.collectAsStateWithLifecycle()
+
+    val permLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) vm.startRecording()
+        else vm.dismissError()
+    }
+
+    // §4.6 §G.1 不二次引导：仅在权限检查真正跑完之后才把 StartState（"权限被拒绝"文案 + 授权按钮）
+    // 渲染出来；刚进屏那一帧权限还没查完，先用空 Box 占位，避免已授权用户也闪一下"权限被拒绝"。
+    var permissionChecked by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        val snap = ServiceLocator.tokenStore.current()
-        val eid = snap?.elderId ?: snap?.userId
-        if (eid != null) {
-            runCatching {
-                ServiceLocator.apiClient.agentApi.startSession(AgentDiaryStartRequest(elderId = eid))
-            }.onSuccess { resp ->
-                sessionId = resp.sessionId
-                maxTurns = resp.maxTurns
-                turnsLeft = resp.maxTurns
-                assistantText = resp.greetingText
-                assistantAudioUrl = resp.greetingAudioUrl
-            }.onFailure {
-                error = "访谈启动失败：${it.message}"
-            }
+        vm.onEnter()
+        permissionChecked = true
+        if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            vm.startRecording()
         } else {
-            error = "未绑定老人，写好的日记会丢失"
+            permLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(BrandColor.CardWhite).padding(Spacing.Lg)) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = BrandColor.BgGray,
+    ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.common_back)) }
-            Text(
-                text = stringResource(R.string.diary_recording_progress, turnNo, maxTurns),
-                fontSize = FontSize.body(),
-                color = BrandColor.TextSecondary,
+            TopAppBar(
+                title = { Text(stringResource(R.string.diary_recording_title), fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            vm.cancel()
+                            onBack()
+                        },
+                        modifier = Modifier.size(Size.TouchTargetMin),
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
             )
-            Spacer(Modifier.height(Spacing.Lg))
-            // Agent 回复区（§3.1.2 高 200（设计值））
+
+            // PR #4：ASR 上游失败（非 ASR_AUTH_FAILED）时顶部展示黄条 + 重试按钮
+            // 对应 prd.md §4.9 网络异常黄条规范 — 独立组件，不绑其他上游
+            NetworkYellowBar(
+                visible = state.networkFailed,
+                onRetry = vm::retryAsr,
+            )
+
             Box(
-                modifier = Modifier.fillMaxWidth().height(Size.AgentReplyAreaHeight),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(Spacing.Md)
+                    .navigationBarsPadding(),
                 contentAlignment = Alignment.Center,
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = assistantText ?: "…",
-                        fontSize = FontSize.title(),
-                        color = BrandColor.TextPrimary,
+                val savedTranscript = state.transcript
+                val savedId = state.savedId
+                when {
+                    state.isRecording -> RecordingActive(state = state, onStop = vm::stopAndProcess)
+                    state.isProcessing -> LoadingState()
+                    savedId != null && savedTranscript != null -> RecordedState(
+                        durationMs = state.elapsedMs,
+                        transcript = savedTranscript,
+                        onDone = onDone,
                     )
-                    Spacer(Modifier.height(Spacing.Sm))
-                    Text(
-                        text = if (ttsText != null) "▶ 播放中" else "",
-                        fontSize = FontSize.caption(),
-                        color = BrandColor.Brand500,
+                    // 已检查且还没授权 -> StartState（"权限被拒绝" + 授权按钮）；刚进屏权限还没查完 -> 空 Box
+                    permissionChecked && ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED -> StartState(
+                        permLauncher = permLauncher,
                     )
+                    else -> Box(modifier = Modifier.fillMaxSize())
                 }
             }
-            Spacer(Modifier.weight(1f))
-            // 按住说话按钮（§3.1.2 直径 160（设计值））
-            val pressModifier = Modifier
-                .size(Size.PressButtonSize)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onPress = {
-                            isHolding = true
-                            val started = try {
-                                recorder.start()
-                                Unit
-                            } catch (_: Exception) {
-                                null
-                            }
-                            val released = tryAwaitRelease()
-                            isHolding = false
-                            recorder.stop()
-                            if (released && started != null && sessionId != null) {
-                                isSending = true
-                                // ASR + turn
-                                scope.launch {
-                                    try {
-                                        val asr = ServiceLocator.apiClient.agentApi.asr(
-                                            com.elder.android.network.dto.AsrRequest(
-                                                audioUrl = "https://mock.cos/${sessionId}/${turnNo + 1}.m4a",
-                                            ),
-                                        )
-                                        val resp = ServiceLocator.apiClient.agentApi.turn(
-                                            sessionId!!,
-                                            AgentTurnRequest(
-                                                turnNo = turnNo + 1,
-                                                elderText = asr.text,
-                                                elderAudioCosKey = "tmp/${sessionId}/${turnNo + 1}.m4a",
-                                            ),
-                                        )
-                                        turnNo = resp.turnNo
-                                        turnsLeft = resp.turnsLeft
-                                        assistantText = resp.assistantText
-                                        assistantAudioUrl = resp.assistantAudioUrl
-                                        // 立即播放 TTS（§3.1.2）
-                                        runCatching { tts.play(context, resp.assistantAudioUrl) }
-                                        if (resp.shouldFinalize) {
-                                            delay(2_000)
-                                            val sid = sessionId
-                                            if (sid != null) {
-                                                runCatching {
-                                                    ServiceLocator.apiClient.agentApi.finalize(
-                                                        sid,
-                                                        AgentFinalizeRequest(
-                                                            turnNo = turnNo + 1,
-                                                            elderText = "（写好了）",
-                                                            elderAudioCosKey = "tmp/$sid/finalize.m4a",
-                                                        ),
-                                                    )
-                                                }.onSuccess { onFinalized(sid) }
-                                            }
-                                        }
-                                    } catch (e: Exception) {
-                                        error = "网络好像断了，正在重试…"
-                                    } finally {
-                                        isSending = false
-                                    }
-                                }
-                            }
-                        },
-                    )
-                }
-            Button(
-                onClick = {},
-                enabled = false,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isHolding) BrandColor.Brand500 else BrandColor.BgGray,
-                    contentColor = if (isHolding) BrandColor.CardWhite else BrandColor.TextPrimary,
-                    disabledContainerColor = if (isHolding) BrandColor.Brand500 else BrandColor.BgGray,
-                    disabledContentColor = if (isHolding) BrandColor.CardWhite else BrandColor.TextPrimary,
-                ),
-                shape = RoundedCornerShape(Size.PillCornerRadius),
-                modifier = pressModifier,
-            ) {
-                Text(
-                    text = if (isHolding) stringResource(R.string.diary_recording_release) else stringResource(R.string.diary_recording_hold),
-                    fontSize = FontSize.body(),
-                )
-            }
-            Spacer(Modifier.height(Spacing.Lg))
-            Text(
-                text = error ?: "",
-                fontSize = FontSize.caption(),
-                color = BrandColor.Error500,
-            )
         }
     }
 
+    state.topError?.let { msg ->
+        ElderToast(
+            message = msg,
+            onDismiss = vm::dismissError,
+        )
+    }
+
+    LaunchedEffect(state.asrNotConfigured) {
+        if (state.asrNotConfigured) onBack()
+    }
+}
+
+@Composable
+internal fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(
+            text = stringResource(
+                R.string.diary_recording_recording,
+                (state.elapsedMs / 60000).toInt(),
+                ((state.elapsedMs / 1000) % 60).toInt(),
+            ),
+            fontSize = FontSize.body(FontLevel.LARGE),
+            fontWeight = FontWeight.Bold,
+            color = BrandColor.Error500,
+        )
+        Spacer(modifier = Modifier.height(Spacing.Xs))
+        Text(
+            text = stringResource(R.string.diary_recording_transcribing),
+            fontSize = FontSize.body(),
+            color = BrandColor.TextSecondary,
+        )
+        Spacer(modifier = Modifier.height(Spacing.Md))
+        TranscriptPaper(
+            text = state.transcript,
+            placeholder = stringResource(R.string.diary_recording_transcript_placeholder),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        )
+        Spacer(modifier = Modifier.height(Spacing.Md))
+        Button(
+            onClick = onStop,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(Size.PrimaryButtonHeight),
+            shape = RoundedCornerShape(Corner.Button),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = BrandColor.Brand500,
+                contentColor = BrandColor.CardWhite,
+            ),
+        ) {
+            Text(
+                text = stringResource(R.string.diary_recording_stop),
+                fontSize = FontSize.button(),
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecordedState(
+    durationMs: Long,
+    transcript: String,
+    onDone: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Text(
+            text = stringResource(R.string.diary_recording_done_check) + " " + stringResource(R.string.diary_recording_done_duration, (durationMs / 60000).toInt(), ((durationMs / 1000) % 60).toInt()),
+            fontSize = FontSize.body(FontLevel.LARGE),
+            fontWeight = FontWeight.Bold,
+            color = BrandColor.Brand500,
+        )
+        Spacer(modifier = Modifier.height(Spacing.Md))
+        TranscriptPaper(
+            text = transcript,
+            placeholder = "",
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        )
+        Spacer(modifier = Modifier.height(Spacing.Md))
+        Button(
+            onClick = onDone,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(Size.PrimaryButtonHeight),
+            shape = RoundedCornerShape(Corner.Button),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = BrandColor.Brand500,
+                contentColor = BrandColor.CardWhite,
+            ),
+        ) {
+            Text(stringResource(R.string.diary_recording_back), fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun TranscriptPaper(
+    text: String?,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+) {
+    val transcript = text?.takeIf { it.isNotBlank() }
+    val scrollState = rememberScrollState()
+
+    LaunchedEffect(transcript) {
+        snapshotFlow { scrollState.maxValue }.collect { maxValue ->
+            scrollState.scrollTo(maxValue)
+        }
+    }
+
+    Surface(
+        modifier = modifier,
+        color = BrandColor.CardWhite,
+        shape = RoundedCornerShape(Corner.Card),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .drawBehind {
+                    val marginX = Spacing.Lg.toPx()
+                    val ruleEndX = size.width - Spacing.Md.toPx()
+                    val ruleSpacing = Size.TranscriptRuleSpacing.toPx()
+                    val ruleWidth = Size.TranscriptRuleWidth.toPx()
+
+                    var ruleY = Spacing.Lg.toPx()
+                    while (ruleY < size.height) {
+                        drawLine(
+                            color = BrandColor.PaperRule,
+                            start = Offset(marginX, ruleY),
+                            end = Offset(ruleEndX, ruleY),
+                            strokeWidth = ruleWidth,
+                        )
+                        ruleY += ruleSpacing
+                    }
+
+                    drawLine(
+                        color = BrandColor.PaperMargin,
+                        start = Offset(marginX, 0f),
+                        end = Offset(marginX, size.height),
+                        strokeWidth = Size.AsrCardBorderWidth.toPx(),
+                    )
+                }
+                .padding(
+                    start = Spacing.Xl,
+                    top = Spacing.Lg,
+                    end = Spacing.Md,
+                    bottom = Spacing.Md,
+                ),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState),
+            ) {
+                Text(
+                    text = transcript ?: placeholder,
+                    fontSize = FontSize.body(FontLevel.XLARGE),
+                    lineHeight = FontSize.TranscriptLineHeightSp.sp,
+                    fontWeight = if (transcript == null) FontWeight.Normal else FontWeight.Medium,
+                    color = if (transcript == null) BrandColor.TextSecondary else BrandColor.TextPrimary,
+                )
+                Spacer(modifier = Modifier.height(Spacing.Xxl))
+            }
+        }
+    }
+}
+
+@Composable
+private fun StartState(
+    permLauncher: androidx.activity.result.ActivityResultLauncher<String>,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = stringResource(R.string.diary_recording_mic_denied),
+            fontSize = FontSize.body(),
+            color = BrandColor.Error500,
+        )
+        Spacer(modifier = Modifier.height(Spacing.Lg))
+        Button(
+            onClick = { permLauncher.launch(Manifest.permission.RECORD_AUDIO) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(Size.PrimaryButtonHeight),
+            shape = RoundedCornerShape(Corner.Button),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = BrandColor.Brand500,
+                contentColor = BrandColor.CardWhite,
+            ),
+        ) {
+            Text(stringResource(R.string.diary_recording_auth_and_start), fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
+        }
+    }
 }

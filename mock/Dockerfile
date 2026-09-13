@@ -1,4 +1,4 @@
-# mock-upstream 镜像：本地 mock 所有上游服务（DSH/ASR/TTS/COS/TPUSH/SMS）
+# mock-upstream 镜像：本地 mock 所有上游服务（DSH/ASR/TTS/COS/TPUSH；v2.1.2 MVP 阶段 SMS 已下线，v2.x 复用）
 FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app

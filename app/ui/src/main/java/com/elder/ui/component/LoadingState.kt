@@ -3,6 +3,7 @@
 package com.elder.android.ui.component
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +20,6 @@ import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.ui.R
-import androidx.compose.ui.res.stringResource
 
 @Composable
 fun LoadingState() {
@@ -35,12 +35,13 @@ fun LoadingState() {
             color = BrandColor.TextPrimary,
             fontSize = FontSize.body(),
         )
-        LinearProgressIndicator(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(Size.ProgressBarHeight)
-                .padding(top = Spacing.Md),
-            color = BrandColor.Brand500,
-        )
+        Box(modifier = Modifier.padding(top = Spacing.Md)) {
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Size.ProgressBarHeight),
+                color = BrandColor.Brand500,
+            )
+        }
     }
 }

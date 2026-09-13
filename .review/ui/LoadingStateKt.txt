@@ -1,0 +1,488 @@
+Processing 'app/ui/build/.transforms/fe4e0141d40d3209c866f14ac1aa7e12/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/ui/component/LoadingStateKt.dex'...
+Opened 'app/ui/build/.transforms/fe4e0141d40d3209c866f14ac1aa7e12/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/ui/component/LoadingStateKt.dex', DEX version '038'
+Class #0            -
+  Class descriptor  : 'Lcom/elder/android/ui/component/LoadingStateKt$$ExternalSyntheticLambda0;'
+  Access flags      : 0x1011 (PUBLIC FINAL SYNTHETIC)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+    #0              : 'Lkotlin/jvm/functions/Function2;'
+  Static fields     -
+  Instance fields   -
+    #0              : (in Lcom/elder/android/ui/component/LoadingStateKt$$ExternalSyntheticLambda0;)
+      name          : 'f$0'
+      type          : 'I'
+      access        : 0x1011 (PUBLIC FINAL SYNTHETIC)
+  Direct methods    -
+    #0              : (in Lcom/elder/android/ui/component/LoadingStateKt$$ExternalSyntheticLambda0;)
+      name          : '<init>'
+      type          : '(I)V'
+      access        : 0x11001 (PUBLIC SYNTHETIC CONSTRUCTOR)
+      code          -
+      registers     : 2
+      ins           : 2
+      outs          : 1
+      insns size    : 6 16-bit code units
+000910:                                        |[000910] com.elder.android.ui.component.LoadingStateKt$$ExternalSyntheticLambda0.<init>:(I)V
+000920: 7010 3800 0000                         |0000: invoke-direct {v0}, Ljava/lang/Object;.<init>:()V // method@0038
+000926: 5901 0a00                              |0003: iput v1, v0, Lcom/elder/android/ui/component/LoadingStateKt$$ExternalSyntheticLambda0;.f$0:I // field@000a
+00092a: 0e00                                   |0005: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=0
+      locals        :
+        0x0000 - 0x0006 reg=0 this Lcom/elder/android/ui/component/LoadingStateKt$$ExternalSyntheticLambda0;
+        0x0000 - 0x0006 reg=1 (null) I
+
+  Virtual methods   -
+    #0              : (in Lcom/elder/android/ui/component/LoadingStateKt$$ExternalSyntheticLambda0;)
+      name          : 'invoke'
+      type          : '(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 4
+      ins           : 3
+      outs          : 3
+      insns size    : 15 16-bit code units
+0008e0:                                        |[0008e0] com.elder.android.ui.component.LoadingStateKt$$ExternalSyntheticLambda0.invoke:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+0008f0: 5210 0a00                              |0000: iget v0, v1, Lcom/elder/android/ui/component/LoadingStateKt$$ExternalSyntheticLambda0;.f$0:I // field@000a
+0008f4: 1f02 1100                              |0002: check-cast v2, Landroidx/compose/runtime/Composer; // type@0011
+0008f8: 1f03 3100                              |0004: check-cast v3, Ljava/lang/Integer; // type@0031
+0008fc: 6e10 3600 0300                         |0006: invoke-virtual {v3}, Ljava/lang/Integer;.intValue:()I // method@0036
+000902: 0a03                                   |0009: move-result v3
+000904: 7130 3300 2003                         |000a: invoke-static {v0, v2, v3}, Lcom/elder/android/ui/component/LoadingStateKt;.$r8$lambda$wOVg0v3-SQTEGInZ3KwbIpH7hHE:(ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit; // method@0033
+00090a: 0c02                                   |000d: move-result-object v2
+00090c: 1102                                   |000e: return-object v2
+      catches       : (none)
+      positions     :
+        0x0000 line=0
+      locals        :
+        0x0000 - 0x000f reg=1 this Lcom/elder/android/ui/component/LoadingStateKt$$ExternalSyntheticLambda0;
+        0x0000 - 0x000f reg=2 (null) Ljava/lang/Object;
+        0x0000 - 0x000f reg=3 (null) Ljava/lang/Object;
+
+  source_file_idx   : 30 (D8$$SyntheticClass)
+
+Class #1            -
+  Class descriptor  : 'Lcom/elder/android/ui/component/LoadingStateKt;'
+  Access flags      : 0x0011 (PUBLIC FINAL)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+  Static fields     -
+  Instance fields   -
+  Direct methods    -
+    #0              : (in Lcom/elder/android/ui/component/LoadingStateKt;)
+      name          : '$r8$lambda$wOVg0v3-SQTEGInZ3KwbIpH7hHE'
+      type          : '(ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;'
+      access        : 0x1009 (PUBLIC STATIC SYNTHETIC)
+      code          -
+      registers     : 3
+      ins           : 3
+      outs          : 3
+      insns size    : 5 16-bit code units
+00092c:                                        |[00092c] com.elder.android.ui.component.LoadingStateKt.$r8$lambda$wOVg0v3-SQTEGInZ3KwbIpH7hHE:(ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;
+00093c: 7130 3500 1002                         |0000: invoke-static {v0, v1, v2}, Lcom/elder/android/ui/component/LoadingStateKt;.LoadingState$lambda$1:(ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit; // method@0035
+000942: 0c00                                   |0003: move-result-object v0
+000944: 1100                                   |0004: return-object v0
+      catches       : (none)
+      positions     :
+      locals        :
+
+    #1              : (in Lcom/elder/android/ui/component/LoadingStateKt;)
+      name          : 'LoadingState'
+      type          : '(Landroidx/compose/runtime/Composer;I)V'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+      code          -
+      registers     : 54
+      ins           : 2
+      outs          : 25
+      insns size    : 503 16-bit code units
+000970:                                        |[000970] com.elder.android.ui.component.LoadingStateKt.LoadingState:(Landroidx/compose/runtime/Composer;I)V
+000980: 0200 3500                              |0000: move/from16 v0, v53
+000984: 1401 e5ad b4d3                         |0002: const v1, #float -1.55202e+12 // #d3b4ade5
+00098a: 0802 3400                              |0005: move-object/from16 v2, v52
+00098e: 7220 1500 1200                         |0007: invoke-interface {v2, v1}, Landroidx/compose/runtime/Composer;.startRestartGroup:(I)Landroidx/compose/runtime/Composer; // method@0015
+000994: 0c02                                   |000a: move-result-object v2
+000996: 1a03 1700                              |000b: const-string v3, "C(LoadingState)25@977L626:LoadingState.kt#9c24vn" // string@0017
+00099a: 7120 1a00 3200                         |000d: invoke-static {v2, v3}, Landroidx/compose/runtime/ComposerKt;.sourceInformation:(Landroidx/compose/runtime/Composer;Ljava/lang/String;)V // method@001a
+0009a0: 3900 0e00                              |0010: if-nez v0, 001e // +000e
+0009a4: 7210 1200 0200                         |0012: invoke-interface {v2}, Landroidx/compose/runtime/Composer;.getSkipping:()Z // method@0012
+0009aa: 0a03                                   |0015: move-result v3
+0009ac: 3903 0300                              |0016: if-nez v3, 0019 // +0003
+0009b0: 2806                                   |0018: goto 001e // +0006
+0009b2: 7210 1400 0200                         |0019: invoke-interface {v2}, Landroidx/compose/runtime/Composer;.skipToGroupEnd:()V // method@0014
+0009b8: 2900 cc01                              |001c: goto/16 01e8 // +01cc
+0009bc: 7100 1900 0000                         |001e: invoke-static {}, Landroidx/compose/runtime/ComposerKt;.isTraceInProgress:()Z // method@0019
+0009c2: 0a03                                   |0021: move-result v3
+0009c4: 3803 0800                              |0022: if-eqz v3, 002a // +0008
+0009c8: 12f3                                   |0024: const/4 v3, #int -1 // #ff
+0009ca: 1a04 8200                              |0025: const-string v4, "com.elder.android.ui.component.LoadingState (LoadingState.kt:24)" // string@0082
+0009ce: 7140 1e00 0143                         |0027: invoke-static {v1, v0, v3, v4}, Landroidx/compose/runtime/ComposerKt;.traceEventStart:(IIILjava/lang/String;)V // method@001e
+0009d4: 6201 0300                              |002a: sget-object v1, Landroidx/compose/ui/Modifier;.Companion:Landroidx/compose/ui/Modifier$Companion; // field@0003
+0009d8: 1f01 1c00                              |002c: check-cast v1, Landroidx/compose/ui/Modifier; // type@001c
+0009dc: 1203                                   |002e: const/4 v3, #int 0 // #0
+0009de: 1214                                   |002f: const/4 v4, #int 1 // #1
+0009e0: 1205                                   |0030: const/4 v5, #int 0 // #0
+0009e2: 7140 0400 3154                         |0031: invoke-static {v1, v3, v4, v5}, Landroidx/compose/foundation/layout/SizeKt;.fillMaxSize$default:(Landroidx/compose/ui/Modifier;FILjava/lang/Object;)Landroidx/compose/ui/Modifier; // method@0004
+0009e8: 0c01                                   |0034: move-result-object v1
+0009ea: 6206 0800                              |0035: sget-object v6, Lcom/elder/android/design/tokens/Spacing;.INSTANCE:Lcom/elder/android/design/tokens/Spacing; // field@0008
+0009ee: 6e10 2f00 0600                         |0037: invoke-virtual {v6}, Lcom/elder/android/design/tokens/Spacing;.getLg-D9Ej5fM:()F // method@002f
+0009f4: 0a06                                   |003a: move-result v6
+0009f6: 7120 0200 6100                         |003b: invoke-static {v1, v6}, Landroidx/compose/foundation/layout/PaddingKt;.padding-3ABfNKs:(Landroidx/compose/ui/Modifier;F)Landroidx/compose/ui/Modifier; // method@0002
+0009fc: 0c01                                   |003e: move-result-object v1
+0009fe: 6206 0000                              |003f: sget-object v6, Landroidx/compose/foundation/layout/Arrangement;.INSTANCE:Landroidx/compose/foundation/layout/Arrangement; // field@0000
+000a02: 6e10 0000 0600                         |0041: invoke-virtual {v6}, Landroidx/compose/foundation/layout/Arrangement;.getCenter:()Landroidx/compose/foundation/layout/Arrangement$HorizontalOrVertical; // method@0000
+000a08: 0c06                                   |0044: move-result-object v6
+000a0a: 1f06 0400                              |0045: check-cast v6, Landroidx/compose/foundation/layout/Arrangement$Vertical; // type@0004
+000a0e: 6207 0200                              |0047: sget-object v7, Landroidx/compose/ui/Alignment;.Companion:Landroidx/compose/ui/Alignment$Companion; // field@0002
+000a12: 6e10 2300 0700                         |0049: invoke-virtual {v7}, Landroidx/compose/ui/Alignment$Companion;.getCenterHorizontally:()Landroidx/compose/ui/Alignment$Horizontal; // method@0023
+000a18: 0c07                                   |004c: move-result-object v7
+000a1a: 0000                                   |004d: nop // spacer
+000a1c: 1308 b001                              |004e: const/16 v8, #int 432 // #1b0
+000a20: 1209                                   |0050: const/4 v9, #int 0 // #0
+000a22: 140a 820e 2fe3                         |0051: const v10, #float -3.22923e+21 // #e32f0e82
+000a28: 1a0b 1a00                              |0054: const-string v11, "CC(Column)P(2,3,1)86@4330L61,87@4396L133:Column.kt#2w3rfo" // string@001a
+000a2c: 7130 1c00 a20b                         |0056: invoke-static {v2, v10, v11}, Landroidx/compose/runtime/ComposerKt;.sourceInformationMarkerStart:(Landroidx/compose/runtime/Composer;ILjava/lang/String;)V // method@001c
+000a32: e10a 0803                              |0059: shr-int/lit8 v10, v8, #int 3 // #03
+000a36: dd0a 0a0e                              |005b: and-int/lit8 v10, v10, #int 14 // #0e
+000a3a: e10b 0803                              |005d: shr-int/lit8 v11, v8, #int 3 // #03
+000a3e: dd0b 0b70                              |005f: and-int/lit8 v11, v11, #int 112 // #70
+000a42: b6ba                                   |0061: or-int/2addr v10, v11
+000a44: 7140 0100 76a2                         |0062: invoke-static {v6, v7, v2, v10}, Landroidx/compose/foundation/layout/ColumnKt;.columnMeasurePolicy:(Landroidx/compose/foundation/layout/Arrangement$Vertical;Landroidx/compose/ui/Alignment$Horizontal;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/layout/MeasurePolicy; // method@0001
+000a4a: 0c0a                                   |0065: move-result-object v10
+000a4c: e00b 0803                              |0066: shl-int/lit8 v11, v8, #int 3 // #03
+000a50: dd0b 0b70                              |0068: and-int/lit8 v11, v11, #int 112 // #70
+000a54: 0000                                   |006a: nop // spacer
+000a56: 120c                                   |006b: const/4 v12, #int 0 // #0
+000a58: 140d 2646 16b1                         |006c: const v13, #float -2.18677e-09 // #b1164626
+000a5e: 1a0e 1b00                              |006f: const-string v14, "CC(Layout)P(!1,2)79@3208L23,82@3359L411:Layout.kt#80mrfh" // string@001b
+000a62: 7130 1c00 d20e                         |0071: invoke-static {v2, v13, v14}, Landroidx/compose/runtime/ComposerKt;.sourceInformationMarkerStart:(Landroidx/compose/runtime/Composer;ILjava/lang/String;)V // method@001c
+000a68: 120d                                   |0074: const/4 v13, #int 0 // #0
+000a6a: 7120 0900 d200                         |0075: invoke-static {v2, v13}, Landroidx/compose/runtime/ComposablesKt;.getCurrentCompositeKeyHash:(Landroidx/compose/runtime/Composer;I)I // method@0009
+000a70: 0a0e                                   |0078: move-result v14
+000a72: 7210 1000 0200                         |0079: invoke-interface {v2}, Landroidx/compose/runtime/Composer;.getCurrentCompositionLocalMap:()Landroidx/compose/runtime/CompositionLocalMap; // method@0010
+000a78: 0c0f                                   |007c: move-result-object v15
+000a7a: 7120 2400 1200                         |007d: invoke-static {v2, v1}, Landroidx/compose/ui/ComposedModifierKt;.materializeModifier:(Landroidx/compose/runtime/Composer;Landroidx/compose/ui/Modifier;)Landroidx/compose/ui/Modifier; // method@0024
+000a80: 0c03                                   |0080: move-result-object v3
+000a82: 6210 0400                              |0081: sget-object v16, Landroidx/compose/ui/node/ComposeUiNode;.Companion:Landroidx/compose/ui/node/ComposeUiNode$Companion; // field@0004
+000a86: 7401 2500 1000                         |0083: invoke-virtual/range {v16}, Landroidx/compose/ui/node/ComposeUiNode$Companion;.getConstructor:()Lkotlin/jvm/functions/Function0; // method@0025
+000a8c: 0c10                                   |0086: move-result-object v16
+000a8e: e004 0b06                              |0087: shl-int/lit8 v4, v11, #int 6 // #06
+000a92: d544 8003                              |0089: and-int/lit16 v4, v4, #int 896 // #0380
+000a96: de04 0406                              |008b: or-int/lit8 v4, v4, #int 6 // #06
+000a9a: 0000                                   |008d: nop // spacer
+000a9c: 0811 1000                              |008e: move-object/from16 v17, v16
+000aa0: 1310 0000                              |0090: const/16 v16, #int 0 // #0
+000aa4: 1405 3100 bdd6                         |0092: const v5, #float -1.03904e+14 // #d6bd0031
+000aaa: 1a0d 1c00                              |0095: const-string v13, "CC(ReusableComposeNode)P(1,2)376@14062L9:Composables.kt#9igjgp" // string@001c
+000aae: 7130 1c00 520d                         |0097: invoke-static {v2, v5, v13}, Landroidx/compose/runtime/ComposerKt;.sourceInformationMarkerStart:(Landroidx/compose/runtime/Composer;ILjava/lang/String;)V // method@001c
+000ab4: 7210 0f00 0200                         |009a: invoke-interface {v2}, Landroidx/compose/runtime/Composer;.getApplier:()Landroidx/compose/runtime/Applier; // method@000f
+000aba: 0c05                                   |009d: move-result-object v5
+000abc: 2055 0d00                              |009e: instance-of v5, v5, Landroidx/compose/runtime/Applier; // type@000d
+000ac0: 3905 0500                              |00a0: if-nez v5, 00a5 // +0005
+000ac4: 7100 0a00 0000                         |00a2: invoke-static {}, Landroidx/compose/runtime/ComposablesKt;.invalidApplier:()V // method@000a
+000aca: 7210 1600 0200                         |00a5: invoke-interface {v2}, Landroidx/compose/runtime/Composer;.startReusableNode:()V // method@0016
+000ad0: 7210 1100 0200                         |00a8: invoke-interface {v2}, Landroidx/compose/runtime/Composer;.getInserting:()Z // method@0011
+000ad6: 0a05                                   |00ab: move-result v5
+000ad8: 3805 0800                              |00ac: if-eqz v5, 00b4 // +0008
+000adc: 0805 1100                              |00ae: move-object/from16 v5, v17
+000ae0: 7220 0c00 5200                         |00b0: invoke-interface {v2, v5}, Landroidx/compose/runtime/Composer;.createNode:(Lkotlin/jvm/functions/Function0;)V // method@000c
+000ae6: 2806                                   |00b3: goto 00b9 // +0006
+000ae8: 0805 1100                              |00b4: move-object/from16 v5, v17
+000aec: 7210 1800 0200                         |00b6: invoke-interface {v2}, Landroidx/compose/runtime/Composer;.useNode:()V // method@0018
+000af2: 7110 2100 0200                         |00b9: invoke-static {v2}, Landroidx/compose/runtime/Updater;.constructor-impl:(Landroidx/compose/runtime/Composer;)Landroidx/compose/runtime/Composer; // method@0021
+000af8: 0c0d                                   |00bc: move-result-object v13
+000afa: 1311 0000                              |00bd: const/16 v17, #int 0 // #0
+000afe: 6213 0400                              |00bf: sget-object v19, Landroidx/compose/ui/node/ComposeUiNode;.Companion:Landroidx/compose/ui/node/ComposeUiNode$Companion; // field@0004
+000b02: 0814 0100                              |00c1: move-object/from16 v20, v1
+000b06: 7401 2700 1300                         |00c3: invoke-virtual/range {v19}, Landroidx/compose/ui/node/ComposeUiNode$Companion;.getSetMeasurePolicy:()Lkotlin/jvm/functions/Function2; // method@0027
+000b0c: 0c01                                   |00c6: move-result-object v1
+000b0e: 7130 2200 ad01                         |00c7: invoke-static {v13, v10, v1}, Landroidx/compose/runtime/Updater;.set-impl:(Landroidx/compose/runtime/Composer;Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)V // method@0022
+000b14: 6201 0400                              |00ca: sget-object v1, Landroidx/compose/ui/node/ComposeUiNode;.Companion:Landroidx/compose/ui/node/ComposeUiNode$Companion; // field@0004
+000b18: 6e10 2900 0100                         |00cc: invoke-virtual {v1}, Landroidx/compose/ui/node/ComposeUiNode$Companion;.getSetResolvedCompositionLocals:()Lkotlin/jvm/functions/Function2; // method@0029
+000b1e: 0c01                                   |00cf: move-result-object v1
+000b20: 7130 2200 fd01                         |00d0: invoke-static {v13, v15, v1}, Landroidx/compose/runtime/Updater;.set-impl:(Landroidx/compose/runtime/Composer;Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)V // method@0022
+000b26: 6201 0400                              |00d3: sget-object v1, Landroidx/compose/ui/node/ComposeUiNode;.Companion:Landroidx/compose/ui/node/ComposeUiNode$Companion; // field@0004
+000b2a: 6e10 2600 0100                         |00d5: invoke-virtual {v1}, Landroidx/compose/ui/node/ComposeUiNode$Companion;.getSetCompositeKeyHash:()Lkotlin/jvm/functions/Function2; // method@0026
+000b30: 0c01                                   |00d8: move-result-object v1
+000b32: 1313 0000                              |00d9: const/16 v19, #int 0 // #0
+000b36: 0815 0d00                              |00db: move-object/from16 v21, v13
+000b3a: 1316 0000                              |00dd: const/16 v22, #int 0 // #0
+000b3e: 7801 1100 1500                         |00df: invoke-interface/range {v21}, Landroidx/compose/runtime/Composer;.getInserting:()Z // method@0011
+000b44: 0a17                                   |00e2: move-result v23
+000b46: 3917 1800                              |00e3: if-nez v23, 00fb // +0018
+000b4a: 0817 0500                              |00e5: move-object/from16 v23, v5
+000b4e: 7801 1300 1500                         |00e7: invoke-interface/range {v21}, Landroidx/compose/runtime/Composer;.rememberedValue:()Ljava/lang/Object; // method@0013
+000b54: 0c05                                   |00ea: move-result-object v5
+000b56: 0818 0600                              |00eb: move-object/from16 v24, v6
+000b5a: 7110 3700 0e00                         |00ed: invoke-static {v14}, Ljava/lang/Integer;.valueOf:(I)Ljava/lang/Integer; // method@0037
+000b60: 0c06                                   |00f0: move-result-object v6
+000b62: 7120 3900 6500                         |00f1: invoke-static {v5, v6}, Lkotlin/jvm/internal/Intrinsics;.areEqual:(Ljava/lang/Object;Ljava/lang/Object;)Z // method@0039
+000b68: 0a05                                   |00f4: move-result v5
+000b6a: 3905 0300                              |00f5: if-nez v5, 00f8 // +0003
+000b6e: 2808                                   |00f7: goto 00ff // +0008
+000b70: 0806 1500                              |00f8: move-object/from16 v6, v21
+000b74: 2815                                   |00fa: goto 010f // +0015
+000b76: 0817 0500                              |00fb: move-object/from16 v23, v5
+000b7a: 0818 0600                              |00fd: move-object/from16 v24, v6
+000b7e: 7110 3700 0e00                         |00ff: invoke-static {v14}, Ljava/lang/Integer;.valueOf:(I)Ljava/lang/Integer; // method@0037
+000b84: 0c05                                   |0102: move-result-object v5
+000b86: 0806 1500                              |0103: move-object/from16 v6, v21
+000b8a: 7220 1700 5600                         |0105: invoke-interface {v6, v5}, Landroidx/compose/runtime/Composer;.updateRememberedValue:(Ljava/lang/Object;)V // method@0017
+000b90: 7110 3700 0e00                         |0108: invoke-static {v14}, Ljava/lang/Integer;.valueOf:(I)Ljava/lang/Integer; // method@0037
+000b96: 0c05                                   |010b: move-result-object v5
+000b98: 7230 0b00 5d01                         |010c: invoke-interface {v13, v5, v1}, Landroidx/compose/runtime/Composer;.apply:(Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)V // method@000b
+000b9e: 0000                                   |010f: nop // spacer
+000ba0: 0000                                   |0110: nop // spacer
+000ba2: 0000                                   |0111: nop // spacer
+000ba4: 6201 0400                              |0112: sget-object v1, Landroidx/compose/ui/node/ComposeUiNode;.Companion:Landroidx/compose/ui/node/ComposeUiNode$Companion; // field@0004
+000ba8: 6e10 2800 0100                         |0114: invoke-virtual {v1}, Landroidx/compose/ui/node/ComposeUiNode$Companion;.getSetModifier:()Lkotlin/jvm/functions/Function2; // method@0028
+000bae: 0c01                                   |0117: move-result-object v1
+000bb0: 7130 2200 3d01                         |0118: invoke-static {v13, v3, v1}, Landroidx/compose/runtime/Updater;.set-impl:(Landroidx/compose/runtime/Composer;Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)V // method@0022
+000bb6: 0000                                   |011b: nop // spacer
+000bb8: 0000                                   |011c: nop // spacer
+000bba: e101 0406                              |011d: shr-int/lit8 v1, v4, #int 6 // #06
+000bbe: dd01 010e                              |011f: and-int/lit8 v1, v1, #int 14 // #0e
+000bc2: 0725                                   |0121: move-object v5, v2
+000bc4: 1206                                   |0122: const/4 v6, #int 0 // #0
+000bc6: 140d 67a9 10e9                         |0123: const v13, #float -1.09303e+25 // #e910a967
+000bcc: 0211 0100                              |0126: move/from16 v17, v1
+000bd0: 1a01 1900                              |0128: const-string v1, "C88@4444L9:Column.kt#2w3rfo" // string@0019
+000bd4: 7130 1c00 d501                         |012a: invoke-static {v5, v13, v1}, Landroidx/compose/runtime/ComposerKt;.sourceInformationMarkerStart:(Landroidx/compose/runtime/Composer;ILjava/lang/String;)V // method@001c
+000bda: 6201 0100                              |012d: sget-object v1, Landroidx/compose/foundation/layout/ColumnScopeInstance;.INSTANCE:Landroidx/compose/foundation/layout/ColumnScopeInstance; // field@0001
+000bde: e10d 0806                              |012f: shr-int/lit8 v13, v8, #int 6 // #06
+000be2: dd0d 0d70                              |0131: and-int/lit8 v13, v13, #int 112 // #70
+000be6: de0d 0d06                              |0133: or-int/lit8 v13, v13, #int 6 // #06
+000bea: 1f01 0700                              |0135: check-cast v1, Landroidx/compose/foundation/layout/ColumnScope; // type@0007
+000bee: 0813 0500                              |0137: move-object/from16 v19, v5
+000bf2: 082e 1300                              |0139: move-object/from16 v46, v19
+000bf6: 1315 0000                              |013b: const/16 v21, #int 0 // #0
+000bfa: 0816 0100                              |013d: move-object/from16 v22, v1
+000bfe: 1401 47f4 944b                         |013f: const v1, #float 1.95237e+07 // #4b94f447
+000c04: 0832 0300                              |0142: move-object/from16 v50, v3
+000c08: 1a03 1800                              |0144: const-string v3, "C33@1225L37,32@1200L157,37@1366L231:LoadingState.kt#9c24vn" // string@0018
+000c0c: 0233 0400                              |0146: move/from16 v51, v4
+000c10: 0804 1300                              |0148: move-object/from16 v4, v19
+000c14: 7130 1c00 1403                         |014a: invoke-static {v4, v1, v3}, Landroidx/compose/runtime/ComposerKt;.sourceInformationMarkerStart:(Landroidx/compose/runtime/Composer;ILjava/lang/String;)V // method@001c
+000c1a: 6001 0900                              |014d: sget v1, Lcom/elder/android/ui/R$string;.loading_text:I // field@0009
+000c1e: 1203                                   |014f: const/4 v3, #int 0 // #0
+000c20: 7130 2a00 4103                         |0150: invoke-static {v1, v4, v3}, Landroidx/compose/ui/res/StringResources_androidKt;.stringResource:(ILandroidx/compose/runtime/Composer;I)Ljava/lang/String; // method@002a
+000c26: 0c19                                   |0153: move-result-object v25
+000c28: 6201 0500                              |0154: sget-object v1, Lcom/elder/android/design/tokens/BrandColor;.INSTANCE:Lcom/elder/android/design/tokens/BrandColor; // field@0005
+000c2c: 6e10 2c00 0100                         |0156: invoke-virtual {v1}, Lcom/elder/android/design/tokens/BrandColor;.getTextPrimary-0d7_KjU:()J // method@002c
+000c32: 0b1b                                   |0159: move-result-wide v27
+000c34: 6201 0600                              |015a: sget-object v1, Lcom/elder/android/design/tokens/FontSize;.INSTANCE:Lcom/elder/android/design/tokens/FontSize; // field@0006
+000c38: 0212 0600                              |015c: move/from16 v18, v6
+000c3c: 1213                                   |015e: const/4 v3, #int 1 // #1
+000c3e: 1206                                   |015f: const/4 v6, #int 0 // #0
+000c40: 7140 2d00 6163                         |0160: invoke-static {v1, v6, v3, v6}, Lcom/elder/android/design/tokens/FontSize;.body-kPz2Gy4$default:(Lcom/elder/android/design/tokens/FontSize;Lcom/elder/android/design/tokens/FontLevel;ILjava/lang/Object;)J // method@002d
+000c46: 0b1d                                   |0163: move-result-wide v29
+000c48: 131a 0000                              |0164: const/16 v26, #int 0 // #0
+000c4c: 131f 0000                              |0166: const/16 v31, #int 0 // #0
+000c50: 1320 0000                              |0168: const/16 v32, #int 0 // #0
+000c54: 1321 0000                              |016a: const/16 v33, #int 0 // #0
+000c58: 1622 0000                              |016c: const-wide/16 v34, #int 0 // #0
+000c5c: 1324 0000                              |016e: const/16 v36, #int 0 // #0
+000c60: 1325 0000                              |0170: const/16 v37, #int 0 // #0
+000c64: 1626 0000                              |0172: const-wide/16 v38, #int 0 // #0
+000c68: 1328 0000                              |0174: const/16 v40, #int 0 // #0
+000c6c: 1329 0000                              |0176: const/16 v41, #int 0 // #0
+000c70: 132a 0000                              |0178: const/16 v42, #int 0 // #0
+000c74: 132b 0000                              |017a: const/16 v43, #int 0 // #0
+000c78: 132c 0000                              |017c: const/16 v44, #int 0 // #0
+000c7c: 132d 0000                              |017e: const/16 v45, #int 0 // #0
+000c80: 132f 0000                              |0180: const/16 v47, #int 0 // #0
+000c84: 1330 0000                              |0182: const/16 v48, #int 0 // #0
+000c88: 1431 f2ff 0100                         |0184: const v49, #float 1.83651e-40 // #0001fff2
+000c8e: 7719 0800 1900                         |0187: invoke-static/range {v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49}, Landroidx/compose/material3/TextKt;.Text--4IGK_g:(Ljava/lang/String;Landroidx/compose/ui/Modifier;JJLandroidx/compose/ui/text/font/FontStyle;Landroidx/compose/ui/text/font/FontWeight;Landroidx/compose/ui/text/font/FontFamily;JLandroidx/compose/ui/text/style/TextDecoration;Landroidx/compose/ui/text/style/TextAlign;JIZIILkotlin/jvm/functions/Function1;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/runtime/Composer;III)V // method@0008
+000c94: 6201 0300                              |018a: sget-object v1, Landroidx/compose/ui/Modifier;.Companion:Landroidx/compose/ui/Modifier$Companion; // field@0003
+000c98: 1f01 1c00                              |018c: check-cast v1, Landroidx/compose/ui/Modifier; // type@001c
+000c9c: 0834 0700                              |018e: move-object/from16 v52, v7
+000ca0: 1203                                   |0190: const/4 v3, #int 0 // #0
+000ca2: 1216                                   |0191: const/4 v6, #int 1 // #1
+000ca4: 1207                                   |0192: const/4 v7, #int 0 // #0
+000ca6: 7140 0500 3176                         |0193: invoke-static {v1, v3, v6, v7}, Landroidx/compose/foundation/layout/SizeKt;.fillMaxWidth$default:(Landroidx/compose/ui/Modifier;FILjava/lang/Object;)Landroidx/compose/ui/Modifier; // method@0005
+000cac: 0c01                                   |0196: move-result-object v1
+000cae: 6203 0700                              |0197: sget-object v3, Lcom/elder/android/design/tokens/Size;.INSTANCE:Lcom/elder/android/design/tokens/Size; // field@0007
+000cb2: 6e10 2e00 0300                         |0199: invoke-virtual {v3}, Lcom/elder/android/design/tokens/Size;.getProgressBarHeight-D9Ej5fM:()F // method@002e
+000cb8: 0a03                                   |019c: move-result v3
+000cba: 7120 0600 3100                         |019d: invoke-static {v1, v3}, Landroidx/compose/foundation/layout/SizeKt;.height-3ABfNKs:(Landroidx/compose/ui/Modifier;F)Landroidx/compose/ui/Modifier; // method@0006
+000cc0: 0c19                                   |01a0: move-result-object v25
+000cc2: 6201 0800                              |01a1: sget-object v1, Lcom/elder/android/design/tokens/Spacing;.INSTANCE:Lcom/elder/android/design/tokens/Spacing; // field@0008
+000cc6: 6e10 3000 0100                         |01a3: invoke-virtual {v1}, Lcom/elder/android/design/tokens/Spacing;.getMd-D9Ej5fM:()F // method@0030
+000ccc: 0a1b                                   |01a6: move-result v27
+000cce: 131e 0d00                              |01a7: const/16 v30, #int 13 // #d
+000cd2: 131a 0000                              |01a9: const/16 v26, #int 0 // #0
+000cd6: 131c 0000                              |01ab: const/16 v28, #int 0 // #0
+000cda: 131d 0000                              |01ad: const/16 v29, #int 0 // #0
+000cde: 7707 0300 1900                         |01af: invoke-static/range {v25, v26, v27, v28, v29, v30, v31}, Landroidx/compose/foundation/layout/PaddingKt;.padding-qDBjuR0$default:(Landroidx/compose/ui/Modifier;FFFFILjava/lang/Object;)Landroidx/compose/ui/Modifier; // method@0003
+000ce4: 0c19                                   |01b2: move-result-object v25
+000ce6: 6201 0500                              |01b3: sget-object v1, Lcom/elder/android/design/tokens/BrandColor;.INSTANCE:Lcom/elder/android/design/tokens/BrandColor; // field@0005
+000cea: 6e10 2b00 0100                         |01b5: invoke-virtual {v1}, Lcom/elder/android/design/tokens/BrandColor;.getBrand500-0d7_KjU:()J // method@002b
+000cf0: 0b1a                                   |01b8: move-result-wide v26
+000cf2: 161c 0000                              |01b9: const-wide/16 v28, #int 0 // #0
+000cf6: 131e 0000                              |01bb: const/16 v30, #int 0 // #0
+000cfa: 131f 0000                              |01bd: const/16 v31, #int 0 // #0
+000cfe: 1321 0000                              |01bf: const/16 v33, #int 0 // #0
+000d02: 1322 1c00                              |01c1: const/16 v34, #int 28 // #1c
+000d06: 0820 0400                              |01c3: move-object/from16 v32, v4
+000d0a: 770a 0700 1900                         |01c5: invoke-static/range {v25, v26, v27, v28, v29, v30, v31, v32, v33, v34}, Landroidx/compose/material3/ProgressIndicatorKt;.LinearProgressIndicator-rIrjwxo:(Landroidx/compose/ui/Modifier;JJIFLandroidx/compose/runtime/Composer;II)V // method@0007
+000d10: 7110 1b00 0400                         |01c8: invoke-static {v4}, Landroidx/compose/runtime/ComposerKt;.sourceInformationMarkerEnd:(Landroidx/compose/runtime/Composer;)V // method@001b
+000d16: 0000                                   |01cb: nop // spacer
+000d18: 7110 1b00 0500                         |01cc: invoke-static {v5}, Landroidx/compose/runtime/ComposerKt;.sourceInformationMarkerEnd:(Landroidx/compose/runtime/Composer;)V // method@001b
+000d1e: 0000                                   |01cf: nop // spacer
+000d20: 7210 0d00 0200                         |01d0: invoke-interface {v2}, Landroidx/compose/runtime/Composer;.endNode:()V // method@000d
+000d26: 7110 1b00 0200                         |01d3: invoke-static {v2}, Landroidx/compose/runtime/ComposerKt;.sourceInformationMarkerEnd:(Landroidx/compose/runtime/Composer;)V // method@001b
+000d2c: 0000                                   |01d6: nop // spacer
+000d2e: 7110 1b00 0200                         |01d7: invoke-static {v2}, Landroidx/compose/runtime/ComposerKt;.sourceInformationMarkerEnd:(Landroidx/compose/runtime/Composer;)V // method@001b
+000d34: 0000                                   |01da: nop // spacer
+000d36: 7110 1b00 0200                         |01db: invoke-static {v2}, Landroidx/compose/runtime/ComposerKt;.sourceInformationMarkerEnd:(Landroidx/compose/runtime/Composer;)V // method@001b
+000d3c: 0000                                   |01de: nop // spacer
+000d3e: 7100 1900 0000                         |01df: invoke-static {}, Landroidx/compose/runtime/ComposerKt;.isTraceInProgress:()Z // method@0019
+000d44: 0a01                                   |01e2: move-result v1
+000d46: 3801 0500                              |01e3: if-eqz v1, 01e8 // +0005
+000d4a: 7100 1d00 0000                         |01e5: invoke-static {}, Landroidx/compose/runtime/ComposerKt;.traceEventEnd:()V // method@001d
+000d50: 7210 0e00 0200                         |01e8: invoke-interface {v2}, Landroidx/compose/runtime/Composer;.endRestartGroup:()Landroidx/compose/runtime/ScopeUpdateScope; // method@000e
+000d56: 0c01                                   |01eb: move-result-object v1
+000d58: 3801 0a00                              |01ec: if-eqz v1, 01f6 // +000a
+000d5c: 2203 2e00                              |01ee: new-instance v3, Lcom/elder/android/ui/component/LoadingStateKt$$ExternalSyntheticLambda0; // type@002e
+000d60: 7020 3100 0300                         |01f0: invoke-direct {v3, v0}, Lcom/elder/android/ui/component/LoadingStateKt$$ExternalSyntheticLambda0;.<init>:(I)V // method@0031
+000d66: 7220 2000 3100                         |01f3: invoke-interface {v1, v3}, Landroidx/compose/runtime/ScopeUpdateScope;.updateScope:(Lkotlin/jvm/functions/Function2;)V // method@0020
+000d6c: 0e00                                   |01f6: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=25
+        0x0019 line=46
+        0x001e line=25
+        0x002a line=27
+        0x002e line=28
+        0x0035 line=29
+        0x003f line=30
+        0x0047 line=31
+        0x004d line=26
+        0x0051 line=48
+        0x0059 line=49
+        0x006a line=50
+        0x006c line=51
+        0x0074 line=52
+        0x0079 line=53
+        0x007d line=54
+        0x0081 line=56
+        0x008d line=55
+        0x0092 line=57
+        0x009a line=58
+        0x00a5 line=59
+        0x00a8 line=60
+        0x00ae line=61
+        0x00b4 line=63
+        0x00b9 line=65
+        0x00bf line=66
+        0x00ca line=67
+        0x00d3 line=69
+        0x00db line=70
+        0x00df line=71
+        0x00ff line=72
+        0x0108 line=73
+        0x010f line=75
+        0x0110 line=70
+        0x0111 line=75
+        0x0112 line=76
+        0x011b line=77
+        0x011c line=65
+        0x011d line=78
+        0x0123 line=79
+        0x013d line=33
+        0x014d line=34
+        0x0154 line=35
+        0x015a line=36
+        0x0164 line=33
+        0x018a line=39
+        0x018e line=40
+        0x0197 line=41
+        0x01a1 line=42
+        0x01b3 line=43
+        0x01b9 line=38
+        0x01c8 line=33
+        0x01cb line=45
+        0x01cc line=79
+        0x01cf line=78
+        0x01d0 line=80
+        0x01d3 line=57
+        0x01d6 line=81
+        0x01d7 line=51
+        0x01da line=82
+        0x01db line=48
+        0x01de line=83
+        0x01e8 line=46
+      locals        :
+        0x0000 - 0x000b reg=52 $composer Landroidx/compose/runtime/Composer;
+        0x0090 - 0x00b0 reg=17 factory$iv$iv$iv Lkotlin/jvm/functions/Function0;
+        0x00b0 - 0x00b4 reg=5 factory$iv$iv$iv Lkotlin/jvm/functions/Function0;
+        0x00b4 - 0x00b6 reg=17 factory$iv$iv$iv Lkotlin/jvm/functions/Function0;
+        0x004e - 0x00c3 reg=1 modifier$iv Landroidx/compose/ui/Modifier;
+        0x00b6 - 0x00e7 reg=5 factory$iv$iv$iv Lkotlin/jvm/functions/Function0;
+        0x004e - 0x00ed reg=6 verticalArrangement$iv Landroidx/compose/foundation/layout/Arrangement$Vertical;
+        0x00e7 - 0x00fb reg=23 factory$iv$iv$iv Lkotlin/jvm/functions/Function0;
+        0x00ed - 0x00fb reg=24 verticalArrangement$iv Landroidx/compose/foundation/layout/Arrangement$Vertical;
+        0x00fb - 0x00ff reg=5 factory$iv$iv$iv Lkotlin/jvm/functions/Function0;
+        0x00fb - 0x00ff reg=6 verticalArrangement$iv Landroidx/compose/foundation/layout/Arrangement$Vertical;
+        0x00dd - 0x0105 reg=21 $this$set_impl_u24lambda_u240$iv$iv$iv Landroidx/compose/runtime/Composer;
+        0x0105 - 0x0110 reg=6 $this$set_impl_u24lambda_u240$iv$iv$iv Landroidx/compose/runtime/Composer;
+        0x00df - 0x0110 reg=22 $i$a$-with-Updater$set$1$iv$iv$iv I
+        0x00d9 - 0x0112 reg=1 block$iv$iv$iv Lkotlin/jvm/functions/Function2;
+        0x00db - 0x0112 reg=19 $i$f$set-impl I
+        0x00bd - 0x011c reg=13 $this$Layout_u24lambda_u240$iv$iv Landroidx/compose/runtime/Composer;
+        0x00bf - 0x011c reg=17 $i$a$-ReusableComposeNode-LayoutKt$Layout$1$iv$iv I
+        0x0121 - 0x0128 reg=1 $changed$iv I
+        0x0137 - 0x013f reg=1 $this$LoadingState_u24lambda_u240 Landroidx/compose/foundation/layout/ColumnScope;
+        0x0081 - 0x0144 reg=3 materialized$iv$iv Landroidx/compose/ui/Modifier;
+        0x0139 - 0x014a reg=19 $composer Landroidx/compose/runtime/Composer;
+        0x008e - 0x014a reg=4 $changed$iv$iv$iv I
+        0x0123 - 0x0160 reg=6 $i$a$-Layout-ColumnKt$Column$1$iv I
+        0x004e - 0x0193 reg=7 horizontalAlignment$iv Landroidx/compose/ui/Alignment$Horizontal;
+        0x014a - 0x01cc reg=4 $composer Landroidx/compose/runtime/Composer;
+        0x0135 - 0x01cc reg=13 $changed I
+        0x013d - 0x01cc reg=21 $i$a$-Column-LoadingStateKt$LoadingState$1 I
+        0x013f - 0x01cc reg=22 $this$LoadingState_u24lambda_u240 Landroidx/compose/foundation/layout/ColumnScope;
+        0x0122 - 0x01cf reg=5 $composer$iv Landroidx/compose/runtime/Composer;
+        0x0128 - 0x01cf reg=17 $changed$iv I
+        0x0160 - 0x01cf reg=18 $i$a$-Layout-ColumnKt$Column$1$iv I
+        0x0092 - 0x01d7 reg=16 $i$f$ReusableComposeNode I
+        0x00ff - 0x01d7 reg=23 factory$iv$iv$iv Lkotlin/jvm/functions/Function0;
+        0x014a - 0x01d7 reg=51 $changed$iv$iv$iv I
+        0x006b - 0x01db reg=11 $changed$iv$iv I
+        0x006c - 0x01db reg=12 $i$f$Layout I
+        0x0079 - 0x01db reg=14 compositeKeyHash$iv$iv I
+        0x007d - 0x01db reg=15 localMap$iv$iv Landroidx/compose/runtime/CompositionLocalMap;
+        0x0144 - 0x01db reg=50 materialized$iv$iv Landroidx/compose/ui/Modifier;
+        0x0050 - 0x01df reg=8 $changed$iv I
+        0x0051 - 0x01df reg=9 $i$f$Column I
+        0x0066 - 0x01df reg=10 measurePolicy$iv Landroidx/compose/ui/layout/MeasurePolicy;
+        0x00c3 - 0x01df reg=20 modifier$iv Landroidx/compose/ui/Modifier;
+        0x00ff - 0x01df reg=24 verticalArrangement$iv Landroidx/compose/foundation/layout/Arrangement$Vertical;
+        0x0193 - 0x01df reg=52 horizontalAlignment$iv Landroidx/compose/ui/Alignment$Horizontal;
+        0x000b - 0x01f7 reg=2 $composer Landroidx/compose/runtime/Composer;
+        0x0000 - 0x01f7 reg=53 $changed I
+
+    #2              : (in Lcom/elder/android/ui/component/LoadingStateKt;)
+      name          : 'LoadingState$lambda$1'
+      type          : '(ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+      code          -
+      registers     : 4
+      ins           : 3
+      outs          : 2
+      insns size    : 12 16-bit code units
+000948:                                        |[000948] com.elder.android.ui.component.LoadingStateKt.LoadingState$lambda$1:(ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;
+000958: de00 0101                              |0000: or-int/lit8 v0, v1, #int 1 // #01
+00095c: 7110 1f00 0000                         |0002: invoke-static {v0}, Landroidx/compose/runtime/RecomposeScopeImplKt;.updateChangedFlags:(I)I // method@001f
+000962: 0a00                                   |0005: move-result v0
+000964: 7120 3400 0200                         |0006: invoke-static {v2, v0}, Lcom/elder/android/ui/component/LoadingStateKt;.LoadingState:(Landroidx/compose/runtime/Composer;I)V // method@0034
+00096a: 6200 0b00                              |0009: sget-object v0, Lkotlin/Unit;.INSTANCE:Lkotlin/Unit; // field@000b
+00096e: 1100                                   |000b: return-object v0
+      catches       : (none)
+      positions     :
+      locals        :
+
+  Virtual methods   -
+  source_file_idx   : 106 (LoadingState.kt)
+

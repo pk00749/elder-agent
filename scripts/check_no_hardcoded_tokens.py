@@ -16,6 +16,25 @@ COLOR_RE = re.compile(r"#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?")
 SP_RE = re.compile(r"\b\d+\.?sp\b")
 DP_RE = re.compile(r"\b\d+\.?dp\b")
 
+# 注释豁免：注释里的数字是文档性质（如 "// 区域 A：问候（高 240dp，§3.1.5）"），
+# 不会参与运行时 UI token 计算，§18 红线的目的是拦截真实硬编码。
+def _strip_comments(text: str, suffix: str) -> str:
+    out_lines: list[str] = []
+    for line in text.splitlines(keepends=True):
+        stripped = line.lstrip()
+        if suffix == ".kt":
+            if stripped.startswith("//"):
+                continue
+            if stripped.startswith("/*"):
+                continue
+            line = re.sub(r"/\*.*?\*/", "", line)
+        elif suffix == ".xml":
+            if stripped.startswith("<!--"):
+                continue
+            line = re.sub(r"<!--.*?-->", "", line, flags=re.DOTALL)
+        out_lines.append(line)
+    return "".join(out_lines)
+
 
 def is_excluded(path: Path) -> bool:
     parts = {p for p in path.parts}
@@ -42,6 +61,7 @@ def main() -> int:
         if path.suffix not in (".kt", ".xml"):
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
+        text = _strip_comments(text, path.suffix)
         for m in COLOR_RE.finditer(text):
             findings.append(f"{path}:{m.start()}: color hardcode: {m.group()}")
         for m in SP_RE.finditer(text):

@@ -5,6 +5,7 @@ from __future__ import annotations
 # ---- 鉴权 ----
 AUTH_SMS_SENT = "auth.sms_sent"
 AUTH_LOGIN = "auth.login"
+AUTH_ANONYMOUS_INIT = "auth.anonymous_init"
 
 # ---- 绑定 ----
 BIND_ATTEMPT_CREATED = "bind.attempt_created"

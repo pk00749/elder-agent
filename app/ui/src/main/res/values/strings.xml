@@ -3,4 +3,5 @@
     <string name="loading_text">加载中…</string>
     <string name="network_error_text">网络好像断了，正在重试…</string>
     <string name="network_retry_button">重试</string>
+    <string name="empty_tts_button">朗读</string>
 </resources>

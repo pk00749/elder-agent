@@ -1,0 +1,313 @@
+Processing 'app/ui/build/.transforms/fe4e0141d40d3209c866f14ac1aa7e12/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/ui/component/NetworkYellowBarKt.dex'...
+Opened 'app/ui/build/.transforms/fe4e0141d40d3209c866f14ac1aa7e12/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/elder/android/ui/component/NetworkYellowBarKt.dex', DEX version '038'
+Class #0            -
+  Class descriptor  : 'Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;'
+  Access flags      : 0x1011 (PUBLIC FINAL SYNTHETIC)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+    #0              : 'Lkotlin/jvm/functions/Function2;'
+  Static fields     -
+  Instance fields   -
+    #0              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;)
+      name          : 'f$0'
+      type          : 'Z'
+      access        : 0x1011 (PUBLIC FINAL SYNTHETIC)
+    #1              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;)
+      name          : 'f$1'
+      type          : 'Lkotlin/jvm/functions/Function0;'
+      access        : 0x1011 (PUBLIC FINAL SYNTHETIC)
+    #2              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;)
+      name          : 'f$2'
+      type          : 'I'
+      access        : 0x1011 (PUBLIC FINAL SYNTHETIC)
+  Direct methods    -
+    #0              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;)
+      name          : '<init>'
+      type          : '(ZLkotlin/jvm/functions/Function0;I)V'
+      access        : 0x11001 (PUBLIC SYNTHETIC CONSTRUCTOR)
+      code          -
+      registers     : 4
+      ins           : 4
+      outs          : 1
+      insns size    : 10 16-bit code units
+00058c:                                        |[00058c] com.elder.android.ui.component.NetworkYellowBarKt$$ExternalSyntheticLambda0.<init>:(ZLkotlin/jvm/functions/Function0;I)V
+00059c: 7010 1b00 0000                         |0000: invoke-direct {v0}, Ljava/lang/Object;.<init>:()V // method@001b
+0005a2: 5c01 0000                              |0003: iput-boolean v1, v0, Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;.f$0:Z // field@0000
+0005a6: 5b02 0100                              |0005: iput-object v2, v0, Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;.f$1:Lkotlin/jvm/functions/Function0; // field@0001
+0005aa: 5903 0200                              |0007: iput v3, v0, Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;.f$2:I // field@0002
+0005ae: 0e00                                   |0009: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=0
+      locals        :
+        0x0000 - 0x000a reg=0 this Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;
+        0x0000 - 0x000a reg=1 (null) Z
+        0x0000 - 0x000a reg=2 (null) Lkotlin/jvm/functions/Function0;
+        0x0000 - 0x000a reg=3 (null) I
+
+  Virtual methods   -
+    #0              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;)
+      name          : 'invoke'
+      type          : '(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;'
+      access        : 0x0011 (PUBLIC FINAL)
+      code          -
+      registers     : 6
+      ins           : 3
+      outs          : 5
+      insns size    : 19 16-bit code units
+000554:                                        |[000554] com.elder.android.ui.component.NetworkYellowBarKt$$ExternalSyntheticLambda0.invoke:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+000564: 5530 0000                              |0000: iget-boolean v0, v3, Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;.f$0:Z // field@0000
+000568: 5431 0100                              |0002: iget-object v1, v3, Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;.f$1:Lkotlin/jvm/functions/Function0; // field@0001
+00056c: 5232 0200                              |0004: iget v2, v3, Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;.f$2:I // field@0002
+000570: 1f04 0900                              |0006: check-cast v4, Landroidx/compose/runtime/Composer; // type@0009
+000574: 1f05 1700                              |0008: check-cast v5, Ljava/lang/Integer; // type@0017
+000578: 6e10 1a00 0500                         |000a: invoke-virtual {v5}, Ljava/lang/Integer;.intValue:()I // method@001a
+00057e: 0a05                                   |000d: move-result v5
+000580: 7155 1400 1042                         |000e: invoke-static {v0, v1, v2, v4, v5}, Lcom/elder/android/ui/component/NetworkYellowBarKt;.$r8$lambda$YmtWpo65IfytQH_KkXKOpI10Sis:(ZLkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit; // method@0014
+000586: 0c04                                   |0011: move-result-object v4
+000588: 1104                                   |0012: return-object v4
+      catches       : (none)
+      positions     :
+        0x0000 line=0
+      locals        :
+        0x0000 - 0x0013 reg=3 this Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;
+        0x0000 - 0x0013 reg=4 (null) Ljava/lang/Object;
+        0x0000 - 0x0013 reg=5 (null) Ljava/lang/Object;
+
+  source_file_idx   : 17 (D8$$SyntheticClass)
+
+Class #1            -
+  Class descriptor  : 'Lcom/elder/android/ui/component/NetworkYellowBarKt;'
+  Access flags      : 0x0011 (PUBLIC FINAL)
+  Superclass        : 'Ljava/lang/Object;'
+  Interfaces        -
+  Static fields     -
+    #0              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt;)
+      name          : 'BarHeight'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+    #1              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt;)
+      name          : 'RetrySize'
+      type          : 'F'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+  Instance fields   -
+  Direct methods    -
+    #0              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt;)
+      name          : '$r8$lambda$YmtWpo65IfytQH_KkXKOpI10Sis'
+      type          : '(ZLkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;'
+      access        : 0x1009 (PUBLIC STATIC SYNTHETIC)
+      code          -
+      registers     : 5
+      ins           : 5
+      outs          : 5
+      insns size    : 5 16-bit code units
+0005e0:                                        |[0005e0] com.elder.android.ui.component.NetworkYellowBarKt.$r8$lambda$YmtWpo65IfytQH_KkXKOpI10Sis:(ZLkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;
+0005f0: 7154 1700 1032                         |0000: invoke-static {v0, v1, v2, v3, v4}, Lcom/elder/android/ui/component/NetworkYellowBarKt;.NetworkYellowBar$lambda$0:(ZLkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit; // method@0017
+0005f6: 0c00                                   |0003: move-result-object v0
+0005f8: 1100                                   |0004: return-object v0
+      catches       : (none)
+      positions     :
+      locals        :
+
+    #1              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt;)
+      name          : '<clinit>'
+      type          : '()V'
+      access        : 0x10008 (STATIC CONSTRUCTOR)
+      code          -
+      registers     : 3
+      ins           : 0
+      outs          : 1
+      insns size    : 21 16-bit code units
+000624:                                        |[000624] com.elder.android.ui.component.NetworkYellowBarKt.<clinit>:()V
+000634: 1300 3000                              |0000: const/16 v0, #int 48 // #30
+000638: 1201                                   |0002: const/4 v1, #int 0 // #0
+00063a: 8202                                   |0003: int-to-float v2, v0
+00063c: 7110 1000 0200                         |0004: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0010
+000642: 0a00                                   |0007: move-result v0
+000644: 6700 0300                              |0008: sput v0, Lcom/elder/android/ui/component/NetworkYellowBarKt;.BarHeight:F // field@0003
+000648: 1300 6000                              |000a: const/16 v0, #int 96 // #60
+00064c: 1201                                   |000c: const/4 v1, #int 0 // #0
+00064e: 8202                                   |000d: int-to-float v2, v0
+000650: 7110 1000 0200                         |000e: invoke-static {v2}, Landroidx/compose/ui/unit/Dp;.constructor-impl:(F)F // method@0010
+000656: 0a00                                   |0011: move-result v0
+000658: 6700 0400                              |0012: sput v0, Lcom/elder/android/ui/component/NetworkYellowBarKt;.RetrySize:F // field@0004
+00065c: 0e00                                   |0014: return-void
+      catches       : (none)
+      positions     :
+        0x0000 line=33
+        0x0003 line=82
+        0x0008 line=33
+        0x000a line=34
+        0x000d line=83
+        0x0012 line=34
+      locals        :
+        0x0002 - 0x0008 reg=0 $this$dp$iv I
+        0x0003 - 0x0008 reg=1 $i$f$getDp I
+        0x000c - 0x0012 reg=0 $this$dp$iv I
+        0x000d - 0x0012 reg=1 $i$f$getDp I
+
+    #2              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt;)
+      name          : 'NetworkYellowBar'
+      type          : '(ZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V'
+      access        : 0x0019 (PUBLIC STATIC FINAL)
+      code          -
+      registers     : 15
+      ins           : 4
+      outs          : 9
+      insns size    : 148 16-bit code units
+000660:                                        |[000660] com.elder.android.ui.component.NetworkYellowBarKt.NetworkYellowBar:(ZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+000670: 1a00 6900                              |0000: const-string v0, "onRetry" // string@0069
+000674: 7120 1c00 0c00                         |0002: invoke-static {v12, v0}, Lkotlin/jvm/internal/Intrinsics;.checkNotNullParameter:(Ljava/lang/Object;Ljava/lang/String;)V // method@001c
+00067a: 1400 4369 3fb8                         |0005: const v0, #float -4.5636e-05 // #b83f6943
+000680: 7220 0800 0d00                         |0008: invoke-interface {v13, v0}, Landroidx/compose/runtime/Composer;.startRestartGroup:(I)Landroidx/compose/runtime/Composer; // method@0008
+000686: 0c0d                                   |000b: move-result-object v13
+000688: 1a01 1000                              |000c: const-string v1, "C(NetworkYellowBar)P(1)44@1588L1318,40@1483L1423:NetworkYellowBar.kt#9c24vn" // string@0010
+00068c: 7120 0a00 1d00                         |000e: invoke-static {v13, v1}, Landroidx/compose/runtime/ComposerKt;.sourceInformation:(Landroidx/compose/runtime/Composer;Ljava/lang/String;)V // method@000a
+000692: 01e1                                   |0011: move v1, v14
+000694: dd02 0e06                              |0012: and-int/lit8 v2, v14, #int 6 // #06
+000698: 3902 0c00                              |0014: if-nez v2, 0020 // +000c
+00069c: 7220 0300 bd00                         |0016: invoke-interface {v13, v11}, Landroidx/compose/runtime/Composer;.changed:(Z)Z // method@0003
+0006a2: 0a02                                   |0019: move-result v2
+0006a4: 3802 0400                              |001a: if-eqz v2, 001e // +0004
+0006a8: 1242                                   |001c: const/4 v2, #int 4 // #4
+0006aa: 2802                                   |001d: goto 001f // +0002
+0006ac: 1222                                   |001e: const/4 v2, #int 2 // #2
+0006ae: b621                                   |001f: or-int/2addr v1, v2
+0006b0: dd02 0e30                              |0020: and-int/lit8 v2, v14, #int 48 // #30
+0006b4: 3902 0e00                              |0022: if-nez v2, 0030 // +000e
+0006b8: 7220 0400 cd00                         |0024: invoke-interface {v13, v12}, Landroidx/compose/runtime/Composer;.changedInstance:(Ljava/lang/Object;)Z // method@0004
+0006be: 0a02                                   |0027: move-result v2
+0006c0: 3802 0500                              |0028: if-eqz v2, 002d // +0005
+0006c4: 1302 2000                              |002a: const/16 v2, #int 32 // #20
+0006c8: 2803                                   |002c: goto 002f // +0003
+0006ca: 1302 1000                              |002d: const/16 v2, #int 16 // #10
+0006ce: b621                                   |002f: or-int/2addr v1, v2
+0006d0: 011a                                   |0030: move v10, v1
+0006d2: dd01 0a13                              |0031: and-int/lit8 v1, v10, #int 19 // #13
+0006d6: 1302 1200                              |0033: const/16 v2, #int 18 // #12
+0006da: 3321 0d00                              |0035: if-ne v1, v2, 0042 // +000d
+0006de: 7210 0600 0d00                         |0037: invoke-interface {v13}, Landroidx/compose/runtime/Composer;.getSkipping:()Z // method@0006
+0006e4: 0a01                                   |003a: move-result v1
+0006e6: 3901 0300                              |003b: if-nez v1, 003e // +0003
+0006ea: 2805                                   |003d: goto 0042 // +0005
+0006ec: 7210 0700 0d00                         |003e: invoke-interface {v13}, Landroidx/compose/runtime/Composer;.skipToGroupEnd:()V // method@0007
+0006f2: 2844                                   |0041: goto 0085 // +0044
+0006f4: 7100 0900 0000                         |0042: invoke-static {}, Landroidx/compose/runtime/ComposerKt;.isTraceInProgress:()Z // method@0009
+0006fa: 0a01                                   |0045: move-result v1
+0006fc: 3801 0800                              |0046: if-eqz v1, 004e // +0008
+000700: 12f1                                   |0048: const/4 v1, #int -1 // #ff
+000702: 1a02 5800                              |0049: const-string v2, "com.elder.android.ui.component.NetworkYellowBar (NetworkYellowBar.kt:39)" // string@0058
+000706: 7140 0c00 a021                         |004b: invoke-static {v0, v10, v1, v2}, Landroidx/compose/runtime/ComposerKt;.traceEventStart:(IIILjava/lang/String;)V // method@000c
+00070c: 0000                                   |004e: nop // spacer
+00070e: 1200                                   |004f: const/4 v0, #int 0 // #0
+000710: 1201                                   |0050: const/4 v1, #int 0 // #0
+000712: 1232                                   |0051: const/4 v2, #int 3 // #3
+000714: 7140 0100 1002                         |0052: invoke-static {v0, v1, v2, v0}, Landroidx/compose/animation/EnterExitTransitionKt;.fadeIn$default:(Landroidx/compose/animation/core/FiniteAnimationSpec;FILjava/lang/Object;)Landroidx/compose/animation/EnterTransition; // method@0001
+00071a: 0c03                                   |0055: move-result-object v3
+00071c: 7140 0200 1002                         |0056: invoke-static {v0, v1, v2, v0}, Landroidx/compose/animation/EnterExitTransitionKt;.fadeOut$default:(Landroidx/compose/animation/core/FiniteAnimationSpec;FILjava/lang/Object;)Landroidx/compose/animation/ExitTransition; // method@0002
+000722: 0c04                                   |0059: move-result-object v4
+000724: 2200 1300                              |005a: new-instance v0, Lcom/elder/android/ui/component/NetworkYellowBarKt$NetworkYellowBar$1; // type@0013
+000728: 7020 1300 c000                         |005c: invoke-direct {v0, v12}, Lcom/elder/android/ui/component/NetworkYellowBarKt$NetworkYellowBar$1;.<init>:(Lkotlin/jvm/functions/Function0;)V // method@0013
+00072e: 1301 3600                              |005f: const/16 v1, #int 54 // #36
+000732: 1402 1bec 144e                         |0061: const v2, #float 6.24625e+08 // #4e14ec1b
+000738: 1215                                   |0064: const/4 v5, #int 1 // #1
+00073a: 7151 0f00 52d0                         |0065: invoke-static {v2, v5, v0, v13, v1}, Landroidx/compose/runtime/internal/ComposableLambdaKt;.rememberComposableLambda:(IZLjava/lang/Object;Landroidx/compose/runtime/Composer;I)Landroidx/compose/runtime/internal/ComposableLambda; // method@000f
+000740: 0c00                                   |0068: move-result-object v0
+000742: 0706                                   |0069: move-object v6, v0
+000744: 1f06 1e00                              |006a: check-cast v6, Lkotlin/jvm/functions/Function3; // type@001e
+000748: dd00 0a0e                              |006c: and-int/lit8 v0, v10, #int 14 // #0e
+00074c: 1401 800d 0300                         |006e: const v1, #float 2.80349e-40 // #00030d80
+000752: 9608 0001                              |0071: or-int v8, v0, v1
+000756: 1202                                   |0073: const/4 v2, #int 0 // #0
+000758: 1205                                   |0074: const/4 v5, #int 0 // #0
+00075a: 1309 1200                              |0075: const/16 v9, #int 18 // #12
+00075e: 01b1                                   |0077: move v1, v11
+000760: 07d7                                   |0078: move-object v7, v13
+000762: 7709 0000 0100                         |0079: invoke-static/range {v1, v2, v3, v4, v5, v6, v7, v8, v9}, Landroidx/compose/animation/AnimatedVisibilityKt;.AnimatedVisibility:(ZLandroidx/compose/ui/Modifier;Landroidx/compose/animation/EnterTransition;Landroidx/compose/animation/ExitTransition;Ljava/lang/String;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V // method@0000
+000768: 7100 0900 0000                         |007c: invoke-static {}, Landroidx/compose/runtime/ComposerKt;.isTraceInProgress:()Z // method@0009
+00076e: 0a00                                   |007f: move-result v0
+000770: 3800 0500                              |0080: if-eqz v0, 0085 // +0005
+000774: 7100 0b00 0000                         |0082: invoke-static {}, Landroidx/compose/runtime/ComposerKt;.traceEventEnd:()V // method@000b
+00077a: 7210 0500 0d00                         |0085: invoke-interface {v13}, Landroidx/compose/runtime/Composer;.endRestartGroup:()Landroidx/compose/runtime/ScopeUpdateScope; // method@0005
+000780: 0c00                                   |0088: move-result-object v0
+000782: 3800 0a00                              |0089: if-eqz v0, 0093 // +000a
+000786: 2201 1200                              |008b: new-instance v1, Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0; // type@0012
+00078a: 7040 1100 b1ec                         |008d: invoke-direct {v1, v11, v12, v14}, Lcom/elder/android/ui/component/NetworkYellowBarKt$$ExternalSyntheticLambda0;.<init>:(ZLkotlin/jvm/functions/Function0;I)V // method@0011
+000790: 7220 0e00 1000                         |0090: invoke-interface {v0, v1}, Landroidx/compose/runtime/ScopeUpdateScope;.updateScope:(Lkotlin/jvm/functions/Function2;)V // method@000e
+000796: 0e00                                   |0093: return-void
+      catches       : (none)
+      positions     :
+        0x0005 line=40
+        0x003e line=80
+        0x0042 line=40
+        0x004e line=42
+        0x004f line=43
+        0x0056 line=44
+        0x005a line=45
+        0x0073 line=41
+        0x0085 line=80
+      locals        :
+        0x0012 - 0x0031 reg=1 $dirty I
+        0x0031 - 0x0094 reg=10 $dirty I
+        0x0000 - 0x0094 reg=11 visible Z
+        0x0000 - 0x0094 reg=12 onRetry Lkotlin/jvm/functions/Function0;
+        0x0000 - 0x0094 reg=13 $composer Landroidx/compose/runtime/Composer;
+        0x0000 - 0x0094 reg=14 $changed I
+
+    #3              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt;)
+      name          : 'NetworkYellowBar$lambda$0'
+      type          : '(ZLkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;'
+      access        : 0x001a (PRIVATE STATIC FINAL)
+      code          -
+      registers     : 6
+      ins           : 5
+      outs          : 4
+      insns size    : 12 16-bit code units
+0005fc:                                        |[0005fc] com.elder.android.ui.component.NetworkYellowBarKt.NetworkYellowBar$lambda$0:(ZLkotlin/jvm/functions/Function0;ILandroidx/compose/runtime/Composer;I)Lkotlin/Unit;
+00060c: de00 0301                              |0000: or-int/lit8 v0, v3, #int 1 // #01
+000610: 7110 0d00 0000                         |0002: invoke-static {v0}, Landroidx/compose/runtime/RecomposeScopeImplKt;.updateChangedFlags:(I)I // method@000d
+000616: 0a00                                   |0005: move-result v0
+000618: 7140 1600 2104                         |0006: invoke-static {v1, v2, v4, v0}, Lcom/elder/android/ui/component/NetworkYellowBarKt;.NetworkYellowBar:(ZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V // method@0016
+00061e: 6200 0500                              |0009: sget-object v0, Lkotlin/Unit;.INSTANCE:Lkotlin/Unit; // field@0005
+000622: 1100                                   |000b: return-object v0
+      catches       : (none)
+      positions     :
+      locals        :
+
+    #4              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt;)
+      name          : 'access$getBarHeight$p'
+      type          : '()F'
+      access        : 0x1019 (PUBLIC STATIC FINAL SYNTHETIC)
+      code          -
+      registers     : 1
+      ins           : 0
+      outs          : 0
+      insns size    : 3 16-bit code units
+0005b0:                                        |[0005b0] com.elder.android.ui.component.NetworkYellowBarKt.access$getBarHeight$p:()F
+0005c0: 6000 0300                              |0000: sget v0, Lcom/elder/android/ui/component/NetworkYellowBarKt;.BarHeight:F // field@0003
+0005c4: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=1
+      locals        :
+
+    #5              : (in Lcom/elder/android/ui/component/NetworkYellowBarKt;)
+      name          : 'access$getRetrySize$p'
+      type          : '()F'
+      access        : 0x1019 (PUBLIC STATIC FINAL SYNTHETIC)
+      code          -
+      registers     : 1
+      ins           : 0
+      outs          : 0
+      insns size    : 3 16-bit code units
+0005c8:                                        |[0005c8] com.elder.android.ui.component.NetworkYellowBarKt.access$getRetrySize$p:()F
+0005d8: 6000 0400                              |0000: sget v0, Lcom/elder/android/ui/component/NetworkYellowBarKt;.RetrySize:F // field@0004
+0005dc: 0f00                                   |0002: return v0
+      catches       : (none)
+      positions     :
+        0x0000 line=1
+      locals        :
+
+  Virtual methods   -
+  source_file_idx   : 67 (NetworkYellowBar.kt)
+
