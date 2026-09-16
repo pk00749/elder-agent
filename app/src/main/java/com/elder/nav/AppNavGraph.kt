@@ -10,6 +10,7 @@ import com.elder.android.screen.elder.ElderDiaryRecentScreen
 import com.elder.android.screen.elder.ElderDiaryRecordScreen
 import com.elder.android.screen.elder.ElderHomeScreen
 import com.elder.android.screen.elder.ElderSettingsScreen
+import com.elder.android.screen.interview.InterviewScreen
 
 @Composable
 fun AppNavGraph() {
@@ -18,7 +19,7 @@ fun AppNavGraph() {
     NavHost(navController = nav, startDestination = Route.ElderHome.path) {
         composable(Route.ElderHome.path) {
             ElderHomeScreen(
-                onStartDiary = { nav.navigate(Route.ElderDiaryRecord.path) },
+                onStartDiary = { nav.navigate(Route.ElderInterview.path) },
                 onOpenSettings = { nav.navigate(Route.ElderSettings.path) },
                 onOpenRecent = { nav.navigate(Route.ElderDiaryRecent.path) },
             )
@@ -31,6 +32,17 @@ fun AppNavGraph() {
                         popUpTo(Route.ElderHome.path) { inclusive = false }
                     }
                 },
+            )
+        }
+        composable(Route.ElderInterview.path) {
+            InterviewScreen(
+                onBack = { nav.popBackStack() },
+                onDone = {
+                    nav.navigate(Route.ElderHome.path) {
+                        popUpTo(Route.ElderHome.path) { inclusive = false }
+                    }
+                },
+                onOpenSettings = { nav.navigate(Route.ElderSettings.path) },
             )
         }
         composable(Route.ElderDiaryRecent.path) {

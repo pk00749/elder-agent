@@ -33,7 +33,7 @@ class AppErrorTest {
     @Test fun `error message matches user-facing copy from PRD 6_4`() {
         // 每条错误码的 user message 必须和 PRD §6.4 一字不差
         assertEquals("API Key 不对", AppError.Code.ASR_AUTH_FAILED.userMessage)
-        assertEquals("请先在设置 → AI 语音识别 配置 API", AppError.Code.ASR_NOT_CONFIGURED.userMessage)
+        assertEquals("请先在设置 → AI 服务 配置 Key", AppError.Code.ASR_NOT_CONFIGURED.userMessage)
         assertEquals("没听清，再说一次", AppError.Code.ASR_EMPTY_TRANSCRIPT.userMessage)
         assertEquals("网络不通，请检查 Wi-Fi", AppError.Code.NETWORK_UNAVAILABLE.userMessage)
     }

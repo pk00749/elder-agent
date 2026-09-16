@@ -14,8 +14,12 @@ import kotlinx.coroutines.flow.map
 data class AsrConfig(
     val apiKey: String,
     val lastTestResult: String?,
+    val minimaxApiKey: String = "",
+    val minimaxLastTestResult: String? = null,
 ) {
-    val isConfigured: Boolean get() = apiKey.isNotBlank()
+    val isAsrConfigured: Boolean get() = apiKey.isNotBlank()
+    val isLlmConfigured: Boolean get() = minimaxApiKey.isNotBlank()
+    val isConfigured: Boolean get() = isAsrConfigured && isLlmConfigured
 }
 
 class AsrConfigRepository(
@@ -27,26 +31,36 @@ class AsrConfigRepository(
     suspend fun current(): AsrConfig? = dao.get()?.toConfig()
 
     suspend fun save(config: AsrConfig, now: Long = System.currentTimeMillis()) {
-        cipher.encryptAndStore(config.apiKey)
+        if (config.apiKey.isNotBlank()) {
+            cipher.encryptAndStore(ApiKeyCipher.KEY_API_KEY_ENC, config.apiKey)
+        }
+        if (config.minimaxApiKey.isNotBlank()) {
+            cipher.encryptAndStore(ApiKeyCipher.KEY_MINIMAX_API_KEY_ENC, config.minimaxApiKey)
+        }
         dao.upsert(
             AsrConfigEntity(
                 id = 1,
                 apiKeyEnc = ApiKeyCipher.KEY_API_KEY_ENC,
                 updatedAt = now,
                 lastTestResult = config.lastTestResult,
+                minimaxApiKeyEnc = ApiKeyCipher.KEY_MINIMAX_API_KEY_ENC,
+                minimaxLastTestResult = config.minimaxLastTestResult,
             )
         )
     }
 
     suspend fun clear() {
         dao.clear()
-        cipher.clear()
+        cipher.clear(ApiKeyCipher.KEY_API_KEY_ENC)
+        cipher.clear(ApiKeyCipher.KEY_MINIMAX_API_KEY_ENC)
     }
 
     private fun AsrConfigEntity.toConfig(): AsrConfig =
         AsrConfig(
             apiKey = cipher.decrypt(apiKeyEnc).orEmpty(),
             lastTestResult = lastTestResult,
+            minimaxApiKey = minimaxApiKeyEnc?.let(cipher::decrypt).orEmpty(),
+            minimaxLastTestResult = minimaxLastTestResult,
         )
 
     companion object {

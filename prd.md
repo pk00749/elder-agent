@@ -2,6 +2,8 @@
 
 > 文档版本：v3.0
 > 文档状态：定稿
+> 当前已交付基线：v3.0.1 / App 0.4.0
+> 当前目标发布版本：0.5.0
 > 品牌：老友
 > 平台：Android App（不再做微信小程序）
 > 目标读者：产品 / 工程 / 测试
@@ -18,11 +20,67 @@
 | v2.1.2 | 2026-09-05 | Codex | MVP 免 SMS：§5.1 `family_user` 新增 `device_token` 字段（phone 与 device_token 二选一非空）；§6.1 移除 `/v1/auth/sms-code` 与 `/v1/auth/login`，新增 `/v1/auth/anonymous-device`；§6.2 错误码新增 `DEVICE_TOKEN_REQUIRED`；§11.11 JWT 续签改为"过期走 `/v1/auth/anonymous-device` 续签"；§10.4 SMS 标记 MVP-DEFER，v2.x 启用；§3.2.x 文案"手机号绑定"同步去掉，详见 `docs/prd-v2.1.2-mvp-auth.md` |
 | v3.0 | 2026-09-05 | Codex | **MVP 范围重定**：老人端完全离线可跑——服务端 / 家属端整段推迟到 v2.x；MVP 仅保留 §3.1.2 单次录音 → ASR → 本地日记 + 新增 §3.1.9 ASR API 配置页；§3.1.1 / §3.1.3 / §3.1.4 / §3.1.6 / §3.2 / §5（服务端集合）/ §6 全部标记 MVP-DEFER；§5 改为以本地 Room 表为真源；§0 / §1 / §10 / §11 同步精简 |
 | v3.0.1 | 2026-09-06 | Codex | **ASR 切到阿里百炼 Qwen-Audio-Realtime Android SDK**（非 v3.0 自建 m4a WS duplex）：模型 `qwen-audio-3.0-realtime-flash`，AAR 落 `app/libs/`，SDK adapter 模式封装在 `app/data/asr/`；§A.8 整体重写；§3.1.2 录音改 `AudioRecord` PCM 16 kHz / 单声道 / 16-bit 流式 `updateAudio()`，进入录音屏即开始、底部"正在录音"+"停止录音"两按钮、正文实时显示返回文字、60 s 硬限；§3.1.5 主屏按钮文案改为"点击开始写日志"；§3.1.7 移除"▶ 重播自己语音"（SDK 流式消费，无 audio 文件落地）；§3.1.9 ASR 配置页：Provider 只读（百炼 / qwen-audio-3.0-realtime-flash / workspaceId），单字段 API Key，顶部 ✓ 升级为真 `TextButton` 调 `vm.save()`，删除正文"保存"按钮，"测试一下"改走 SDK 流式 + 5 s 合成 PCM；§11.28 11.28.1 / 11.28.2 / 11.28.3 / 11.28.5 同步更新；§9 加 D7（`nls_config.modalities = ["text"]`，MVP 关闭 SDK 音频输出） |
+| v0.5.0 | 2026-09-14 | Codex | **设定 App 0.5.0 目标**：从 v3.0.1 的单次录音写日记升级为本地 Agent 多轮访谈；ASR 使用阿里千问 Realtime、LLM 使用 MiniMax M3、TTS 使用 `qwen3-tts-flash-realtime` + 音色 `Kiki`；0.5.0 不做 Gateway，沿用用户自填 Key 直连；Agent 状态机、会话状态、安全关键词和本地工具运行在 Android；0.5.0 不承诺离线 Agent；同步新增 D8-D12 架构决策并启用 §3.1.4 / §3.1.6 |
 
 
 ---
 
 ## 0. 一页纸
+
+### 0.1 0.5.0 版本目标（当前）
+
+**目标**：把老人端从“单次录音 → ASR → 本地日记”升级为“本地 Agent 多轮访谈 → 在线模型推理 → 总结并保存日记”。
+
+**目标链路**
+
+```text
+老人说话
+  -> 千问 Realtime ASR（在线）
+  -> Android 本地 Agent 状态机 + 关键词安全规则
+  -> MiniMax M3 LLM（在线）
+  -> 千问 Realtime TTS `qwen3-tts-flash-realtime` / `Kiki`（在线）
+  -> Android 播放
+  -> 本地收尾、摘要并写入 Room
+```
+
+**0.5.0 功能目标**
+
+- 启用 §3.1.4 Agent 行为约束：每次只问一个问题、单次回复 ≤ 25 个汉字、关键词安全分流、最多 8 轮、满足收尾条件后保存。
+- 启用 §3.1.6 访谈总结屏：展示最终日记与一句话摘要，支持“改一下”继续访谈。
+- 0.5.0 仅使用 Kotlin 实现客户端 Agent；不新增 Python / Node 运行时。
+- Prompt 作为版本化资源打包进 APK；MiniMax M3 通过 tool call 调用本地工具，Kotlin 必须再次校验工具名、参数和状态转移。
+- Kotlin 行为测试使用 JUnit / Robolectric / MockWebServer，LLM 响应使用录制 fixture，不调用真实模型。
+- ASR、LLM、TTS 均使用在线模型 API；不在手机端运行 LLM，不下载本地模型。
+- Agent 状态机、会话状态、关键词规则、本地工具和 Room 持久化运行在 Android。
+- 0.5.0 不使用 Agent Gateway；Android 直接调用千问和 MiniMax API。
+- 千问 Key 与 MiniMax Key 均由用户自填，分别使用 Keystore 加密；产品级 Key 不进入 APK。
+- ASR partial/final、LLM token 流和 TTS 音频流必须端到端流式处理；TTS 不等待 LLM 全文完成。
+- TTS 固定 `qwen3-tts-flash-realtime` + `Kiki`，使用 WebSocket 和 24kHz / mono / 16-bit PCM。
+- 0.5.0 不实现语音打断；TTS 播放期间不录音，播放结束后进入下一轮。
+- LLM 失败最多重试 3 次；ASR 断线后基于本地音频缓冲重放完整音频并建立新 session；TTS 失败时改为文字展示。
+- 网络不可用时自动降级为本地录音，不要求老人确认；联网后尝试重新 ASR、Agent 整理和摘要补做。
+
+**0.5.0 性能目标**
+
+- 正常 Wi-Fi / 5G 网络下，停止录音到 ASR final P95 ≤ 2 秒。
+- 正常 Wi-Fi / 5G 网络下，MiniMax M3 完整回复 P95 ≤ 3 秒。
+- 正常 Wi-Fi / 5G 网络下，TTS 首段音频 P95 ≤ 2 秒。
+- 正常 Wi-Fi / 5G 网络下，首个可播放语音 P95 ≤ 5 秒。
+- 正常 Wi-Fi / 5G 网络下，Agent 单轮完成 P95 ≤ 8 秒。
+- 进入写日志流程时预连接千问和 MiniMax；不得在老人点击停止后才完成 DNS、TLS 和 ASR 握手。
+- 各上游调用分别记录延迟、状态和错误码，禁止只记录总耗时。
+
+**0.5.0 范围边界**
+
+- 0.5.0 不承诺离线 Agent。断网时只允许保存本地录音并在联网后重试；ASR、LLM、TTS 均不可用时不得假装完成访谈。
+- 0.5.0 不做端侧 ASR / LLM / TTS、家属端、扫码绑定、提醒、推送或 CloudBase 数据同步。
+- 0.5.0 不依赖 DeepSeek Harness；DSH 相关方案仅保留为历史架构，不作为本版本运行依赖。
+- 0.5.0 最终写入 Room 的日记正文 `text ≤ 100` 汉字，摘要 `summary ≤ 60` 汉字。
+- 真实老人语音需分别验证粤语 ASR、MiniMax 对话语言风格和粤语 TTS；未通过方言验收不得宣称支持粤语 Agent。
+
+### 0.2 v3.0.1 已交付基线
+
+> 以下内容描述当前已交付的 App 0.4.0 / PRD v3.0.1 基线。与 §0.1 的 0.5.0 目标冲突时，以 0.5.0 目标为准。
 
 **产品**：老友（Android App）
 
@@ -165,6 +223,8 @@ MVP 不做客服、医生、群组等其他角色。
 
 MVP 老人端录音 → 日记 全流程在客户端独立完成，**不依赖自建服务端、不依赖家属端、不依赖推送通道**。老人自配的大模型 ASR endpoint 是唯一外部依赖（详见 §3.1.9）。
 
+> **0.5.0 目标**：本节从“单次录音一次成稿”扩展为 §3.1.2 + §3.1.4 + §3.1.6 的多轮访谈链路。v3.0.1 单次录音保留为弱网降级路径；正常联网时默认进入多轮 Agent 访谈。
+
 **MVP 流程**（单次录音一次成稿，无 multi-turn）：
 
 1. **进入**：主页 A 区点 "按住说话写日志" → 跳到录音屏，进入即开始录音（toggle 模式，PR-A 已落地）
@@ -234,11 +294,11 @@ MVP 老人端录音 → 日记 全流程在客户端独立完成，**不依赖�
 
 **完成反馈（§K.3g 决议）**：老人点「知道了」→ 写 ack + 后端发推送 → 家属端通知栏收到"老人已确认 10:00 就医"；家属端日志 Tab / 提醒 Tab 同时可见。
 
-### 3.1.4 Agent 行为约束（硬规则；**v3.0 MVP-DEFER → v2.x**）
+### 3.1.4 Agent 行为约束（硬规则；**0.5.0 启用**）
 
-> 本节为 v2.x Agent 多轮访谈落地的硬规则。**v3.0 MVP 不接 Agent / LLM / 多轮 turn 流**——§3.1.2 是单次录音 → ASR → 本地日记，没有 Agent 介入，§3.1.4 全部条目暂不生效。
+> 本节为 0.5.0 本地 Agent 多轮访谈的硬规则。**Agent 状态机、安全关键词和本地工具运行在 Android；ASR / LLM / TTS 由 Android 使用用户自填 Key 直连在线模型 API**。
 >
-> v2.x 启用条件：服务端 agent-service + DeepSeek Harness 落地；§3.1.2 扩展为 §3.1.2 + §3.1.6 + §3.1.4 三件套。
+> 0.5.0 启用条件：千问 Realtime ASR + MiniMax M3 + 千问 `qwen3-tts-flash-realtime` 联调通过；客户端本地状态机、流式播放和凭据配置均落地。v3.0.1 单次录音模式继续作为断网降级路径。
 
 **A. 表达约束**
 - A1. 每次回复只问一个问题或说一件事，说完即停；禁止连续追问
@@ -297,9 +357,9 @@ MVP 老人端录音 → 日记 全流程在客户端独立完成，**不依赖�
 - 当前时间已有提醒触发中（v2.x 才有）：主屏直接被全屏提醒卡覆盖（§3.1.1 / §3.1.3）
 - 设备锁屏：MVP 无提醒卡，锁屏态主屏仅显示问候区；点击亮屏回到主屏
 
-#### 3.1.6 访谈总结屏（v2.1 新增；**v3.0 MVP-DEFER → v2.x**）
+#### 3.1.6 访谈总结屏（v2.1 新增；**0.5.0 启用**）
 
-> 本节为 v2.x Agent 多轮访谈的总结屏蓝图。**v3.0 MVP 不接 Agent，没有多轮 turn 流，也没有"改一下"加轮流程**——§3.1.2 单次录音直接落 ASR 转写原文到 `diary_entry.text`，没有 Agent 整理 / 摘要环节。触发条件：v2.x §3.1.4 行为约束落地 + 服务端 agent-service + LLM 摘要落地。
+> 本节为 0.5.0 本地 Agent 多轮访谈的总结屏。**客户端完成状态机收尾并直接调用模型 API**；“改一下”加轮流程由本地状态机重新打开当前会话，达到硬上限后再次收尾。
 
 进入条件：Agent 触发收尾（§3.1.4.C）。
 
@@ -381,6 +441,8 @@ MVP 老人端录音 → 日记 全流程在客户端独立完成，**不依赖�
 #### 3.1.9 ASR API 配置页（v3.0 MVP 新增；老人端独立运行的核心配置）
 
 > 本节是 v3.0 MVP 的**唯一新增功能章节**——老人端日记流程不依赖服务端，因此老人必须在本地配置一个大模型 ASR API 的凭证与 endpoint。本节定义配置页 UI、配置 schema、调用约定、安全边界。AGENT.md / Android 实现层在本节引用。
+>
+> **0.5.0 修订**：页面升级为「AI 服务」，包含千问 Key（ASR + TTS 共用）和 MiniMax Key（M3 LLM）。模型和 endpoint 固定，不再展示多 Provider 或 endpoint 编辑。
 
 **进入路径**：§3.1.8 第 3 项「AI 语音识别」（v3.0 移到首位）。
 
@@ -726,12 +788,14 @@ pending_diary(
 
 ### 4.5 声音与反馈
 
-**TTS 供应商**：**千问 TTS**（DashScope / CosyVoice）
-**默认音色**：**粤语男声**（§H.15 决议；与老人端 §K.2e ASR 粤语主识别统一调性）
+**TTS 供应商**：**千问 Realtime TTS**
+**0.5.0 模型 / 音色**：`qwen3-tts-flash-realtime` + `Kiki`
+**0.5.0 协议**：WebSocket；输出 24kHz / mono / 16-bit PCM；DashScope Key 用户自填
+**历史音色配置**：v2.x 旧蓝图使用粤语男声（§H.15）；0.5.0 以 `Kiki` 为准
 **TTS 失败兜底**（§H.17 决议）：
-- 走**系统铃声**（绕过静音的**闹钟 / 媒体通道**）
-- 同时**文字 + Toast 提示**
-- 不引第三方铃声 SDK
+- **0.5.0 重定**：TTS 失败时保留并展示 `assistant_text`，老人可通过下一轮继续对话。
+- 不因 TTS 失败重复调用 LLM，不把该轮判为对话失败。
+- 系统铃声兜底仅保留为历史 v2.x 提醒场景，不用于 0.5.0 的 Agent 回复。
 
 **反馈约束**：
 - 默认开启 TTS 反馈，所有点击有语音确认（v2.0 §4 第 4 条沿用）
@@ -972,6 +1036,8 @@ pending_diary(
 ### 5.10 `diary_entry_local`（v3.0 MVP 本地 Room 表）
 
 > **v3.0 MVP 本地表**——§3.1.2 单次录音 → ASR → 本地日记的落库目标。v2.x 接回服务端时，全量同步到 §5.7 服务端 `diary_entry`（保留 `text` / `audio_path`，丢弃 `source` 调试字段）。
+>
+> **0.5.0 目标**：`text ≤ 100` 汉字、`summary ≤ 60` 汉字；新增 `summary` 与 Agent 访谈关联字段需要 Room migration。历史 v3.0.1 数据的 200 字正文不截断，仅对新写入的 0.5.0 Agent 日记执行 100 字限制。
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
@@ -1000,6 +1066,8 @@ pending_diary(
 > **v3.0 MVP 本地表**——§3.1.9 ASR API 配置页的落库目标。**单行表**（固定 `id=1`），MVP 只允许一份配置。
 >
 > **v3.0.1 修订**（§A.1.b）：客户端 ASR 上游单一化为阿里云百炼 `Qwen-Audio-3.0-ASR-Flash-Streaming`，`WorkspaceId` 与 `model` 硬编码进客户端代码；本地表只保留 `api_key_enc`。迁移脚本 `MIGRATION_1_2` 直接 `DROP TABLE asr_config` 重建，强制用户重新输入 API Key。
+>
+> **0.5.0 扩展**：`api_key_enc` 供千问 ASR/TTS 共用；新增 `minimax_api_key_enc` / `minimax_last_test_result`。Migration `2→3` 保留旧千问 Key，只新增 nullable 列。
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
@@ -1008,6 +1076,8 @@ pending_diary(
 | `updated_at` | INTEGER | 是 | epoch ms |
 | `last_tested_at` | INTEGER | 否 | epoch ms；最后一次"测试一下"按钮调用时间 |
 | `last_test_result` | TEXT | 否 | JSON：`{"text": "...", "latency_ms": 1234}` 或 `{"error": "..."}` |
+| `minimax_api_key_enc` | TEXT | 否 | MiniMax M3 Key 的 Keystore token；新增用户必填 |
+| `minimax_last_test_result` | TEXT | 否 | MiniMax 测试结果 JSON |
 
 索引建议：单行表，无额外索引。
 
@@ -1154,19 +1224,24 @@ pending_diary(
 - `pending_id` 用于去重（重复 flush 同 `pending_id` 服务端幂等）
 - 24h 后 audio_cos_key 过期的 drop 但保留 `text + summary`（避免完全丢失）
 
-### 6.4 MVP 客户端错误码（v3.0 新增）
+### 6.4 MVP 客户端错误码（v3.0 新增；0.5.0 扩展）
 
 > MVP 客户端**没有自建服务端**，仅与第三方 ASR endpoint 通信。客户端错误码统一在 Kotlin 端用 `AppError` / `ElderError` 类承载，UI 层根据错误码定位提示文案。**不**走 §6.2 服务端错误码格式（无 HTTP status 概念）。
 
 | 客户端 code | 触发场景 | UI 提示（24sp 主色 + 24sp 灰副） | 兜底动作 |
 |-------------|----------|------------------------------------|----------|
-| `ASR_AUTH_FAILED` | 第三方 ASR 返回 401/403 | 「API Key 不对」+「去设置 → AI 语音识别 检查」 | 不重试；高亮"配置有误"红条 5 秒 |
+| `ASR_AUTH_FAILED` | 千问 ASR 返回 401/403 | 「API Key 不对」+「去设置 → AI 服务 检查」 | 不重试；高亮"配置有误"红条 5 秒 |
 | `ASR_RATE_LIMITED` | 第三方 ASR 返回 429 | 「太快了，等等再试」 | 5 秒后自动重试 1 次 |
 | `ASR_BAD_REQUEST` | 第三方 ASR 返回 4xx（其他） | 「配置有误，去设置检查」 | 不重试 |
 | `ASR_UPSTREAM` | 第三方 ASR 返回 5xx / 超时 | 「对方服务器没响应」 | 弹"再试一次"按钮 |
 | `ASR_RESPONSE_INVALID` | 第三方 ASR 返回 JSON 解析失败 | 「对方返回看不懂」 | 弹"再试一次"按钮 |
-| `ASR_NOT_CONFIGURED` | §5.11 `asr_config` 表为空 | 「请先在设置 → AI 语音识别 配置 API」 | Toast + 红点提示，不弹窗强制 |
+| `ASR_NOT_CONFIGURED` | §5.11 `asr_config` 缺少千问或 MiniMax Key | 「请先在设置 → AI 服务 配置 Key」 | Toast + 红点提示，不弹窗强制 |
 | `ASR_EMPTY_TRANSCRIPT` | 第三方 ASR 返回 `text` 为空字符串 | 「没听清，再说一次」 | 自动回录音重新开始（最多 3 次） |
+| `LLM_AUTH_FAILED` | MiniMax 返回 401/403 | 「MiniMax Key 不对」 | 不重试；提示去 AI 服务检查 |
+| `LLM_RATE_LIMITED` | MiniMax 返回 429 | 「AI 太忙了，等等再试」 | 指数退避后重试，最多 3 次 |
+| `LLM_UPSTREAM` | MiniMax 超时 / 5xx / SSE 断流 | 「AI 没回答上来」 | 最多重试 3 次；全部失败后进入离线补做 |
+| `TTS_AUTH_FAILED` | 千问 TTS 鉴权失败 | 「语音 Key 不对」 | 保留文字回复，不判对话失败 |
+| `TTS_UPSTREAM` | TTS WebSocket / PCM 播放失败 | 「语音暂时说不出来」 | 只展示 `assistant_text`，继续下一轮 |
 | `RECORDING_PERMISSION_DENIED` | MediaRecorder 启动时缺 RECORD_AUDIO 权限 | 「需要麦克风权限才能写日志」 | 弹跳转系统设置按钮 |
 | `RECORDING_FAILED` | MediaRecorder 启动 / 写入失败 | 「录音没成功，再试一次」 | 弹"再试一次"按钮 |
 | `NETWORK_UNAVAILABLE` | 检测到无网（§3.1.2 网络断开 UX） | 「网络不通，请检查 Wi-Fi」 | 弹"再试一次"按钮 |
@@ -1245,6 +1320,8 @@ pending_diary(
 ### 8.1 服务拆分（已锁定）
 三个独立 HTTP 服务（仅 agent-service 使用 DeepSeek Harness SDK）：
 
+> **0.5.0 修订**：上述 DSH 服务形态不再适用于 App 0.5.0。0.5.0 不部署 agent-service，Android 使用用户自填 DashScope / MiniMax Key 直连上游；具体职责以 D8-D12 为准。
+
 | 服务 | 路径前缀 | 职责 |
 |------|----------|------|
 | agent-service | `/v1/agent/*` | AI 访谈写日志（ASR/TTS/LLM/Tools） |
@@ -1268,6 +1345,7 @@ pending_diary(
 ## 9. 架构决策（已锁定）
 
 > 本节为已选定的架构决策。变更需走 PRD 修订流程。
+> D1-D7 记录历史决策；App 0.5.0 以 D8-D12 为准，冲突时由 D8-D12 覆盖。
 
 | ID | 决策点 | 选定方案 | 备注 |
 |----|--------|----------|------|
@@ -1276,6 +1354,11 @@ pending_diary(
 | D3 | 语音能力 | **ASR + TTS 两个独立 API** | 与 LLM 分工明确 |
 | D4 | 双端形态 | **单 App 切换身份** | 一份安装包，`role` 字段区分 |
 | D5 | Android 是否使用 DSH 客户端 SDK | **不使用，服务端独占** | DSH 仅跑在 agent-service 内；Android 不引入 DSH 客户端包 |
+| D8 | 0.5.0 Agent Runtime | **Android 本地** | 状态机、会话状态、关键词安全、本地工具均在 App 内；服务端不保存访谈状态 |
+| D9 | 0.5.0 模型 API | **千问 Realtime ASR + MiniMax M3 + `qwen3-tts-flash-realtime` / `Kiki`** | 均为在线 API；TTS 使用 WebSocket + 24kHz mono 16-bit PCM |
+| D10 | 0.5.0 上游访问 | **用户 BYOK 直连，无 Gateway** | DashScope Key 供 ASR/TTS，MiniMax Key 供 LLM；两份 Key 分别 Keystore 加密；Gateway 延后到后续版本 |
+| D11 | 0.5.0 离线策略 | **不支持离线 Agent** | 断网只保留录音和稍后重试；可回退 v3.0.1 单次录音模式，不得伪装多轮访谈成功 |
+| D12 | 0.5.0 DSH 依赖 | **不使用** | 0.5.0 不启动 DSH 或 Node 子进程；D5 仅描述历史服务端方案 |
 
 ---
 
@@ -1355,9 +1438,9 @@ pending_diary(
 | 11.12 | 客户端位置采集 | MVP 不采集 GPS；时区取系统时区 | 已定（§7.5） |
 | 11.13 | COS 临时对象生命周期 | 24h | 已定（§5.8 / §7.6） |
 | 11.14 | 灰度发布策略 | 单户手动开启（`elder_id` 白名单，配置注入见 §8.3） | 已定（§8.3） |
-| 11.15 | TTS 默认音色与语速 | **千问 TTS**（DashScope / CosyVoice），默认音色 **粤语男声** | 已定（§H.15）|
+| 11.15 | TTS 默认音色与语速 | 历史 v2.x 默认粤语男声；**0.5.0 以 `qwen3-tts-flash-realtime` + `Kiki` 为准** | 0.5.0 重定（§4.5） |
 | 11.16 | 老人端字体档位 sp 值 | **默认 24/32 → 大 28/38 → 特大 32/44**（body/title） | 已定（§H.16 / §I-7）|
-| 11.17 | TTS 失败兜底 | **文字 + Toast + 系统铃声**（绕过静音的闹钟 / 媒体通道） | 已定（§H.17）|
+| 11.17 | TTS 失败兜底 | **0.5.0 只展示文字并继续对话**；系统铃声仅保留为历史 v2.x 提醒场景 | 0.5.0 重定（§4.5） |
 | 11.18 | 通知优先级 | 拆两条 TPush 通道：**服药 = 中优**（声音 + 通知栏，无全屏），**就医 = 高优**（绕过勿扰） | 已定（§H.18 / §3.1.1 §3.1.3）|
 | 11.19 | 老人端绑定二维码内容 | QR 仅含 `bind_code`；归属信息靠 UI 标题/Logo/倒计时传达 | 已定（§H.19）|
 | 11.20 | 老人重装 App 账号恢复 | **不支持恢复**；§3.1.8 第 6 项退出登录需加提示"再装此 App 需要家人重新绑定" | 已定（§H.20）|
@@ -1422,6 +1505,7 @@ pending_diary(
   - 扫码绑定流程（§3.2.7）+ 老人侧确认卡（§3.2.8）+ bind 事务（AGENT.md §A.5）
   - 未绑定前写日记暂存 + `flush_pending_diaries`（§3.2.9）
 - **v2.2 Agent 多轮访谈**（依赖 v2.1）：
+  > **0.5.0 修订**：Agent 多轮访谈与 TTS 提前到 App 0.5.0，采用 Android 本地 Agent + 用户 BYOK 直连；本节 DSH 服务端方案仅作为历史路线，不再作为 0.5.0 的前置依赖。
   - Agent 服务端 + DeepSeek Harness SDK 部署（§8.1 / §8.2）；DSH tools schema（AGENT.md §11）
   - §3.1.4 Agent 行为约束 A1-D3 全部落地 + 服务端 system prompt（AGENT.md §11）
   - §3.1.6 访谈总结屏 + §3.2.6 日志详情 + TTS 粤语男声（§3.1.4 / §H.15 / §A.1）

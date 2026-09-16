@@ -26,22 +26,24 @@ class ApiKeyCipher(context: Context) {
         InMemoryPrefs
     }
 
-    /** 加密并落盘；明文 [plaintext] 在调用方负责置 null。 */
-    fun encryptAndStore(plaintext: String): String {
-        prefs.edit().putString(KEY_API_KEY_ENC, plaintext).apply()
-        return KEY_API_KEY_ENC
+    /** 加密并落盘；[token] 是本地引用名，明文由调用方负责置 null。 */
+    fun encryptAndStore(token: String, plaintext: String) {
+        prefs.edit().putString(token, plaintext).apply()
     }
 
     /** 解密取明文；调用方用完必须立刻 [clearPlaintext]。 */
     fun decrypt(token: String): String? = prefs.getString(token, null)
 
-    fun clear() {
-        prefs.edit().remove(KEY_API_KEY_ENC).apply()
+    fun clear(token: String? = null) {
+        prefs.edit().apply {
+            if (token == null) clear() else remove(token)
+        }.apply()
     }
 
     companion object {
         private const val TAG = "ApiKeyCipher"
         const val KEY_API_KEY_ENC = "api_key"
+        const val KEY_MINIMAX_API_KEY_ENC = "minimax_api_key"
 
         /**
          * 兜底内存 prefs（仅在 Keystore 不可用时使用，重启即失）——

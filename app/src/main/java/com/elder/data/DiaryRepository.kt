@@ -23,6 +23,8 @@ class DiaryRepository(private val dao: DiaryDao) {
 
     suspend fun audioPath(id: Long): String? = dao.audioPath(id)
 
+    suspend fun findByPendingId(pendingId: String): DiaryEntryEntity? = dao.findByPendingId(pendingId)
+
     suspend fun clearAll() = dao.clearAll()
 
     companion object {

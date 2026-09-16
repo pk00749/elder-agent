@@ -66,6 +66,8 @@ class ElderSettingsViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             // §3.1.8 MVP：清本地 Room + 清 ASR 配置 + 跳主屏
             diaryRepo.clearAll()
+            ServiceLocator.interviewRepo.clearAll()
+            ServiceLocator.pendingDiaryRepo.clearAll()
             asrRepo.clear()
             metaRepo.clear()
             _uiState.update { it.copy(showLogoutConfirm = false, loggedOut = true) }

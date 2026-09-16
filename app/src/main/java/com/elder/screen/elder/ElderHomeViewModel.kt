@@ -5,6 +5,9 @@
 package com.elder.android.screen.elder
 
 import android.app.Application
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkRequest
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elder.android.data.AsrConfigRepository
@@ -47,12 +50,24 @@ class ElderHomeViewModel(app: Application) : AndroidViewModel(app) {
     private val asrRepo: AsrConfigRepository = ServiceLocator.asrConfigRepo
     private val _uiState = MutableStateFlow(ElderHomeUiState())
     val uiState: StateFlow<ElderHomeUiState> = _uiState.asStateFlow()
+    private val connectivityManager =
+        app.getSystemService(ConnectivityManager::class.java)
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            viewModelScope.launch { ServiceLocator.pendingBackfill.run() }
+        }
+    }
 
     init {
         viewModelScope.launch {
             ServiceLocator.deviceMetaRepo.ensureInitialized()
+            ServiceLocator.pendingBackfill.run()
             combineState()
         }
+        connectivityManager?.registerNetworkCallback(
+            NetworkRequest.Builder().build(),
+            networkCallback,
+        )
     }
 
     private fun combineState() {
@@ -68,5 +83,10 @@ class ElderHomeViewModel(app: Application) : AndroidViewModel(app) {
                 _uiState.update { it.copy(todayRecorded = has) }
             }
         }
+    }
+
+    override fun onCleared() {
+        runCatching { connectivityManager?.unregisterNetworkCallback(networkCallback) }
+        super.onCleared()
     }
 }

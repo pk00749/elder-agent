@@ -17,8 +17,13 @@ sealed class AppError(
         ASR_BAD_REQUEST("配置有误，去设置检查"),
         ASR_UPSTREAM("对方服务器没响应"),
         ASR_RESPONSE_INVALID("对方返回看不懂"),
-        ASR_NOT_CONFIGURED("请先在设置 → AI 语音识别 配置 API"),
+        ASR_NOT_CONFIGURED("请先在设置 → AI 服务 配置 Key"),
         ASR_EMPTY_TRANSCRIPT("没听清，再说一次"),
+        LLM_AUTH_FAILED("MiniMax Key 不对"),
+        LLM_RATE_LIMITED("AI 太忙了，等等再试"),
+        LLM_UPSTREAM("AI 没回答上来"),
+        TTS_AUTH_FAILED("语音 Key 不对"),
+        TTS_UPSTREAM("语音暂时说不出来"),
         RECORDING_PERMISSION_DENIED("需要麦克风权限才能写日志"),
         RECORDING_FAILED("录音没成功，再试一次"),
         NETWORK_UNAVAILABLE("网络不通，请检查 Wi-Fi"),
@@ -51,6 +56,45 @@ sealed class AppError(
     class AsrResponseInvalid(cause: Throwable? = null) : AppError(Code.ASR_RESPONSE_INVALID, Code.ASR_RESPONSE_INVALID.userMessage, cause)
     class AsrNotConfigured : AppError(Code.ASR_NOT_CONFIGURED, Code.ASR_NOT_CONFIGURED.userMessage)
     class AsrEmptyTranscript : AppError(Code.ASR_EMPTY_TRANSCRIPT, Code.ASR_EMPTY_TRANSCRIPT.userMessage)
+    class LlmAuthFailed(cause: Throwable? = null) : AppError(Code.LLM_AUTH_FAILED, Code.LLM_AUTH_FAILED.userMessage, cause)
+    class LlmRateLimited(cause: Throwable? = null) : AppError(Code.LLM_RATE_LIMITED, Code.LLM_RATE_LIMITED.userMessage, cause)
+    class LlmUpstream(
+        cause: Throwable? = null,
+        val serverErrorCode: String? = null,
+        val serverErrorMessage: String? = null,
+    ) : AppError(
+        Code.LLM_UPSTREAM,
+        buildString {
+            append(Code.LLM_UPSTREAM.userMessage)
+            if (!serverErrorCode.isNullOrEmpty() || !serverErrorMessage.isNullOrEmpty()) {
+                append(" (server ")
+                append(serverErrorCode ?: "?")
+                append(": ")
+                append(serverErrorMessage ?: "?")
+                append(")")
+            }
+        },
+        cause,
+    )
+    class TtsAuthFailed(cause: Throwable? = null) : AppError(Code.TTS_AUTH_FAILED, Code.TTS_AUTH_FAILED.userMessage, cause)
+    class TtsUpstream(
+        cause: Throwable? = null,
+        val serverErrorCode: String? = null,
+        val serverErrorMessage: String? = null,
+    ) : AppError(
+        Code.TTS_UPSTREAM,
+        buildString {
+            append(Code.TTS_UPSTREAM.userMessage)
+            if (!serverErrorCode.isNullOrEmpty() || !serverErrorMessage.isNullOrEmpty()) {
+                append(" (server ")
+                append(serverErrorCode ?: "?")
+                append(": ")
+                append(serverErrorMessage ?: "?")
+                append(")")
+            }
+        },
+        cause,
+    )
     class RecordingPermissionDenied : AppError(Code.RECORDING_PERMISSION_DENIED, Code.RECORDING_PERMISSION_DENIED.userMessage)
     class RecordingFailed(cause: Throwable? = null) : AppError(Code.RECORDING_FAILED, Code.RECORDING_FAILED.userMessage, cause)
     class NetworkUnavailable : AppError(Code.NETWORK_UNAVAILABLE, Code.NETWORK_UNAVAILABLE.userMessage)

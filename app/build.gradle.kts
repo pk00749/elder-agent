@@ -15,8 +15,8 @@ android {
         applicationId = "com.elder.android"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.4.0"
+        versionCode = 2
+        versionName = "0.5.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -57,6 +57,9 @@ android {
                 if (project.hasProperty("DASHSCOPE_API_KEY")) {
                     it.systemProperty("DASHSCOPE_API_KEY", project.property("DASHSCOPE_API_KEY") as String)
                 }
+                if (project.hasProperty("MINIMAX_API_KEY")) {
+                    it.systemProperty("MINIMAX_API_KEY", project.property("MINIMAX_API_KEY") as String)
+                }
             }
         }
     }
@@ -89,6 +92,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("com.squareup.okio:okio:3.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("com.alibaba:dashscope-sdk-java:2.23.0")
 
     // 本机存储
     implementation("androidx.datastore:datastore-preferences:1.1.1")

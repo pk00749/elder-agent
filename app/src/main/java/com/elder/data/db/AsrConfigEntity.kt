@@ -12,6 +12,8 @@ data class AsrConfigEntity(
     @ColumnInfo(name = "api_key_enc") val apiKeyEnc: String,        // Keystore-wrapped 密文
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
     @ColumnInfo(name = "last_test_result") val lastTestResult: String? = null,
+    @ColumnInfo(name = "minimax_api_key_enc") val minimaxApiKeyEnc: String? = null,
+    @ColumnInfo(name = "minimax_last_test_result") val minimaxLastTestResult: String? = null,
 )
 
 /** v3.0.1：客户端 ASR 唯一上游（PRD §A.1.b）。 */
