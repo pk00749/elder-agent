@@ -116,6 +116,16 @@
     <string name="diary_summary_title">今天记好了 ✓</string>
     <string name="diary_summary_save">✓ 保存</string>
     <string name="diary_summary_edit">✎ 改一下</string>
+    <string name="interview_title">写日志</string>
+    <string name="interview_turn">第 %1$d 轮 / 共 %2$d 轮</string>
+    <string name="interview_start">点击说话</string>
+    <string name="interview_stop">点击停止</string>
+    <string name="interview_thinking">让我想一想…</string>
+    <string name="interview_speaking">正在说给您听…</string>
+    <string name="interview_transcript_placeholder">您说的话会显示在这里…</string>
+    <string name="interview_pending_saved">已保存录音，联网后会帮您整理</string>
+    <string name="interview_need_config">请先配置千问和 MiniMax Key</string>
+    <string name="interview_open_settings">去设置</string>
 
     <!-- §3.1.7 今日记录屏 -->
     <string name="diary_recent_title">近期日志</string>
@@ -127,13 +137,14 @@
 
     <!-- §3.1.8 老人设置 -->
     <string name="settings_title">设置</string>
-    <string name="settings_asr">AI 语音识别</string>
+    <string name="settings_asr">AI 服务</string>
     <string name="settings_asr_configured">已配置</string>
     <string name="settings_asr_not_configured">未配置</string>
     <string name="settings_font_size">字体大小</string>
     <string name="settings_font_preview">这是调整后的文字大小</string>
     <string name="settings_tts_switch">语音播报</string>
     <string name="settings_tts_unavailable">暂不可用，接入后会在这里开启</string>
+    <string name="settings_tts_hint">关闭后只显示文字</string>
     <string name="settings_on">开</string>
     <string name="settings_off">关</string>
     <string name="settings_volume">媒体音量</string>
@@ -151,14 +162,18 @@
     <string name="settings_font_xlarge">特大</string>
 
     <!-- §3.1.9 ASR 配置（v3.0.1 §A.1.b：百炼 only） -->
-    <string name="asr_config_title">AI 语音识别</string>
-    <string name="asr_config_header">把百炼 ASR 的 API Key 填在这里，老人端不依赖任何第三方服务器。配置只保存在这台手机。</string>
+    <string name="asr_config_title">AI 服务</string>
+    <string name="asr_config_header">填入千问和 MiniMax API Key。配置只加密保存在这台手机，不上传自建服务器。</string>
     <string name="asr_config_provider">服务商：阿里云百炼</string>
     <string name="asr_config_model">模型：%1$s</string>
     <string name="asr_config_workspace_id">WorkspaceId：%1$s</string>
     <string name="asr_config_api_key">API Key</string>
     <string name="asr_config_api_key_placeholder">sk-…</string>
+    <string name="asr_config_minimax_api_key">MiniMax API Key</string>
+    <string name="asr_config_minimax_api_key_placeholder">MiniMax Key</string>
     <string name="asr_config_test">测试一下</string>
+    <string name="asr_config_test_tts">测试语音</string>
+    <string name="asr_config_test_minimax">测试 MiniMax</string>
     <string name="asr_config_last_test">最近测试：%1$s</string>
     <string name="asr_config_tts_play_desc">朗读</string>
     <string name="asr_config_advanced_show">查看高级信息</string>

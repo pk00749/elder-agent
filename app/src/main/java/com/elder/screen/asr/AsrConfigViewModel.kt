@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.elder.android.data.AsrConfig
 import com.elder.android.data.AsrConfigRepository
 import com.elder.android.data.asr.AsrApiClient
+import com.elder.android.data.llm.LlmMessage
+import com.elder.android.data.llm.MiniMaxClient
+import com.elder.android.data.tts.TtsClient
 import com.elder.android.di.ServiceLocator
 import com.elder.android.error.AppError
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,18 +22,25 @@ import java.io.FileOutputStream
 
 data class AsrConfigUiState(
     val apiKey: String = "",
+    val minimaxApiKey: String = "",
     val isTesting: Boolean = false,
+    val isTestingMinimax: Boolean = false,
+    val isTestingTts: Boolean = false,
     val lastTestResult: String? = null,
+    val minimaxLastTestResult: String? = null,
+    val ttsLastTestResult: String? = null,
     val isSaving: Boolean = false,
     val savedOk: Boolean = false,
     val topError: String? = null,
 ) {
-    val allRequiredValid: Boolean get() = apiKey.isNotBlank()
+    val allRequiredValid: Boolean get() = apiKey.isNotBlank() && minimaxApiKey.isNotBlank()
 }
 
 class AsrConfigViewModel(app: Application) : AndroidViewModel(app) {
     private val repo: AsrConfigRepository = ServiceLocator.asrConfigRepo
     private val api: AsrApiClient = ServiceLocator.asrApi
+    private val minimax: MiniMaxClient = ServiceLocator.minimaxApi
+    private val tts: TtsClient = ServiceLocator.ttsClient
 
     private val _state = MutableStateFlow(AsrConfigUiState())
     val state: StateFlow<AsrConfigUiState> = _state.asStateFlow()
@@ -45,19 +55,23 @@ class AsrConfigViewModel(app: Application) : AndroidViewModel(app) {
         _state.update {
             it.copy(
                 apiKey = c.apiKey,
+                minimaxApiKey = c.minimaxApiKey,
                 lastTestResult = c.lastTestResult,
+                minimaxLastTestResult = c.minimaxLastTestResult,
             )
         }
     }
 
     fun setApiKey(v: String) = _state.update { it.copy(apiKey = v) }
 
+    fun setMinimaxApiKey(v: String) = _state.update { it.copy(minimaxApiKey = v) }
+
     fun dismissError() = _state.update { it.copy(topError = null) }
 
     fun test(onDone: () -> Unit = {}) {
-        val s = _state.value
-        if (!s.allRequiredValid) {
-            _state.update { it.copy(topError = "请先填 API Key") }
+            val s = _state.value
+        if (s.apiKey.isBlank()) {
+            _state.update { it.copy(topError = "请先填千问 API Key") }
             return
         }
         viewModelScope.launch {
@@ -93,6 +107,75 @@ class AsrConfigViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun testMinimax() {
+        val s = _state.value
+        if (s.minimaxApiKey.isBlank()) {
+            _state.update { it.copy(topError = "请先填 MiniMax API Key") }
+            return
+        }
+        viewModelScope.launch {
+            _state.update { it.copy(isTestingMinimax = true, topError = null) }
+            val started = System.currentTimeMillis()
+            val result = runCatching {
+                minimax.complete(
+                    apiKey = s.minimaxApiKey,
+                    messages = listOf(
+                        LlmMessage(
+                            role = "user",
+                            content = "只回复：连接成功",
+                        )
+                    ),
+                    tools = emptyList(),
+                )
+            }
+            result.onSuccess {
+                _state.update {
+                    it.copy(
+                        isTestingMinimax = false,
+                        minimaxLastTestResult = """{"text":"连接成功","latency_ms":${System.currentTimeMillis() - started}}""",
+                    )
+                }
+            }.onFailure { e ->
+                _state.update {
+                    it.copy(
+                        isTestingMinimax = false,
+                        minimaxLastTestResult = """{"error":"${e.message ?: "测试失败"}"}""",
+                        topError = e.message ?: "MiniMax 测试失败",
+                    )
+                }
+            }
+        }
+    }
+
+    fun testTts() {
+        val s = _state.value
+        if (s.apiKey.isBlank()) {
+            _state.update { it.copy(topError = "请先填千问 API Key") }
+            return
+        }
+        viewModelScope.launch {
+            _state.update { it.copy(isTestingTts = true, topError = null) }
+            val started = System.currentTimeMillis()
+            val result = runCatching { tts.speak(s.apiKey, "你好，我是老友。") }
+            result.onSuccess {
+                _state.update {
+                    it.copy(
+                        isTestingTts = false,
+                        ttsLastTestResult = """{"text":"语音连接正常","latency_ms":${System.currentTimeMillis() - started}}""",
+                    )
+                }
+            }.onFailure { e ->
+                _state.update {
+                    it.copy(
+                        isTestingTts = false,
+                        ttsLastTestResult = """{"error":"${e.message ?: "测试失败"}"}""",
+                        topError = e.message ?: "语音测试失败",
+                    )
+                }
+            }
+        }
+    }
+
     fun save(onDone: () -> Unit = {}) {
         val s = _state.value
         if (!s.allRequiredValid) {
@@ -106,6 +189,8 @@ class AsrConfigViewModel(app: Application) : AndroidViewModel(app) {
                     AsrConfig(
                         apiKey = s.apiKey,
                         lastTestResult = s.lastTestResult,
+                        minimaxApiKey = s.minimaxApiKey,
+                        minimaxLastTestResult = s.minimaxLastTestResult,
                     )
                 )
                 _state.update { it.copy(isSaving = false, savedOk = true) }

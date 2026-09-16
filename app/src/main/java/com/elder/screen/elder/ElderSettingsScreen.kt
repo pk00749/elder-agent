@@ -186,15 +186,14 @@ private fun labelOf(f: FontScale) = when (f) {
 
 @Composable
 private fun SettingRow3Tts(enabled: Boolean, onChange: (Boolean) -> Unit) {
-    // 真实 TTS 尚未接入：禁用开关，避免老人反复点击无反馈。
     SettingRow(
         title = stringResource(R.string.settings_tts_switch),
-        subtitle = stringResource(R.string.settings_tts_unavailable),
+        subtitle = stringResource(R.string.settings_tts_hint),
         trailing = {
             Switch(
                 checked = enabled,
                 onCheckedChange = onChange,
-                enabled = false,
+                enabled = true,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = BrandColor.CardWhite,
                     checkedTrackColor = BrandColor.Brand500,

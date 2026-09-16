@@ -124,7 +124,7 @@ fun AsrConfigScreen(
                 }
                 item {
                     LabeledField(
-                        label = stringResource(R.string.asr_config_api_key),
+                        label = "千问 " + stringResource(R.string.asr_config_api_key),
                         value = state.apiKey,
                         onChange = vm::setApiKey,
                         placeholder = stringResource(R.string.asr_config_api_key_placeholder),
@@ -135,12 +135,70 @@ fun AsrConfigScreen(
                 item {
                     TestButton(
                         isLoading = state.isTesting,
-                        enabled = state.allRequiredValid && !state.isTesting,
+                        enabled = state.apiKey.isNotBlank() && !state.isTesting,
                         onClick = { vm.test() },
+                    )
+                }
+                item {
+                    TestButton(
+                        isLoading = state.isTestingTts,
+                        enabled = state.apiKey.isNotBlank() && !state.isTestingTts,
+                        label = stringResource(R.string.asr_config_test_tts),
+                        onClick = { vm.testTts() },
                     )
                 }
                 // v3.0.1 §A.1.b：顶部 ✓ 已升级为真 TextButton 调 vm.save()，正文不再重复"保存"按钮
                 state.lastTestResult?.let {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(BrandColor.BgGray, RoundedCornerShape(Corner.Card))
+                                .padding(Spacing.Md),
+                        ) {
+                            Text(
+                                stringResource(R.string.asr_config_last_test, it),
+                                fontSize = FontSize.BodySmallSp.sp,
+                                color = BrandColor.TextSecondary,
+                            )
+                        }
+                    }
+                }
+                state.ttsLastTestResult?.let {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(BrandColor.BgGray, RoundedCornerShape(Corner.Card))
+                                .padding(Spacing.Md),
+                        ) {
+                            Text(
+                                stringResource(R.string.asr_config_last_test, it),
+                                fontSize = FontSize.BodySmallSp.sp,
+                                color = BrandColor.TextSecondary,
+                            )
+                        }
+                    }
+                }
+                item {
+                    LabeledField(
+                        label = stringResource(R.string.asr_config_minimax_api_key),
+                        value = state.minimaxApiKey,
+                        onChange = vm::setMinimaxApiKey,
+                        placeholder = stringResource(R.string.asr_config_minimax_api_key_placeholder),
+                        isPassword = true,
+                        keyboardType = KeyboardType.Password,
+                    )
+                }
+                item {
+                    TestButton(
+                        isLoading = state.isTestingMinimax,
+                        enabled = state.minimaxApiKey.isNotBlank() && !state.isTestingMinimax,
+                        label = stringResource(R.string.asr_config_test_minimax),
+                        onClick = { vm.testMinimax() },
+                    )
+                }
+                state.minimaxLastTestResult?.let {
                     item {
                         Box(
                             modifier = Modifier
@@ -263,6 +321,7 @@ private fun LabeledField(
 private fun TestButton(
     isLoading: Boolean,
     enabled: Boolean,
+    label: String = "",
     onClick: () -> Unit,
 ) {
     OutlinedButton(
@@ -281,7 +340,7 @@ private fun TestButton(
             CircularProgressIndicator(color = BrandColor.Brand500)
         } else {
             Text(
-                stringResource(R.string.asr_config_test),
+                label.ifBlank { stringResource(R.string.asr_config_test) },
                 fontSize = FontSize.body(FontLevel.LARGE),
                 fontWeight = FontWeight.Bold,
             )

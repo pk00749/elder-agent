@@ -4,6 +4,7 @@ package com.elder.android.nav
 sealed class Route(val path: String) {
     data object ElderHome : Route("elder/home")
     data object ElderDiaryRecord : Route("elder/diary/record")
+    data object ElderInterview : Route("elder/diary/interview")
     data object ElderDiaryRecent : Route("elder/diary/recent")
     data object ElderSettings : Route("elder/settings")
     data object ElderAsrConfig : Route("elder/settings/asr")
