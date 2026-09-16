@@ -11,6 +11,7 @@ import androidx.room.PrimaryKey
     indices = [
         Index(value = ["date", "created_at"]),
         Index(value = ["device_id"]),
+        Index(value = ["pending_id"], unique = true),
     ],
 )
 data class DiaryEntryEntity(
@@ -19,6 +20,9 @@ data class DiaryEntryEntity(
     @ColumnInfo(name = "date") val date: String,                   // YYYY-MM-DD 按设备本地时区
     @ColumnInfo(name = "text") val text: String,                   // 日记正文 ≤ 200 字（v3.0 放宽到 200；v2.x 收紧到 100）
     @ColumnInfo(name = "transcript") val transcript: String? = null, // ASR 转写原文（v3.0 不可见，留给手动改写）
+    @ColumnInfo(name = "summary") val summary: String? = null,      // 0.5.0 Agent 一句话摘要（≤ 60 字）
+    @ColumnInfo(name = "session_id") val sessionId: String? = null, // 0.5.0 关联 interview_session.id
+    @ColumnInfo(name = "pending_id") val pendingId: String? = null,  // 0.5.0 离线补做幂等键
     @ColumnInfo(name = "source") val source: Source,               // asr_original / asr_edited / manual
     @ColumnInfo(name = "audio_path") val audioPath: String,        // cacheDir/audio/{uuid}.m4a
     @ColumnInfo(name = "duration_ms") val durationMs: Int,

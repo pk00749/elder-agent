@@ -34,6 +34,9 @@ interface DiaryDao {
     @Query("SELECT audio_path FROM diary_entry_local WHERE id = :id")
     suspend fun audioPath(id: Long): String?
 
+    @Query("SELECT * FROM diary_entry_local WHERE pending_id = :pendingId LIMIT 1")
+    suspend fun findByPendingId(pendingId: String): DiaryEntryEntity?
+
     @Query("UPDATE diary_entry_local SET deleted_at = :now WHERE id = :id")
     suspend fun softDelete(id: Long, now: Long)
 
