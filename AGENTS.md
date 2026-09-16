@@ -11,6 +11,7 @@
 | v1.0 | 2026-08-23 | Codex | 首版：仓库结构 / 命名 / 文件组织 / 错误处理 / 静态检查 / 日志 / 配置 / API 路由 / 数据访问 / Agent / COS / 鉴权 / 测试 / CI / 提交 / 文档同步 共 17 章 |
 | v2.0 | 2026-08-24 | Codex | 与 PRD 拆分；§11 Agent 行为约束引用迁移到 prd.md §3.1.4 |
 | v2.1 | 2026-08-27 | Codex | 新增 §A.1-§A.10 增量：设计 token（色彩 / 字号 / 间距圆角 / 动效）、TTS 千问 + 粤语男声 + 系统铃声兜底、两条 TPush 推送通道、§4.6 权限 / §4.8 Toast / §4.9 黄条规范、剂量枚举收紧为 [PILL\|HALF\|SPOON]、advance_remind_min 30/60/120 默认 60 + channel_priority mid\|high、bind/confirm + bind/pending + diary/flush-pending 三端点服务端事务、ASR 粤语主识别 + 普通话兜底、声明数据模型不变（v2.0 保留） |
+| v2.2 | 2026-09-14 | Codex | 新增 §A.11 Android 0.5.0 本地 Agent 规范：用户 BYOK 直连千问 ASR/TTS 与 MiniMax M3；APK 内版本化 Prompt；MiniMax tools + Kotlin 本地校验；Room v3 访谈 / 待补做 / 摘要；TTS 失败文字兜底；Kotlin 行为测试 |
 
 ---
 
@@ -223,7 +224,7 @@ elder-agent/
 - **不要硬编码颜色 / 字号 / 间距 / 圆角到客户端代码**——必须从 `Dimens.kt`（或 `colors.xml`/`dimens.xml` 资源）读取。理由：§I-1 不追加品牌色；硬编码会让 prd.md §4 token 表不同步。
   - 检测命令见 §19
 - **不要在客户端写"136****8888" / "+86" 等明文手机号样式**——统一走 `elder_common.redact.phone_tail(phone)`。理由：§7 日志 `sanitize` 会拦截明文 PII；客户端写死会被合规审计抓到。
-- **不要在客户端引入新的上游 SDK**（千问 / TPush / COS / ASR / TTS）——所有上游调用统一在 `elder_common` 封装（§A.1）。新增上游必须先在 §A.x 增加子节 + 评审。
+- **不要在客户端引入新的上游 SDK**（千问 / TPush / COS / ASR / TTS）——v3.0.1 历史约束；App 0.5.0 仅允许按 §A.11 直连千问 ASR/TTS 与 MiniMax M3，其他上游仍必须统一在 `elder_common` 封装。新增上游必须先在 §A.x 增加子节 + 评审。
 - **不要编写超过 500 行的客户端模块**（除非有文档化理由）。理由：与 OpenAI Codex 样例反模式一致；高触碰文件会吸引无关改动。
 
 ### 服务端 / 工程规范
@@ -344,6 +345,8 @@ def recognize(audio_url: str) -> ASRResult:
 TPUSH_REMINDER_CHANNEL_ID: str     # 中优，服药提醒（prd.md §11.18）
 TPUSH_APPOINTMENT_CHANNEL_ID: str  # 高优，就医提醒，绕过勿扰（prd.md §11.18）
 ```
+
+> **0.5.0 override**：Android 本地 Agent 使用 `§A.11` 的 `qwen3-tts-flash-realtime` + `Kiki`，不调用本节服务端 TTS 封装；本节保留为 v2.x 服务端回滚参考。
 
 - SDK 调用统一在 `elder_common`；路由层不允许直接 import 千问 / TPush SDK
 - 任何 SDK 失败：抛 `elder_common.errors.AppError`，由 §4 全局异常处理器映射到 prd.md §6.2 错误码
@@ -580,6 +583,7 @@ companion object {
 - 保留 `id` / `api_key_enc` / `updated_at` / `last_test_result`（`last_tested_at` 同义合并到 `updated_at`）
 - Room 迁移 `MIGRATION_1_2`（version 1→2）强制丢弃旧 DashScope/Whisper/Custom 配置；用户必须在 §3.1.9 重输百炼 API Key
 - DiaryEntry `asrProvider` / `asrModel` 字段保留（diary_entry 在 §18 锁定列表），统一写 `BAILIAN_PROVIDER` / `BAILIAN_MODEL`
+- 0.5.0 在 `asr_config` 增加 `minimax_api_key_enc` / `minimax_last_test_result`；`api_key_enc` 继续承载千问 ASR/TTS Key
 
 **§A.8.5 旧 §A.1 千问 ASR 封装的处理**
 
@@ -596,3 +600,46 @@ companion object {
 - 覆盖空 `completed.transcript` → `AsrEmptyTranscript`
 - 覆盖 API Key 空串 → `AsrAuthFailed`（不进 WS）
 - 常规 CI 禁止真实调用；提供显式 API Key 时可运行 `AsrApiClientLiveTest` 做真实链路验证
+
+### A.11 Android 0.5.0 本地 Agent
+
+> 对应 `prd.md` §0.1 / §3.1.4 / §3.1.6。0.5.0 不使用 Gateway，用户 BYOK 直连上游。
+
+**§A.11.1 上游与 SDK 边界**
+
+- ASR：`app/src/main/java/com/elder/data/asr/AsrApiClient.kt`，继续使用千问 Realtime。
+- LLM：`app/src/main/java/com/elder/data/llm/MiniMaxClient.kt`，固定 OpenAI 兼容端点 `https://api.minimax.cn/v1/chat/completions`、模型 `MiniMax-M3`。
+- TTS：`app/src/main/java/com/elder/data/tts/QwenTtsClient.kt`，固定 `qwen3-tts-flash-realtime` + `Kiki`，PCM 24kHz mono 16-bit。
+- MiniMax 使用 OkHttp 标准 `tools` / `tool_calls` 协议；不得在路由式 UI 代码中直接构造供应商 JSON。
+
+**§A.11.2 Agent 与 Prompt**
+
+- 本地 Agent 位于 `app/src/main/java/com/elder/agent/`。
+- Prompt 使用 `app/src/main/assets/agent/system_vN.txt` / `save_vN.txt` 版本化；修改必须新增版本文件，旧版本保留。
+- 安全关键词在调用 LLM 前本地拦截：emergency 直接保存，money / medical 直接换话题。
+- MiniMax 工具只有 `ask_clarify` / `save_diary`；工具名、参数、长度和状态迁移必须由 Kotlin 再校验。
+- 单轮回复截断 ≤ 25 字，正文 ≤ 100 字，摘要 ≤ 60 字，均在本地落库前执行。
+
+**§A.11.3 Room v3**
+
+- `diary_entry_local` 增加 `summary` / `session_id` / `pending_id`，旧 diary 不清空。
+- 新增 `interview_session`：本地保存 `status` / `turns_json` / `draft_text` / `draft_summary`。
+- 新增 `pending_diary`：断网录音补做队列；`pending_id` 是幂等键，禁止重复写 diary。
+- Migration `2→3` 必须使用 `ALTER TABLE` + `CREATE TABLE`，禁止 drop diary 或 asr_config。
+
+**§A.11.4 失败策略**
+
+- LLM 仅对超时、限流、5xx、断流重试，最多 3 次；鉴权和参数错误立即终止。
+- ASR WebSocket 断线时用本地完整音频重新建 session 并重放；不得声称服务端断点续传。
+- TTS 失败只展示 `assistant_text`；不得重复调用 LLM，不得把对话轮判为失败。
+- 断网自动写入 `pending_diary`，下一次进入主屏时尝试 ASR + LLM 补做。
+- 0.5.0 不实现语音打断；录音和 TTS 播放互斥。
+
+**§A.11.5 测试约束**
+
+- `AgentSafetyTest` 覆盖本地安全短路。
+- `InterviewAgentTest` 覆盖 tool call、长度限制和 3 次重试。
+- `MiniMaxClientTest` 使用 MockWebServer 覆盖 SSE 文本、tool call 分片和鉴权错误。
+- `InterviewRepositoryTest` 覆盖 Room 会话序列化；真实供应商调用只允许显式 LiveTest。
+- `QwenTtsClientLiveTest` / `MiniMaxClientLiveTest` 通过 `-PDASHSCOPE_API_KEY` / `-PMINIMAX_API_KEY` 显式开启；未提供 Key 必须 skip。
+- 实时 TTS 使用全局 DashScope Realtime endpoint，workspace-scoped ASR Key 可能返回 401，必须映射为 `TTS_AUTH_FAILED`。
