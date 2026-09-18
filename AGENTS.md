@@ -12,6 +12,7 @@
 | v2.0 | 2026-08-24 | Codex | 与 PRD 拆分；§11 Agent 行为约束引用迁移到 prd.md §3.1.4 |
 | v2.1 | 2026-08-27 | Codex | 新增 §A.1-§A.10 增量：设计 token（色彩 / 字号 / 间距圆角 / 动效）、TTS 千问 + 粤语男声 + 系统铃声兜底、两条 TPush 推送通道、§4.6 权限 / §4.8 Toast / §4.9 黄条规范、剂量枚举收紧为 [PILL\|HALF\|SPOON]、advance_remind_min 30/60/120 默认 60 + channel_priority mid\|high、bind/confirm + bind/pending + diary/flush-pending 三端点服务端事务、ASR 粤语主识别 + 普通话兜底、声明数据模型不变（v2.0 保留） |
 | v2.2 | 2026-09-14 | Codex | 新增 §A.11 Android 0.5.0 本地 Agent 规范：用户 BYOK 直连千问 ASR/TTS 与 MiniMax M3；APK 内版本化 Prompt；MiniMax tools + Kotlin 本地校验；Room v3 访谈 / 待补做 / 摘要；TTS 失败文字兜底；Kotlin 行为测试 |
+| v2.3 | 2026-09-18 | Codex | 新增 §A.12 MiniMax Realtime ASR（客户端 WebSocket）+ §A.13 MiniMax T2A WebSocket（Cantonese_KindWoman）+ §18 「0.7.0 例外」条款；千问 / MiniMax 双 Provider 可切换；`asr_config` Migration 4→5 DROP+CREATE；MiniMax ASR 与 LLM 共用 Key、MiniMax TTS 独立 Key；`scripts/check_no_hardcoded_tokens.py` 仍绿 |
 
 ---
 
@@ -225,6 +226,7 @@ elder-agent/
   - 检测命令见 §19
 - **不要在客户端写"136****8888" / "+86" 等明文手机号样式**——统一走 `elder_common.redact.phone_tail(phone)`。理由：§7 日志 `sanitize` 会拦截明文 PII；客户端写死会被合规审计抓到。
 - **不要在客户端引入新的上游 SDK**（千问 / TPush / COS / ASR / TTS）——v3.0.1 历史约束；App 0.5.0 仅允许按 §A.11 直连千问 ASR/TTS 与 MiniMax M3，其他上游仍必须统一在 `elder_common` 封装。新增上游必须先在 §A.x 增加子节 + 评审。
+  - **0.7.0 例外**：`app/src/main/java/com/elder/data/asr/MiniMaxAsrClient.kt` 与 `app/src/main/java/com/elder/data/tts/MiniMaxTtsClient.kt` 作为 §A.12 / §A.13 唯一上游；不通过 `elder_common` 统一封装（0.5.0/0.6.0 直连架构不变）。后续任何新上游仍按原条款评审。
 - **不要编写超过 500 行的客户端模块**（除非有文档化理由）。理由：与 OpenAI Codex 样例反模式一致；高触碰文件会吸引无关改动。
 
 ### 服务端 / 工程规范
@@ -608,7 +610,9 @@ companion object {
 **§A.11.1 上游与 SDK 边界**
 
 - ASR：`app/src/main/java/com/elder/data/asr/AsrApiClient.kt`，继续使用千问 Realtime。
-- LLM：`app/src/main/java/com/elder/data/llm/MiniMaxClient.kt`，固定 OpenAI 兼容端点 `https://api.minimax.cn/v1/chat/completions`、模型 `MiniMax-M3`。
+- LLM：通过 `app/src/main/java/com/elder/data/llm/LlmClientFactory.kt` 按 `asr_config.llm_provider` 路由到对应客户端：`MiniMaxClient`（默认 `minimax`，端点 `https://api.minimax.cn/v1/chat/completions` / 模型 `MiniMax-M3`）/ `QwenLlmClient`（`qwen`，端点 `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` / 模型 `qwen-plus`）/ `DeepSeekLlmClient`（`deepseek`，端点 `https://api.deepseek.com/v1/chat/completions` / 模型 `deepseek-chat`）。
+- **v0.8.0 修订**：LLM Provider 改为可切换；详见 §A.15。`MiniMaxClient` 代码本体不动，仅被 `LlmClientFactory` 路由引用。
+- **0.7.0 默认 Provider 切换**：ASR 默认 `MiniMax Realtime`（§A.12），TTS 默认 `MiniMax Cantonese_KindWoman`（§A.13）；千问 / 百炼作为可选回滚路径保留。
 - TTS：`app/src/main/java/com/elder/data/tts/QwenTtsClient.kt`，固定 `qwen3-tts-flash-realtime` + `Kiki`，PCM 24kHz mono 16-bit。
 - MiniMax 使用 OkHttp 标准 `tools` / `tool_calls` 协议；不得在路由式 UI 代码中直接构造供应商 JSON。
 
@@ -643,3 +647,245 @@ companion object {
 - `InterviewRepositoryTest` 覆盖 Room 会话序列化；真实供应商调用只允许显式 LiveTest。
 - `QwenTtsClientLiveTest` / `MiniMaxClientLiveTest` 通过 `-PDASHSCOPE_API_KEY` / `-PMINIMAX_API_KEY` 显式开启；未提供 Key 必须 skip。
 - 实时 TTS 使用全局 DashScope Realtime endpoint，workspace-scoped ASR Key 可能返回 401，必须映射为 `TTS_AUTH_FAILED`。
+
+
+---
+
+
+### §A.15 LLM Provider 多源（v2.4 / App 0.8.0 新增；OpenAI 兼容统一封装）
+
+> 对应 PRD §3.1.9 v0.8.0 修订 + §5.11 v0.8.0 扩展。0.8.0 起 LLM Provider 与 ASR / TTS 对齐，3 选 1（千问 / MiniMax / DeepSeek），客户端 BYOK 直连。`LlmClientFactory` 按 `cfg.llmProvider` 路由，与 §A.11 / §A.12 / §A.13 直连架构一致。
+
+**§A.15.1 上游固定项（hardcoded constants）**
+
+```kotlin
+// app/src/main/java/com/elder/data/llm/LlmProviderCatalog.kt
+object LlmProviderCatalog {
+    fun endpointOf(p: LlmProvider): String = when (p) {
+        LlmProvider.MINIMAX -> "https://api.minimax.cn/v1/chat/completions"
+        LlmProvider.QWEN -> "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+        LlmProvider.DEEPSEEK -> "https://api.deepseek.com/v1/chat/completions"
+    }
+    fun modelOf(p: LlmProvider): String = when (p) {
+        LlmProvider.MINIMAX -> "MiniMax-M3"
+        LlmProvider.QWEN -> "qwen-plus"
+        LlmProvider.DEEPSEEK -> "deepseek-chat"
+    }
+    fun keyAliasOf(p: LlmProvider): ApiKeyCipher.KeyAlias = when (p) {
+        LlmProvider.MINIMAX -> ApiKeyCipher.KEY_MINIMAX_API_KEY_ENC
+        LlmProvider.QWEN -> ApiKeyCipher.KEY_QWEN_LLM_API_KEY_ENC
+        LlmProvider.DEEPSEEK -> ApiKeyCipher.KEY_DEEPSEEK_LLM_API_KEY_ENC
+    }
+}
+```
+
+- 三个 Provider 协议相同（OpenAI Chat Completions），Body / SSE 流格式一致；Client 实现结构相同（`QwenLlmClient` / `DeepSeekLlmClient` 是 `MiniMaxClient` 的协议同构体），不复制 LLM 业务逻辑。
+- 三个 Provider 在 v0.8.0 接入 `tools` / `tool_calls`；MiniMax 的 `tool_calls` 协议（§A.11.1 末段）千问 / DeepSeek 同样支持。
+- 测试按钮调 `chat/completions` 带最小 prompt（1 token）；HTTP 200 视为「✓ 连接正常」；401 / 403 → `LLM_AUTH_FAILED`；5xx / 超时 / SSE 断流 → `LLM_UPSTREAM`（§6.4）。
+
+**§A.15.2 错误映射**
+
+| 场景 | AppError | code |
+|------|----------|------|
+| HTTP 401 / 403（含 SSE 协议层 401） | `LlmAuthFailed` | `LLM_AUTH_FAILED` |
+| HTTP 429 | `LlmRateLimited` | `LLM_RATE_LIMITED` |
+| HTTP 4xx 其他 / `error.code` 表示参数错 | `LlmBadRequest` | `LLM_BAD_REQUEST` |
+| HTTP 5xx / 超时 / SSE 断流 / IOException | `LlmUpstream` | `LLM_UPSTREAM` |
+| `completions` 返回空 `choices[0].message.content` | `LlmEmptyResponse` | `LLM_EMPTY_RESPONSE` |
+| Provider raw 不在枚举（仅客户端内部态） | `LlmProviderUnknown` | `LLM_PROVIDER_UNKNOWN` |
+
+- `LLM_AUTH_FAILED` / `LLM_RATE_LIMITED` / `LLM_UPSTREAM` 在 PRD §6.4 既有枚举中已存在；`LLM_BAD_REQUEST` / `LLM_EMPTY_RESPONSE` / `LLM_PROVIDER_UNKNOWN` 为 v0.8.0 新增（Kotlin 端 `AppError` 子类）。
+
+**§A.15.3 Room schema（§5.11 asr_config v0.8.0）**
+
+- Migration 5→6 走 `ALTER TABLE` 新增 7 列：`llm_provider` / `llm_endpoint` / `llm_model` / `qwen_llm_api_key_enc` / `qwen_llm_last_test_result` / `deepseek_llm_api_key_enc` / `deepseek_llm_last_test_result`。
+- `asr_config` 不在 §18 锁定列表（§5.11 是 v3.0 MVP 本地表）；`ALTER TABLE` 是允许的 schema 变更路径；**不** drop 既有 16 列数据。
+- `llm_provider` 默认值由 Migration 在 SQL 层写 `minimax`；客户端代码默认值兜底 `LlmProvider.MINIMAX`，与 PRD §5.11 默认一致。
+- Key 列使用 `ApiKeyCipher` 三个独立 alias：`KEY_MINIMAX_API_KEY_ENC` / `KEY_QWEN_LLM_API_KEY_ENC` / `KEY_DEEPSEEK_LLM_API_KEY_ENC`，与 ASR / TTS Key 物理隔离。
+
+**§A.15.4 Agent / Prompt 兼容**
+
+- 三个 Client 都按 OpenAI Chat Completions 实现；`InterviewAgent` 通过 `LlmClientFactory.current()` 拿到当前 Provider 对应 client；`system_v2.txt` / `save_v2.txt` 提示词与 Provider 无关，三 Provider 共用。
+- `tools` / `tool_calls` 协议千问 / DeepSeek 同样支持；`AgentSafety.kt` 的 keyword 短路 + `MiniMax` 工具校验逻辑不绑 Provider。
+- 三次重试策略（超时 / 限流 / 5xx / 断流；鉴权 / 参数错立即终止）由 `LlmClient` 基类公共逻辑承载，三个 Client 复用。
+
+**§A.15.5 测试约束**
+
+- `QwenLlmClientTest` / `DeepSeekLlmClientTest` 用 `MockWebServer`，覆盖：
+  - 200 + 正常 `choices[0].message.content` 流
+  - 200 + `tool_calls` 分片（SSE 解析按 OpenAI 协议）
+  - 401 / 403 → `LlmAuthFailed`
+  - 5xx → `LlmUpstream`（含重试 3 次）
+  - 空 `choices` → `LlmEmptyResponse`
+- `LlmClientFactoryTest`：根据 `cfg.llmProvider` 路由返回正确 Client 实例。
+- `ElderDatabaseMigrationTest` 覆盖 5→6：断言 7 列存在 / `llm_provider` 默认 `minimax`。
+- `QwenLlmClientLiveTest` / `DeepSeekLlmClientLiveTest` 通过 `-PQWEN_LLM_API_KEY` / `-PDEEPSEEK_LLM_API_KEY` 显式开启；未提供 Key 必须 skip。
+- `scripts/check_no_hardcoded_tokens.py` 仍绿：endpoint / model / key alias 全部写进 `LlmProviderCatalog` 静态常量，UI 不暴露 endpoint / model 输入。
+### §A.12 MiniMax ASR（v2.3 / App 0.7.0 新增；客户端 HTTP REST + multipart + SSE 封装）
+
+> 对应 PRD §3.1.9 / §11.28.2。0.7.0 起 ASR 可选 Provider 之一，默认 Provider。客户端 BYOK 直连 MiniMax REST endpoint（无 Gateway），与 §A.11 0.5.0 直连架构一致。
+>
+> v2.3 起从 WebSocket 占位实现切换为 HTTP REST + multipart 上传 + SSE 流式响应（参考 Python `requests.post(stream=True)` 协议族）；WebSocket 协议字段（`session.start` / `audio.chunk` / `transcript.partial` 等占位）已废弃，仅本节与 `MiniMaxAsrClient.kt` 需要同步调整。
+
+**§A.12.1 上游固定项（hardcoded constants）**
+
+```kotlin
+// app/src/main/java/com/elder/data/asr/MiniMaxAsrClient.kt
+companion object {
+    const val MINIMAX_ASR_PROVIDER = "minimax_realtime"     // §5.11 asr_provider 落库值
+    const val REST_URL = "https://api.minimax.cn/v1/speech_to_text"
+    const val MINIMAX_ASR_MODEL = "asr-1.0"
+    const val STREAM_FLAG = "true"                            // multipart 字段 stream
+    const val SAMPLE_RATE = 16_000                            // 上传 .wav 的 PCM sample rate
+}
+```
+
+> endpoint / model / 鉴权必须与 MiniMax `guides/speech-to-text` 文档保持一致；模型需要在 workspace 中开通，否则 multipart 上传后会回 4xx。
+
+**§A.12.2 协议（HTTP REST + multipart + SSE）**
+
+- 端点：`https://api.minimax.cn/v1/speech_to_text`
+- Auth：`Authorization: Bearer <API_KEY>`（API Key 由用户在 §3.1.9 设置页输入，Keystore-wrapped 密文落盘 §5.11 `minimax_api_key_enc`——MiniMax ASR 与 LLM 共用 Key）
+- 请求：`POST multipart/form-data`，三字段
+  - `model = "asr-1.0"`
+  - `stream = "true"`（开启 SSE 增量返回）
+  - `file = <wav 文件>`，filename 必须以 `.wav` 结尾；服务端按 16kHz / mono / 16-bit PCM 解析
+- 响应：`text/event-stream`，逐行 `data: {...}`，常见两种事件：
+  - `data: {"delta":"今天"}` ← 增量文本，逐条累积；`onPartial` 回调触发
+  - `data: {"finish":true}` ← 收口事件，停止读取
+  - `data: {"error":{"type":..,"code":..,"message":..}}` ← 流中错误（按 §A.12.3 映射）
+- 录音场景：`openSession` 内部把 `appendAudio` 累积的 PCM 16kHz/mono/16-bit 写到临时 `.wav`（首个 chunk 写入 RIFF/WAVE 头），`finish` 一次性 POST
+
+**§A.12.3 错误映射**
+
+| 场景 | AppError | code |
+|------|----------|------|
+| HTTP 401 / 403 | `AsrAuthFailed` | `ASR_AUTH_FAILED` |
+| HTTP 429 | `AsrRateLimited` | `ASR_RATE_LIMITED` |
+| HTTP 400-499 其他 | `AsrBadRequest` | `ASR_BAD_REQUEST` |
+| HTTP 5xx / IOException / 网络断开 | `AsrUpstream` | `ASR_UPSTREAM` |
+| 流中 `error` 含 `auth` / `api key` 关键字 | `AsrAuthFailed` | `ASR_AUTH_FAILED` |
+| 流中 `error` 含 `throttl` / `rate limit` 关键字 | `AsrRateLimited` | `ASR_RATE_LIMITED` |
+| 流中 `error` 含 `invalid` / `bad request` 关键字 | `AsrBadRequest` | `ASR_BAD_REQUEST` |
+| 累积 `delta` 后空串 | `AsrEmptyTranscript` | `ASR_EMPTY_TRANSCRIPT` |
+| API Key 传空 | `AsrAuthFailed` | `ASR_AUTH_FAILED` |
+| 音频文件不存在 / 0 字节 | `AsrBadRequest` | `ASR_BAD_REQUEST` |
+
+**§A.12.4 客户端 Room schema（§5.11 `asr_config` v0.7.0）**
+
+- `asr_provider` / `asr_endpoint` / `asr_model` 列新增；写入 `minimax_realtime` / `REST_URL` / `MINIMAX_ASR_MODEL`
+- `api_key_enc` 不动；MiniMax ASR 与 LLM 共用 `minimax_api_key_enc`
+- `asr_config` 不在 §18 锁定列表，Migration 4→5 DROP+CREATE 是允许的 schema 变更路径
+- DiaryEntry `asrProvider` / `asrModel` 字段保留（diary_entry 在 §18 锁定列表），写入 `MINIMAX_ASR_PROVIDER` / `MINIMAX_ASR_MODEL`
+
+**§A.12.5 测试约束**
+
+- 测试用 `MockWebServer` + `MockResponse.setBody("data: {...}\n...")` 模拟 MiniMax SSE 响应
+- 覆盖 `delta × N → finish:true` 成功流 + `onPartial` 触发顺序
+- 覆盖 HTTP 401 → `AsrAuthFailed`、HTTP 429 → `AsrRateLimited`、HTTP 400 → `AsrBadRequest`
+- 覆盖流中 `error` 含 auth / rate_limit 关键字 → 对应 AppError
+- 覆盖空 `finish`（无 delta）→ `AsrEmptyTranscript`
+- 覆盖 API Key 空串 → `AsrAuthFailed`（不进 HTTP）
+- 覆盖音频文件不存在 → `AsrBadRequest`（不进 HTTP）
+- 覆盖 `SocketPolicy.DISCONNECT_AT_START` → `AsrUpstream`
+- `MiniMaxAsrClientLiveTest` 走 `-PMINIMAX_API_KEY` 显式开启；未提供 Key 必须 skip
+
+---
+
+### §A.13 MiniMax T2A（TTS，v2.3 / App 0.7.0 新增；客户端 WebSocket `t2a_v2` 封装）
+
+> 对应 PRD §3.1.9 / §11.15。0.7.0 起 TTS 可选 Provider 之一，默认 Provider；voice_id 硬编码为 `Cantonese_KindWoman`，不暴露 UI。客户端 BYOK 直连 MiniMax T2A endpoint。
+>
+> v2.3 起从 WebSocket 占位实现（`session.start` / `text.chunk` / `audio.delta` / `session.done`）切换为 MiniMax `t2a_v2` 协议族（`connected_success` / `task_start` / `task_started` / `task_continue` / `is_final` / `task_finish`），与 §A.12 ASR 协议家族保持一致；音频帧改 hex 解码，audio_setting 改 `pcm / 24000Hz / mono` 以匹配 `AndroidPcmSink`。
+
+**§A.13.1 上游固定项（hardcoded constants）**
+
+> ⚠️ **0.7.0 校验待办（`voice_id_validated=false` / `audio_format_validated=false`）**
+>
+> 下面 4 个常量依赖真实 MiniMax T2A 行为校验；当前仅有 Python 协议族 + Mock 测试覆盖，**真 Key 跑通前不能 100% 确认**。校验通过后请把这两个 `*_validated=false` 标志从本节删除，并在 §A.13.5 测试约束里补一行"LiveTest PASS 记录"。
+
+```kotlin
+// app/src/main/java/com/elder/data/tts/MiniMaxTtsClient.kt
+companion object {
+    const val MINIMAX_TTS_PROVIDER = "minimax"                 // §5.11 tts_provider 落库值
+    const val WS_URL = "wss://api.minimax.cn/ws/v1/t2a_v2"      // 必须带 _v2 后缀
+    const val MINIMAX_TTS_MODEL = "speech-2.8-hd"               // 与参考 Python 例子一致
+    const val MINIMAX_TTS_VOICE_ID = "Cantonese_KindWoman"      // UI 不暴露，PRD §3.1.9 v0.7.0 修订
+    const val SAMPLE_RATE = 24_000                               // 与 AndroidPcmSink 一致
+    const val BITRATE = 128_000                                  // PCM 无效字段，保留占位
+    const val AUDIO_FORMAT = "pcm"                               // 24kHz / mono / 16-bit
+}
+```
+
+> - `voice_id = "Cantonese_KindWoman"` 硬编码（**`voice_id_validated=false`**）：来自 PRD §3.1.9 v0.7.0 决议，与 MiniMax `faq/system-voice-id` 文档未对齐校验。Python 参考例子用的是 `male-qn-qingse`（普通话男声·清澈），**不能直接确认粤语 voice 叫 `Cantonese_KindWoman`**。
+>   - 真 Key 跑 `MiniMaxTtsClientLiveTest -PMINIMAX_TTS_API_KEY=...`：若 `task_failed` 含 `voice` / `invalid` 关键字 → 需查 MiniMax 文档替换；同步修改 `MINIMAX_TTS_VOICE_ID` 常量与 `asr_config.tts_voice_id` 落库值（已有用户数据需 Migration）。
+> - `audio_setting.format = "pcm"` + `sample_rate = 24_000` + `channel = 1`（**`audio_format_validated=false`**）：与 `AndroidPcmSink`（24kHz / mono / 16-bit）匹配，音频 hex 解码后直喂 sink，**零额外依赖**。
+>   - 真 Key 跑 LiveTest：若 `task_failed` 含 `audio_setting` / `format` / `sample_rate` 关键字 → 服务端拒绝此组合。两个回滚路径：
+>     - 方案 A：`AUDIO_FORMAT` 改 `"mp3"` + `SAMPLE_RATE` 改 `32_000`，新增 `MediaCodec` MP3 → PCM 解码器喂 `AndroidPcmSink.create(32_000)`。
+>     - 方案 B：保留 `format=pcm`，`SAMPLE_RATE` 改 `32_000`，`AndroidPcmSink.create(32_000)` 直喂（仅 `sample_rate` 不匹配）。
+> - endpoint / model 与 MiniMax T2A 文档 `guides/speech-t2a-websocket` 保持同一协议族；模型需在 workspace 中开通。
+
+**§A.13.2 协议（MiniMax T2A `t2a_v2` WebSocket）**
+
+- 端点：`wss://api.minimax.cn/ws/v1/t2a_v2`
+- Auth：`Authorization: Bearer <API_KEY>`（API Key 由用户在 §3.1.9 设置页输入，Keystore-wrapped 密文落盘 §5.11 `tts_minimax_api_key_enc`——MiniMax TTS 独立 Key，与 LLM/ASR 区分）
+- 流程（与 §A.12 SSE 风格一致的事件命名）：
+  1. 客户端 WebSocket 升级；服务端主动 push `{"event":"connected_success"}`
+  2. 客户端发 `{"event":"task_start", model, voice_setting, audio_setting}`
+  3. 服务端回 `{"event":"task_started"}`
+  4. 客户端发 `{"event":"task_continue", text}`
+  5. 服务端连续回流 `{"data":{"audio":"<hex>"}}` 音频块；hex 解码后写 `PcmSink`
+  6. 服务端发 `{"is_final":true}`（顶层字段，非嵌套）作为收口
+  7. 客户端发 `{"event":"task_finish"}`，再 close WebSocket
+- 失败事件：`{"event":"task_failed", error:{code,message}}` → 按 §A.13.3 映射
+
+**§A.13.3 错误映射**
+
+| 场景 | AppError | code |
+|------|----------|------|
+| WebSocket 握手 HTTP 401 / 403 | `TtsAuthFailed` | `TTS_AUTH_FAILED` |
+| `task_failed` 含 `auth` / `api key` / `401` / `403` 关键字 | `TtsAuthFailed` | `TTS_AUTH_FAILED` |
+| `task_failed` 含 `invalid` / `bad request` 关键字 | `TtsUpstream` | `TTS_UPSTREAM` |
+| `task_failed` 含 `throttl` / `rate limit` / `429` 关键字 | `TtsUpstream`（带 `429` code） | `TTS_UPSTREAM` |
+| WebSocket 失败 / server_error / 5xx / IOException | `TtsUpstream` | `TTS_UPSTREAM` |
+| 音频帧 hex 解析失败 | `TtsUpstream`（带"invalid hex"） | `TTS_UPSTREAM` |
+| 握手超时 / 文本推送后无 `is_final` 超时 | `TtsUpstream`（带"timeout"） | `TTS_UPSTREAM` |
+| API Key 传空 | `TtsAuthFailed` | `TTS_AUTH_FAILED` |
+
+> v0.7.0 暂不新增 `TTS_RATE_LIMITED`，沿用既有 `TTS_UPSTREAM`（与 PRD §6.4 一致；保持最小破坏面）。
+
+**§A.13.4 客户端 Room schema（§5.11 `asr_config` v0.7.0）**
+
+- `tts_provider` / `tts_endpoint` / `tts_model` / `tts_voice_id` / `tts_minimax_api_key_enc` / `tts_minimax_last_test_result` 列新增
+- `tts_voice_id` 写入 `MINIMAX_TTS_VOICE_ID`；UI 不暴露
+- `asr_config` 不在 §18 锁定列表，Migration 4→5 DROP+CREATE 是允许的 schema 变更路径
+
+**§A.13.5 测试约束**
+
+- 测试用 `MockWebServer` + `MockResponse.withWebSocketUpgrade(WebSocketListener)`，listener 在 `onOpen` 钩子里 `send("connected_success")` 启动流程
+- 覆盖 `connected_success → task_start → task_started → task_continue → audio.data × N → is_final → task_finish` 成功流 → 返回 `TtsResult`，sink.byteCount == 累积字节
+- 覆盖 WebSocket 握手 HTTP 401 → `TtsAuthFailed`
+- 覆盖 `task_failed` 含 auth 关键字 → `TtsAuthFailed`
+- 覆盖 API Key 空串 → `TtsAuthFailed`（不发 WS）
+- 覆盖 `voice_id` / `model` / `WS_URL` / `AUDIO_FORMAT` 与 §A.13.1 一致
+- `MiniMaxTtsClientLiveTest` 走 `-PMINIMAX_TTS_API_KEY` 显式开启（兜底 `MINIMAX_API_KEY`）；未提供 Key 必须 skip
+- **LiveTest PASS 记录**（真 Key 校验通过后填写，未填写则 §A.13.1 的 `*_validated=false` 警告不能删除）：
+  - 校验日期：____-__-__
+  - 校验人：____
+  - voice_id 实际可用：`____`（确认 `Cantonese_KindWoman` 或替换为新值）
+  - audio_setting 实际可用：`format=pcm / sample_rate=24000 / channel=1` ✅ / 替换为 `____`
+  - 失败事件 / 重试路径：无 / 详见 PR #____
+- `AppError.TtsUpstream` 失败时上层只展示 `assistant_text`，不重试 LLM（沿用 §A.11.4 TTS 失败策略）
+
+---
+
+### §A.14 v2.3 / App 0.7.0 Provider 切换统一约定
+
+> 对应 PRD §3.1.9。0.7.0 起 ASR / TTS 双 Provider 可切换，统一约束：
+
+- **`asr_provider` 取值**：`bailian`（默认回滚）/ `minimax_realtime`（默认）。
+- **`tts_provider` 取值**：`qwen`（默认回滚）/ `minimax`（默认）。
+- **ServiceLocator 工厂**：`asrClient(): AsrClient` / `ttsClient(): TtsClient` 按当前 `AsrConfig` 返回对应实例；ViewModel 在录音 / 播放前解析一次，不在 UI 层直接判断 Provider。
+- **UI 入口**：Settings → AI 服务 → 两个入口卡（语音识别 / 语音播报）→ 点击进入对应 Provider 子页（Provider 选项 + Key 输入 + 测试）。
+- **不暴露字段**：endpoint / model / voice_id 在 UI 不暴露；Provider 切换后字段从客户端硬编码常量同步到 `asr_config` 表。
+- **回滚路径**：千问 / 百炼作为可选 Provider 保留，老人切到 MiniMax 出问题时可在 Settings 切回。
