@@ -87,7 +87,12 @@ fun ElderSettingsScreen(
             )
 
             Column(modifier = Modifier.fillMaxSize()) {
-                SettingRow1Asr(configured = state.asrConfigured, onClick = onOpenAsr)
+                SettingRow1Asr(
+            configured = state.asrConfigured,
+            asrProviderLabel = state.asrProviderLabel,
+            ttsProviderLabel = state.ttsProviderLabel,
+            onClick = onOpenAsr,
+        )
                 Divider()
                 SettingRow2FontScale(current = state.fontScale, onPick = vm::setFontScale)
                 Divider()
@@ -131,10 +136,15 @@ fun ElderSettingsScreen(
 }
 
 @Composable
-private fun SettingRow1Asr(configured: Boolean, onClick: () -> Unit) {
+private fun SettingRow1Asr(
+    configured: Boolean,
+    asrProviderLabel: String,
+    ttsProviderLabel: String,
+    onClick: () -> Unit,
+) {
     SettingRow(
         title = stringResource(R.string.settings_asr),
-        subtitle = if (configured) stringResource(R.string.settings_asr_configured) else stringResource(R.string.settings_asr_not_configured),
+        subtitle = if (configured) stringResource(R.string.settings_asr_summary, asrProviderLabel, ttsProviderLabel) else stringResource(R.string.settings_asr_not_configured),
         onClick = onClick,
         trailing = {
             if (!configured) RedDot()

@@ -1,4 +1,4 @@
-// §3.1.8 老人端设置（隐藏入口，v3.0 MVP 版）
+// §3.1.8 老人端设置（v0.7.0：ASR/TTS Provider 摘要展示）
 package com.elder.android.screen.elder
 
 import android.app.Application
@@ -7,7 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.elder.android.BuildConfig
 import com.elder.android.data.AsrConfigRepository
 import com.elder.android.data.DeviceMetaRepository
+import com.elder.android.data.db.AsrProvider
 import com.elder.android.data.db.FontScale
+import com.elder.android.data.db.TtsProvider
 import com.elder.android.di.ServiceLocator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +21,8 @@ data class ElderSettingsUiState(
     val fontScale: FontScale = FontScale.DEFAULT,
     val ttsEnabled: Boolean = true,
     val asrConfigured: Boolean = false,
+    val asrProviderLabel: String = "",
+    val ttsProviderLabel: String = "",
     val showLogoutConfirm: Boolean = false,
     val loggedOut: Boolean = false,
     val versionName: String = BuildConfig.VERSION_NAME,
@@ -39,8 +43,30 @@ class ElderSettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             asrRepo.observe().collect { cfg ->
-                _uiState.update { it.copy(asrConfigured = cfg?.isConfigured == true) }
+                _uiState.update {
+                    it.copy(
+                        asrConfigured = cfg?.isConfigured == true,
+                        asrProviderLabel = providerLabel(cfg?.asrProvider, AsrProvider.BAILIAN),
+                        ttsProviderLabel = providerLabel(cfg?.ttsProvider, TtsProvider.MINIMAX),
+                    )
+                }
             }
+        }
+    }
+
+    private fun providerLabel(p: AsrProvider?, fallback: AsrProvider): String {
+        val effective = p ?: fallback
+        return when (effective) {
+            AsrProvider.BAILIAN -> "百炼"
+            AsrProvider.MINIMAX_REALTIME -> "MiniMax"
+        }
+    }
+
+    private fun providerLabel(p: TtsProvider?, fallback: TtsProvider): String {
+        val effective = p ?: fallback
+        return when (effective) {
+            TtsProvider.QWEN -> "千问 Kiki"
+            TtsProvider.MINIMAX -> "MiniMax"
         }
     }
 
@@ -64,7 +90,6 @@ class ElderSettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     fun confirmLogout() {
         viewModelScope.launch {
-            // §3.1.8 MVP：清本地 Room + 清 ASR 配置 + 跳主屏
             diaryRepo.clearAll()
             ServiceLocator.interviewRepo.clearAll()
             ServiceLocator.pendingDiaryRepo.clearAll()

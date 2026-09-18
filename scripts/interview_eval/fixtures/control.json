@@ -1,0 +1,11 @@
+{
+  "name": "control_no_history",
+  "description": "对照组：无 history 注入，验证 v1 与 v2 行为差异可控",
+  "elder_facts": [],
+  "recent_summaries": [],
+  "turns": [
+    {"elder": "嗯。"},
+    {"elder": "是。"},
+    {"elder": "老伴让我别出门。"}
+  ]
+}

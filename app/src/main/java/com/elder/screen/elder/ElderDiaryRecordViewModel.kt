@@ -10,6 +10,8 @@ import com.elder.android.data.AsrConfigRepository
 import com.elder.android.data.DeviceMetaRepository
 import com.elder.android.data.DiaryRepository
 import com.elder.android.data.asr.AsrApiClient
+import com.elder.android.data.asr.AsrClient
+import com.elder.android.data.asr.RealtimeAsrSession
 import com.elder.android.data.db.DiaryEntryEntity
 import com.elder.android.di.ServiceLocator
 import com.elder.android.error.AppError
@@ -37,12 +39,12 @@ data class DiaryRecordUiState(
 
 class ElderDiaryRecordViewModel(app: Application) : AndroidViewModel(app) {
     private val recorder: AudioRecorder = ServiceLocator.audioRecorder
-    private val api: AsrApiClient = ServiceLocator.asrApi
+    private val api: AsrApiClient = ServiceLocator.asrApi  // 兜底默认 Provider=bailian；运行时按 cfg.asrProvider 解析
     private val asrRepo: AsrConfigRepository = ServiceLocator.asrConfigRepo
     private val diaryRepo: DiaryRepository = ServiceLocator.diaryRepo
     private val metaRepo: DeviceMetaRepository = ServiceLocator.deviceMetaRepo
     private var lastAudioFile: File? = null
-    private var asrSession: AsrApiClient.RealtimeAsrSession? = null
+    private var asrSession: RealtimeAsrSession? = null
     private var tickerJob: Job? = null
     private var startJob: Job? = null
 
@@ -84,8 +86,9 @@ class ElderDiaryRecordViewModel(app: Application) : AndroidViewModel(app) {
                 return@launch
             }
 
+            val asr = ServiceLocator.asrClient(cfg.asrProvider)
             val session = try {
-                api.openSession(cfg.apiKey) { partial ->
+                asr.openSession(cfg.asrKey()) { partial ->
                     _uiState.update { it.copy(transcript = partial) }
                 }
             } catch (t: CancellationException) {
@@ -199,8 +202,9 @@ class ElderDiaryRecordViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             val startedAt = System.currentTimeMillis()
+            val asr = ServiceLocator.asrClient(cfg.asrProvider)
             val outcome = runCatching {
-                api.transcribe(apiKey = cfg.apiKey, audioFile = file)
+                asr.transcribe(apiKey = cfg.asrKey(), audioFile = file)
             }
             val result = outcome.getOrElse { t ->
                 handleProcessFailure(file, t)
@@ -215,6 +219,8 @@ class ElderDiaryRecordViewModel(app: Application) : AndroidViewModel(app) {
         result: com.elder.android.data.asr.AsrResult,
         latencyMs: Long = 0,
     ) {
+        val cfg = asrRepo.current()
+        val asr = ServiceLocator.asrClient(cfg?.asrProvider ?: com.elder.android.data.db.AsrProvider.BAILIAN)
         val text = result.text.trim()
         if (text.isBlank()) {
             handleProcessFailure(file, AppError.AsrEmptyTranscript())
@@ -233,8 +239,8 @@ class ElderDiaryRecordViewModel(app: Application) : AndroidViewModel(app) {
                 source = DiaryEntryEntity.Source.ASR_ORIGINAL,
                 audioPath = file.absolutePath,
                 durationMs = durationMs,
-                asrProvider = AsrApiClient.BAILIAN_PROVIDER,
-                asrModel = AsrApiClient.BAILIAN_MODEL,
+                asrProvider = asr.providerRaw,
+                asrModel = asr.model,
                 asrConfidence = result.confidence,
                 asrLatencyMs = latencyMs.toInt(),
                 createdAt = now,

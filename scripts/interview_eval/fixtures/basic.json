@@ -1,0 +1,12 @@
+{
+  "name": "basic_single_session",
+  "description": "E1-E6 单会话窦文涛技巧：老人讲和老伴去公园",
+  "elder_facts": [],
+  "recent_summaries": [],
+  "turns": [
+    {"elder": "今天没啥事，就在家待着。"},
+    {"elder": "也没干啥，就喝喝茶。"},
+    {"elder": "龙井，老伴泡的。"},
+    {"elder": "不累，挺高兴的。"}
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "cross_session_recall",
+  "description": "E6 + F 节跨会话回扣：history 注入老张下棋，要求 Agent 自然回扣",
+  "elder_facts": [
+    {"type": "person", "confidence": "high", "content": "邻居老张，常一起下棋"},
+    {"type": "place", "confidence": "high", "content": "每天早上在人民公园散步"}
+  ],
+  "recent_summaries": [
+    {"date": "昨天", "summary": "和老张在公园下棋，赢了两局"},
+    {"date": "前天", "summary": "和老伴去菜市场买了点青菜"}
+  ],
+  "turns": [
+    {"elder": "今天没啥事。"},
+    {"elder": "就在家待着。"}
+  ]
+}

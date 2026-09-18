@@ -19,6 +19,8 @@ data class InterviewUiState(
     val elapsedMs: Long = 0,
     val transcript: String? = null,
     val assistantText: String? = null,
+    val ackText: String? = null,                  // v0.6.0: A6 共情前置（≤10 字）；空串表示无 ack
+    val probeText: String? = null,                // v0.6.0: A2 追问（≤25 字）
     val draftText: String? = null,
     val draftSummary: String? = null,
     val ttsFailed: Boolean = false,

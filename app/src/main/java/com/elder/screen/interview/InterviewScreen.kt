@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -120,6 +121,8 @@ fun InterviewScreen(
 
                 AssistantCard(
                     text = state.assistantText ?: InterviewViewModel.GREETING,
+                    ackText = state.ackText,
+                    probeText = state.probeText,
                     modifier = Modifier.weight(0.42f),
                 )
 
@@ -196,19 +199,48 @@ fun InterviewScreen(
 }
 
 @Composable
-private fun AssistantCard(text: String, modifier: Modifier = Modifier) {
+private fun AssistantCard(
+    text: String,
+    ackText: String? = null,    // v0.6.0: A6 共情前置（次级色 + 较小字号）
+    probeText: String? = null,  // v0.6.0: A2 追问（主色 + 较大字号）
+    modifier: Modifier = Modifier,
+) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = BrandColor.CardWhite,
         shape = RoundedCornerShape(Corner.Card),
     ) {
-        Box(Modifier.fillMaxSize().padding(Spacing.Md), contentAlignment = Alignment.CenterStart) {
-            Text(
-                text = text,
-                fontSize = FontSize.body(FontLevel.XLARGE),
-                lineHeight = FontSize.TranscriptLineHeightSp.sp,
-                color = BrandColor.TextPrimary,
-            )
+        Box(
+            Modifier.fillMaxSize().padding(Spacing.Md),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            // v0.6.0: ack + probe 双段渲染；ack 在前用次级色，probe 在后用主色
+            if (!ackText.isNullOrBlank() || !probeText.isNullOrBlank()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (!ackText.isNullOrBlank()) {
+                        Text(
+                            text = ackText,
+                            fontSize = FontSize.body(FontLevel.LARGE),
+                            lineHeight = FontSize.TranscriptLineHeightSp.sp,
+                            color = BrandColor.TextSecondary,
+                        )
+                        Spacer(Modifier.width(Spacing.Xs))
+                    }
+                    Text(
+                        text = probeText.orEmpty(),
+                        fontSize = FontSize.body(FontLevel.XLARGE),
+                        lineHeight = FontSize.TranscriptLineHeightSp.sp,
+                        color = BrandColor.TextPrimary,
+                    )
+                }
+            } else {
+                Text(
+                    text = text,
+                    fontSize = FontSize.body(FontLevel.XLARGE),
+                    lineHeight = FontSize.TranscriptLineHeightSp.sp,
+                    color = BrandColor.TextPrimary,
+                )
+            }
         }
     }
 }
