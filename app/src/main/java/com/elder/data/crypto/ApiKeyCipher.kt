@@ -44,6 +44,10 @@ class ApiKeyCipher(context: Context) {
         private const val TAG = "ApiKeyCipher"
         const val KEY_API_KEY_ENC = "api_key"
         const val KEY_MINIMAX_API_KEY_ENC = "minimax_api_key"
+        const val KEY_TTS_MINIMAX_API_KEY_ENC = "tts_minimax_api_key"
+        // 对应 prd.md §5.11 v0.8.0 + AGENTS.md §A.15.3：千问 / DeepSeek LLM 独立 alias
+        const val KEY_QWEN_LLM_API_KEY_ENC = "qwen_llm_api_key"
+        const val KEY_DEEPSEEK_LLM_API_KEY_ENC = "deepseek_llm_api_key"
 
         /**
          * 兜底内存 prefs（仅在 Keystore 不可用时使用，重启即失）——

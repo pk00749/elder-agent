@@ -1,4 +1,6 @@
-// §3.1.9 ASR API 配置页 ViewModel（v3.0.1 §A.1.b：只剩百炼 API Key，WorkspaceId/model 硬编码）
+// §3.1.9 AI 服务配置页 ViewModel（v0.8.0 §A.15）
+// 顶层页承载 ASR / TTS / LLM 三 Provider 入口卡；每个 Provider 的 Key + 测试由 Provider 子页承载。
+// v0.8.0 起 LLM 顶层只显示 Provider 名称 + 「已/未配置」状态，Key 输入全部下沉到子页。
 package com.elder.android.screen.asr
 
 import android.app.Application
@@ -6,10 +8,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elder.android.data.AsrConfig
 import com.elder.android.data.AsrConfigRepository
-import com.elder.android.data.asr.AsrApiClient
-import com.elder.android.data.llm.LlmMessage
-import com.elder.android.data.llm.MiniMaxClient
-import com.elder.android.data.tts.TtsClient
 import com.elder.android.di.ServiceLocator
 import com.elder.android.error.AppError
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,30 +15,77 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
 
 data class AsrConfigUiState(
     val apiKey: String = "",
     val minimaxApiKey: String = "",
-    val isTesting: Boolean = false,
-    val isTestingMinimax: Boolean = false,
-    val isTestingTts: Boolean = false,
+    val ttsMinimaxApiKey: String = "",
+    val qwenLlmApiKey: String = "",
+    val deepseekLlmApiKey: String = "",
+    val asrProviderRaw: String = "",
+    val ttsProviderRaw: String = "",
+    val llmProviderRaw: String = "",
     val lastTestResult: String? = null,
     val minimaxLastTestResult: String? = null,
-    val ttsLastTestResult: String? = null,
+    val ttsMinimaxLastTestResult: String? = null,
+    val qwenLlmLastTestResult: String? = null,
+    val deepseekLlmLastTestResult: String? = null,
     val isSaving: Boolean = false,
     val savedOk: Boolean = false,
     val topError: String? = null,
 ) {
-    val allRequiredValid: Boolean get() = apiKey.isNotBlank() && minimaxApiKey.isNotBlank()
+    val asrProviderDisplay: String get() = displayAsrProvider(asrProviderRaw)
+    val ttsProviderDisplay: String get() = displayTtsProvider(ttsProviderRaw)
+    /** 对应 §A.15：LLM Provider 显示名（千问 qwen-plus / MiniMax M3 / DeepSeek deepseek-chat）。 */
+    val llmProviderDisplay: String get() = displayLlmProvider(llmProviderRaw)
+
+    /** 对应 prd.md §3.1.9 v0.8.0：三 Provider 全配齐才能保存。 */
+    val allRequiredValid: Boolean
+        get() = asrKey().isNotBlank() &&
+            llmKey().isNotBlank() &&
+            ttsKey().isNotBlank()
+
+    /** 当前 ASR Provider 所需 Key（与 AsrConfig.asrKey() 同语义）。 */
+    fun asrKey(): String = when (asrProviderRaw.ifBlank { "minimax_realtime" }) {
+        "bailian" -> apiKey
+        else -> minimaxApiKey   // minimax_realtime
+    }
+
+    /** 当前 LLM Provider 所需 Key（与 AsrConfig.llmKey() 同语义）。 */
+    fun llmKey(): String = when (llmProviderRaw.ifBlank { "minimax" }) {
+        "qwen" -> qwenLlmApiKey
+        "deepseek" -> deepseekLlmApiKey
+        else -> minimaxApiKey   // minimax
+    }
+
+    /** 当前 TTS Provider 所需 Key。 */
+    fun ttsKey(): String = when (ttsProviderRaw.ifBlank { "minimax" }) {
+        "qwen" -> apiKey
+        else -> ttsMinimaxApiKey    // minimax
+    }
+
+    companion object {
+        private fun displayAsrProvider(raw: String): String = when (raw.ifBlank { "minimax_realtime" }) {
+            "bailian" -> "百炼"
+            "minimax_realtime" -> "MiniMax"
+            else -> raw
+        }
+        private fun displayTtsProvider(raw: String): String = when (raw.ifBlank { "minimax" }) {
+            "qwen" -> "千问 Kiki"
+            "minimax" -> "MiniMax"
+            else -> raw
+        }
+        private fun displayLlmProvider(raw: String): String = when (raw.ifBlank { "minimax" }) {
+            "minimax" -> "MiniMax M3"
+            "qwen" -> "千问 qwen-plus"
+            "deepseek" -> "DeepSeek"
+            else -> raw
+        }
+    }
 }
 
 class AsrConfigViewModel(app: Application) : AndroidViewModel(app) {
     private val repo: AsrConfigRepository = ServiceLocator.asrConfigRepo
-    private val api: AsrApiClient = ServiceLocator.asrApi
-    private val minimax: MiniMaxClient = ServiceLocator.minimaxApi
-    private val tts: TtsClient = ServiceLocator.ttsClient
 
     private val _state = MutableStateFlow(AsrConfigUiState())
     val state: StateFlow<AsrConfigUiState> = _state.asStateFlow()
@@ -56,143 +101,63 @@ class AsrConfigViewModel(app: Application) : AndroidViewModel(app) {
             it.copy(
                 apiKey = c.apiKey,
                 minimaxApiKey = c.minimaxApiKey,
+                ttsMinimaxApiKey = c.ttsMinimaxApiKey,
+                qwenLlmApiKey = c.qwenLlmApiKey,
+                deepseekLlmApiKey = c.deepseekLlmApiKey,
+                asrProviderRaw = c.asrProvider.raw,
+                ttsProviderRaw = c.ttsProvider.raw,
+                llmProviderRaw = c.llmProvider.raw,
                 lastTestResult = c.lastTestResult,
                 minimaxLastTestResult = c.minimaxLastTestResult,
+                ttsMinimaxLastTestResult = c.ttsMinimaxLastTestResult,
+                qwenLlmLastTestResult = c.qwenLlmLastTestResult,
+                deepseekLlmLastTestResult = c.deepseekLlmLastTestResult,
             )
         }
     }
 
-    fun setApiKey(v: String) = _state.update { it.copy(apiKey = v) }
-
     fun setMinimaxApiKey(v: String) = _state.update { it.copy(minimaxApiKey = v) }
 
+    /** Provider 子页回填：AsrProviderScreen 调用，把 ASR Provider raw 写到 state。 */
+    fun setAsrProvider(raw: String) = _state.update { it.copy(asrProviderRaw = raw) }
+
+    /** Provider 子页回填：TtsProviderScreen 调用，把 TTS Provider raw 写到 state。 */
+    fun setTtsProvider(raw: String) = _state.update { it.copy(ttsProviderRaw = raw) }
+
+    /** Provider 子页回填：LlmProviderScreen 调用，把 LLM Provider raw 写到 state（§A.15）。 */
+    fun setLlmProvider(raw: String) = _state.update { it.copy(llmProviderRaw = raw) }
+
+    fun setTtsMinimaxApiKey(v: String) = _state.update { it.copy(ttsMinimaxApiKey = v) }
+
+    fun setApiKey(v: String) = _state.update { it.copy(apiKey = v) }
+
     fun dismissError() = _state.update { it.copy(topError = null) }
-
-    fun test(onDone: () -> Unit = {}) {
-            val s = _state.value
-        if (s.apiKey.isBlank()) {
-            _state.update { it.copy(topError = "请先填千问 API Key") }
-            return
-        }
-        viewModelScope.launch {
-            _state.update { it.copy(isTesting = true, topError = null) }
-            val sampleFile = createSineWaveSample(getApplication<Application>().cacheDir)
-            val result = runCatching { api.transcribe(apiKey = s.apiKey, audioFile = sampleFile) }
-            sampleFile.delete()
-            result.onSuccess { r ->
-                _state.update {
-                    it.copy(
-                        isTesting = false,
-                        lastTestResult = """{"text":"${r.text}","latency_ms":${System.currentTimeMillis() - (it.lastTestResult?.length ?: 0)}}""",
-                        topError = null,
-                    )
-                }
-            }.onFailure { e ->
-                // 空转写 = "服务端成功接收 + 音频非语音"，对"测试 API Key 是否通"来说已经算成功；不要让用户误以为失败
-                val (msg, topErr) = when (e) {
-                    is AppError.AsrEmptyTranscript ->
-                        "✓ 连接正常（测试音频无语音，正式录音可识别）" to null
-                    is AppError -> (e.message ?: "测试失败") to (e.message ?: "测试失败")
-                    else -> (e.message ?: "测试失败") to (e.message ?: "测试失败")
-                }
-                _state.update {
-                    it.copy(
-                        isTesting = false,
-                        lastTestResult = """{"error":"$msg"}""",
-                        topError = topErr,
-                    )
-                }
-            }
-            onDone()
-        }
-    }
-
-    fun testMinimax() {
-        val s = _state.value
-        if (s.minimaxApiKey.isBlank()) {
-            _state.update { it.copy(topError = "请先填 MiniMax API Key") }
-            return
-        }
-        viewModelScope.launch {
-            _state.update { it.copy(isTestingMinimax = true, topError = null) }
-            val started = System.currentTimeMillis()
-            val result = runCatching {
-                minimax.complete(
-                    apiKey = s.minimaxApiKey,
-                    messages = listOf(
-                        LlmMessage(
-                            role = "user",
-                            content = "只回复：连接成功",
-                        )
-                    ),
-                    tools = emptyList(),
-                )
-            }
-            result.onSuccess {
-                _state.update {
-                    it.copy(
-                        isTestingMinimax = false,
-                        minimaxLastTestResult = """{"text":"连接成功","latency_ms":${System.currentTimeMillis() - started}}""",
-                    )
-                }
-            }.onFailure { e ->
-                _state.update {
-                    it.copy(
-                        isTestingMinimax = false,
-                        minimaxLastTestResult = """{"error":"${e.message ?: "测试失败"}"}""",
-                        topError = e.message ?: "MiniMax 测试失败",
-                    )
-                }
-            }
-        }
-    }
-
-    fun testTts() {
-        val s = _state.value
-        if (s.apiKey.isBlank()) {
-            _state.update { it.copy(topError = "请先填千问 API Key") }
-            return
-        }
-        viewModelScope.launch {
-            _state.update { it.copy(isTestingTts = true, topError = null) }
-            val started = System.currentTimeMillis()
-            val result = runCatching { tts.speak(s.apiKey, "你好，我是老友。") }
-            result.onSuccess {
-                _state.update {
-                    it.copy(
-                        isTestingTts = false,
-                        ttsLastTestResult = """{"text":"语音连接正常","latency_ms":${System.currentTimeMillis() - started}}""",
-                    )
-                }
-            }.onFailure { e ->
-                _state.update {
-                    it.copy(
-                        isTestingTts = false,
-                        ttsLastTestResult = """{"error":"${e.message ?: "测试失败"}"}""",
-                        topError = e.message ?: "语音测试失败",
-                    )
-                }
-            }
-        }
-    }
 
     fun save(onDone: () -> Unit = {}) {
         val s = _state.value
         if (!s.allRequiredValid) {
-            _state.update { it.copy(topError = "请先填 API Key") }
+            _state.update { it.copy(topError = "请先填 4 份 Key") }
             return
         }
         viewModelScope.launch {
             _state.update { it.copy(isSaving = true, topError = null) }
             try {
-                repo.save(
-                    AsrConfig(
-                        apiKey = s.apiKey,
-                        lastTestResult = s.lastTestResult,
-                        minimaxApiKey = s.minimaxApiKey,
-                        minimaxLastTestResult = s.minimaxLastTestResult,
-                    )
+                val cfg = AsrConfig(
+                    apiKey = s.apiKey,
+                    minimaxApiKey = s.minimaxApiKey,
+                    ttsMinimaxApiKey = s.ttsMinimaxApiKey,
+                    qwenLlmApiKey = s.qwenLlmApiKey,
+                    deepseekLlmApiKey = s.deepseekLlmApiKey,
+                    asrProvider = com.elder.android.data.db.AsrProvider.fromRaw(s.asrProviderRaw.ifBlank { "minimax_realtime" }),
+                    ttsProvider = com.elder.android.data.db.TtsProvider.fromRaw(s.ttsProviderRaw.ifBlank { "minimax" }),
+                    llmProvider = com.elder.android.data.db.LlmProvider.fromRaw(s.llmProviderRaw.ifBlank { "minimax" }),
+                    lastTestResult = s.lastTestResult,
+                    minimaxLastTestResult = s.minimaxLastTestResult,
+                    ttsMinimaxLastTestResult = s.ttsMinimaxLastTestResult,
+                    qwenLlmLastTestResult = s.qwenLlmLastTestResult,
+                    deepseekLlmLastTestResult = s.deepseekLlmLastTestResult,
                 )
+                repo.save(cfg)
                 _state.update { it.copy(isSaving = false, savedOk = true) }
                 onDone()
             } catch (t: Throwable) {
@@ -200,59 +165,4 @@ class AsrConfigViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
     }
-
-    /**
-     * 生成一段 5 秒 440Hz 正弦波 WAV（PCM 16-bit/16kHz/mono）作为测试音频（§3.1.9 安全边界）
-     * Realtime 服务端按 PCM 接收；该测试音频无语音，回空文本由 test() 视为连接成功。
-     */
-    private fun createSineWaveSample(cacheDir: File): File {
-        val out = File(cacheDir, "asr_test_${System.currentTimeMillis()}.wav")
-        val sampleRate = 16000
-        val durationSec = 5
-        val samples = sampleRate * durationSec
-        val pcm = ShortArray(samples)
-        for (i in 0 until samples) {
-            val angle = i.toDouble() / sampleRate * 2.0 * Math.PI * 440.0
-            pcm[i] = (Math.sin(angle) * Short.MAX_VALUE * 0.3).toInt().toShort()
-        }
-        FileOutputStream(out).use { fos ->
-            writeWavHeader(fos, samples, sampleRate, 1)
-            for (s in pcm) {
-                fos.write(s.toInt() and 0xff)
-                fos.write((s.toInt() shr 8) and 0xff)
-            }
-        }
-        return out
-    }
-
-    private fun writeWavHeader(out: java.io.OutputStream, pcmSize: Int, sampleRate: Int, channels: Int) {
-        val byteRate = sampleRate * channels * 2
-        val dataSize = pcmSize * 2
-        val totalSize = 36 + dataSize
-        out.write("RIFF".toByteArray())
-        out.write(intToLe(totalSize))
-        out.write("WAVE".toByteArray())
-        out.write("fmt ".toByteArray())
-        out.write(intToLe(16))
-        out.write(shortToLe(1))                 // PCM
-        out.write(shortToLe(channels.toShort()))
-        out.write(intToLe(sampleRate))
-        out.write(intToLe(byteRate))
-        out.write(shortToLe((channels * 2).toShort()))  // block align
-        out.write(shortToLe(16))                // bits per sample
-        out.write("data".toByteArray())
-        out.write(intToLe(dataSize))
-    }
-
-    private fun intToLe(v: Int): ByteArray = byteArrayOf(
-        (v and 0xff).toByte(),
-        ((v shr 8) and 0xff).toByte(),
-        ((v shr 16) and 0xff).toByte(),
-        ((v shr 24) and 0xff).toByte(),
-    )
-
-    private fun shortToLe(v: Short): ByteArray = byteArrayOf(
-        (v.toInt() and 0xff).toByte(),
-        ((v.toInt() shr 8) and 0xff).toByte(),
-    )
 }

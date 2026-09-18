@@ -5,17 +5,24 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elder.android.agent.AgentTurnResult
+import com.elder.android.agent.DiarySummary
+import com.elder.android.agent.ElderFact
 import com.elder.android.agent.InterviewAgent
 import com.elder.android.audio.AudioRecorder
 import com.elder.android.data.AsrConfig
 import com.elder.android.data.AsrConfigRepository
 import com.elder.android.data.DiaryRepository
 import com.elder.android.data.InterviewRepository
+import com.elder.android.data.llm.LlmCredentials
 import com.elder.android.data.InterviewSession
 import com.elder.android.data.InterviewStatus
 import com.elder.android.data.InterviewTurn
 import com.elder.android.data.PendingDiaryRepository
 import com.elder.android.data.asr.AsrApiClient
+import com.elder.android.data.asr.AsrClient
+import com.elder.android.data.asr.RealtimeAsrSession
+import com.elder.android.data.db.AsrProvider
+import com.elder.android.data.db.TtsProvider
 import com.elder.android.data.db.DiaryEntryEntity
 import com.elder.android.data.tts.TtsClient
 import com.elder.android.di.ServiceLocator
@@ -38,8 +45,8 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
     private val diaryRepo: DiaryRepository = ServiceLocator.diaryRepo
     private val metaRepo = ServiceLocator.deviceMetaRepo
     private val recorder: AudioRecorder = ServiceLocator.audioRecorder
-    private val asr: AsrApiClient = ServiceLocator.asrApi
-    private val tts: TtsClient = ServiceLocator.ttsClient
+    private val asr: AsrApiClient = ServiceLocator.asrApi   // 兜底 Provider=bailian；运行时按 config.asrProvider 解析
+    private val tts: TtsClient = ServiceLocator.ttsClient    // 兜底 Provider=qwen；运行时按 config.ttsProvider 解析
     private val agent: InterviewAgent = ServiceLocator.interviewAgent
 
     private val _state = MutableStateFlow(InterviewUiState())
@@ -52,11 +59,21 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
     private var ticker: Job? = null
     private var work: Job? = null
 
+    // v0.6.0 注入：最近 3 天 diary summary + 长期事实表
+    // PR2.3 仅加载暂存；PR2.4 接入 agent.respond(recentSummaries, elderFacts) 注入 system prompt。
+    private var recentSummaries: List<DiarySummary> = emptyList()
+    private var elderFacts: List<ElderFact> = emptyList()
+
     fun onEnter() {
         work?.cancel()
         work = viewModelScope.launch {
             config = configRepo.current()
             ttsEnabled = metaRepo.ensureInitialized().ttsEnabled
+            // v0.6.0：进入访谈屏时并发加载 memory context（recent_summaries + elder_facts）
+            // PR2.4 会把这两个字段传入 agent.respond(apiKey, session, text, recentSummaries, elderFacts)
+            val today = LocalDate.today()
+            recentSummaries = ServiceLocator.recentSummaryLoader.loadRecentSummaries(today)
+            elderFacts = ServiceLocator.elderFactRepo.loadAllForInjection()
             val existing = interviewRepo.active()
             val session = existing ?: interviewRepo.create()
             if (existing?.status == InterviewStatus.REVIEWING) {
@@ -111,9 +128,10 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
             }
             startTicker()
             asrJob = viewModelScope.launch {
-                var connected: AsrApiClient.RealtimeAsrSession? = null
+                var connected: RealtimeAsrSession? = null
                 try {
-                    val opened = asr.openSession(credentials.apiKey, bridge::observePartial)
+                    val asr = ServiceLocator.asrClient(credentials.asrProvider)
+                    val opened = asr.openSession(credentials.asrKey(), bridge::observePartial)
                     connected = opened
                     bridge.attach(opened)
                     connected = null
@@ -167,19 +185,21 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
 
     private suspend fun processAudio(
         file: File,
-        liveSession: AsrApiClient.RealtimeAsrSession?,
+        liveSession: RealtimeAsrSession?,
     ) {
         val credentials = config ?: return fail(AppError.AsrNotConfigured())
+        val asr = ServiceLocator.asrClient(credentials.asrProvider)
+        val asrKey = credentials.asrKey()
         val asrStartedAt = System.currentTimeMillis()
         val asrResult = try {
-            liveSession?.finish() ?: asr.transcribe(credentials.apiKey, file)
+            liveSession?.finish() ?: asr.transcribe(asrKey, file)
         } catch (t: CancellationException) {
             throw t
         } catch (e: AppError.AsrAuthFailed) {
             file.delete()
             return fail(e)
         } catch (_: Throwable) {
-            runCatching { asr.transcribe(credentials.apiKey, file) }
+            runCatching { asr.transcribe(asrKey, file) }
                 .getOrElse { return degrade(file) }
         } finally {
             liveSession?.close()
@@ -193,8 +213,9 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         val session = _state.value.session ?: return degrade(file)
         val llmStartedAt = System.currentTimeMillis()
         val turnsWithCurrent = session.turns.map(InterviewTurn::elderText) + text
+        // v0.6.0：willFinalize 仅基于 isExplicitClose + turn 数（dimensionCount 已 deprecated）；
+        // C1 维度判定由 InterviewAgent.respond() 内部 coveredDimensions 控制。
         val willFinalize = com.elder.android.agent.AgentSafety.isExplicitClose(text) ||
-            com.elder.android.agent.AgentSafety.dimensionCount(turnsWithCurrent) >= 2 ||
             session.turns.size + 1 >= InterviewAgent.MAX_TURNS
         val speech = StreamingSpeechBuffer(
             apiKey = credentials.apiKey,
@@ -203,8 +224,21 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
             onFailure = { _state.update { it.copy(ttsFailed = true) } },
         )
         _state.update { it.copy(assistantText = "") }
+        // v0.8.0 §A.15：构造 LlmCredentials；provider 路由由 LlmClientFactory 完成
+        val llmCredentials = LlmCredentials(
+            provider = credentials.llmProvider,
+            minimaxApiKey = credentials.minimaxApiKey,
+            qwenApiKey = credentials.qwenLlmApiKey,
+            deepseekApiKey = credentials.deepseekLlmApiKey,
+        )
         val result = runCatching {
-            agent.respond(credentials.minimaxApiKey, session, text) { delta ->
+            agent.respond(
+                credentials = llmCredentials,
+                session = session,
+                elderText = text,
+                recentSummaries = recentSummaries,   // v0.6.0 §F1
+                elderFacts = elderFacts,             // v0.6.0 §F4
+            ) { delta ->
                 _state.update { it.copy(assistantText = it.assistantText.orEmpty() + delta) }
                 speech.onDelta(delta, allowStreaming = !willFinalize)
             }
@@ -221,6 +255,8 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
                     it.copy(
                         session = updated,
                         assistantText = result.value.assistantText,
+                        ackText = result.value.ackText,        // v0.6.0 A6
+                        probeText = result.value.probeText,    // v0.6.0 A2
                         pendingSaved = false,
                     )
                 }
@@ -318,8 +354,8 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
                     source = DiaryEntryEntity.Source.ASR_ORIGINAL,
                     audioPath = session.turns.lastOrNull()?.audioPath.orEmpty(),
                     durationMs = session.turns.sumOf { it.durationMs },
-                    asrProvider = AsrApiClient.BAILIAN_PROVIDER,
-                    asrModel = AsrApiClient.BAILIAN_MODEL,
+                    asrProvider = asr.providerRaw,
+                    asrModel = asr.model,
                     asrConfidence = null,
                     asrLatencyMs = null,
                     createdAt = now,
