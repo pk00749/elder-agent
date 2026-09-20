@@ -1,0 +1,14 @@
+{
+  "name": "remember_fact_active",
+  "description": "F3 主动记忆：老人首次提及儿子名字，要求 Agent 调 remember_fact",
+  "elder_facts": [],
+  "recent_summaries": [],
+  "turns": [
+    {"elder": "我儿子叫张伟，在二中当老师。"},
+    {"elder": "嗯，他挺忙的。"},
+    {"elder": "周末才能回来。"}
+  ],
+  "expected_facts": [
+    {"type": "person", "content": "儿子叫张伟，在二中当老师"}
+  ]
+}

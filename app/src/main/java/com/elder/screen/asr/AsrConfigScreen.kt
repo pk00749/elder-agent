@@ -1,255 +1,146 @@
-// §3.1.9 ASR API 配置页（v3.0.1 §A.1.b：只剩百炼 API Key；WorkspaceId/model 卡片只读展示）
+// §3.1.9 AI 服务配置页（v0.7.0 §A.14 + v0.8.0 §A.15 + v0.8.1 整改）
+// v0.8.1 整改：
+//   - 顶层改只读状态总览（§A.15.3 设计意图）：三张入口卡 + 状态；无 OutlinedTextField，无保存按钮
+//   - 删 LastTestResult（测试发生在子页，顶层显示会误导）
+//   - 顶部 hint 改为按缺口 Provider 动态列出
+//   - 每张入口卡右侧根据是否已配置显示红点
 package com.elder.android.screen.asr
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elder.android.R
-import com.elder.android.data.asr.AsrApiClient.Companion.BAILIAN_MODEL
-import com.elder.android.data.asr.AsrApiClient.Companion.BAILIAN_WORKSPACE_ID
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
-import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
-import com.elder.android.ui.component.ElderToast
 
-@Composable
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun AsrConfigScreen(
     onBack: () -> Unit,
+    onOpenAsrProvider: () -> Unit,
+    onOpenTtsProvider: () -> Unit,
+    onOpenLlmProvider: () -> Unit,
     vm: AsrConfigViewModel = viewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(state.savedOk) {
-        if (state.savedOk) {
-            // §3.1.9：保存后回主屏
-            onBack()
-        }
-    }
-
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = BrandColor.CardWhite,
-    ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .imePadding(),
-            ) {
+    Surface(modifier = Modifier.fillMaxSize(), color = BrandColor.CardWhite) {
+        Column(modifier = Modifier.fillMaxSize().imePadding()) {
             TopAppBar(
-                title = { Text(stringResource(R.string.asr_config_title), fontSize = FontSize.TitleDefaultSp.sp, fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        stringResource(R.string.asr_config_title),
+                        fontSize = FontSize.TitleDefaultSp.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
                 navigationIcon = {
                     IconButton(
                         onClick = onBack,
                         modifier = Modifier.size(Size.TouchTargetMin),
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back),
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BrandColor.CardWhite,
-                ),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
             )
 
-            var showAdvanced by remember { mutableStateOf(false) }
             LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = Spacing.Md),
+                modifier = Modifier.weight(1f).padding(horizontal = Spacing.Md),
                 verticalArrangement = Arrangement.spacedBy(Spacing.Md),
                 contentPadding = PaddingValues(vertical = Spacing.Md),
             ) {
                 item { HeaderCard() }
-                item {
-                    TextButton(onClick = { showAdvanced = !showAdvanced }) {
-                        Text(
-                            text = stringResource(
-                                if (showAdvanced) R.string.asr_config_advanced_hide
-                                else R.string.asr_config_advanced_show,
-                            ),
-                            color = BrandColor.TextSecondary,
-                            fontSize = FontSize.BodySmallSp.sp,
+                // v0.8.1 整改：按缺口 Provider 动态列出（替代"请补全..."静态文案）
+                if (!state.asrConfigured || !state.ttsConfigured || !state.llmConfigured) {
+                    item {
+                        MissingProvidersHint(
+                            missingAsr = !state.asrConfigured,
+                            missingTts = !state.ttsConfigured,
+                            missingLlm = !state.llmConfigured,
                         )
                     }
                 }
-                if (showAdvanced) {
-                    item { BailianConfigCard() }
-                }
                 item {
-                    LabeledField(
-                        label = "千问 " + stringResource(R.string.asr_config_api_key),
-                        value = state.apiKey,
-                        onChange = vm::setApiKey,
-                        placeholder = stringResource(R.string.asr_config_api_key_placeholder),
-                        isPassword = true,
-                        keyboardType = KeyboardType.Password,
+                    ProviderEntryCard(
+                        title = stringResource(R.string.asr_config_card_asr_title),
+                        subtitle = stringResource(
+                            R.string.asr_config_card_asr_subtitle,
+                            state.asrProviderDisplay,
+                        ),
+                        onClick = onOpenAsrProvider,
+                        showRedDot = !state.asrConfigured,
                     )
                 }
                 item {
-                    TestButton(
-                        isLoading = state.isTesting,
-                        enabled = state.apiKey.isNotBlank() && !state.isTesting,
-                        onClick = { vm.test() },
+                    ProviderEntryCard(
+                        title = stringResource(R.string.asr_config_card_tts_title),
+                        subtitle = stringResource(
+                            R.string.asr_config_card_tts_subtitle,
+                            state.ttsProviderDisplay,
+                        ),
+                        onClick = onOpenTtsProvider,
+                        showRedDot = !state.ttsConfigured,
                     )
                 }
                 item {
-                    TestButton(
-                        isLoading = state.isTestingTts,
-                        enabled = state.apiKey.isNotBlank() && !state.isTestingTts,
-                        label = stringResource(R.string.asr_config_test_tts),
-                        onClick = { vm.testTts() },
-                    )
-                }
-                // v3.0.1 §A.1.b：顶部 ✓ 已升级为真 TextButton 调 vm.save()，正文不再重复"保存"按钮
-                state.lastTestResult?.let {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(BrandColor.BgGray, RoundedCornerShape(Corner.Card))
-                                .padding(Spacing.Md),
-                        ) {
-                            Text(
-                                stringResource(R.string.asr_config_last_test, it),
-                                fontSize = FontSize.BodySmallSp.sp,
-                                color = BrandColor.TextSecondary,
-                            )
-                        }
-                    }
-                }
-                state.ttsLastTestResult?.let {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(BrandColor.BgGray, RoundedCornerShape(Corner.Card))
-                                .padding(Spacing.Md),
-                        ) {
-                            Text(
-                                stringResource(R.string.asr_config_last_test, it),
-                                fontSize = FontSize.BodySmallSp.sp,
-                                color = BrandColor.TextSecondary,
-                            )
-                        }
-                    }
-                }
-                item {
-                    LabeledField(
-                        label = stringResource(R.string.asr_config_minimax_api_key),
-                        value = state.minimaxApiKey,
-                        onChange = vm::setMinimaxApiKey,
-                        placeholder = stringResource(R.string.asr_config_minimax_api_key_placeholder),
-                        isPassword = true,
-                        keyboardType = KeyboardType.Password,
-                    )
-                }
-                item {
-                    TestButton(
-                        isLoading = state.isTestingMinimax,
-                        enabled = state.minimaxApiKey.isNotBlank() && !state.isTestingMinimax,
-                        label = stringResource(R.string.asr_config_test_minimax),
-                        onClick = { vm.testMinimax() },
-                    )
-                }
-                state.minimaxLastTestResult?.let {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(BrandColor.BgGray, RoundedCornerShape(Corner.Card))
-                                .padding(Spacing.Md),
-                        ) {
-                            Text(
-                                stringResource(R.string.asr_config_last_test, it),
-                                fontSize = FontSize.BodySmallSp.sp,
-                                color = BrandColor.TextSecondary,
-                            )
-                        }
-                    }
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(horizontal = Spacing.Md, vertical = Spacing.Md),
-            ) {
-                Button(
-                    onClick = vm::save,
-                    enabled = state.allRequiredValid,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(Size.PrimaryButtonHeight),
-                    shape = RoundedCornerShape(Corner.Button),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = BrandColor.Brand500,
-                        contentColor = BrandColor.CardWhite,
-                        disabledContainerColor = BrandColor.BgGray,
-                    ),
-                ) {
-                    Text(
-                        text = stringResource(R.string.common_save),
-                        fontSize = FontSize.button(),
-                        fontWeight = FontWeight.Bold,
+                    ProviderEntryCard(
+                        title = stringResource(R.string.asr_config_card_llm_title),
+                        subtitle = stringResource(
+                            R.string.asr_config_card_llm_subtitle,
+                            state.llmProviderDisplay,
+                            if (state.llmConfigured)
+                                stringResource(R.string.settings_asr_configured)
+                            else
+                                stringResource(R.string.settings_asr_not_configured),
+                        ),
+                        onClick = onOpenLlmProvider,
+                        showRedDot = !state.llmConfigured,
                     )
                 }
             }
         }
-    }
-
-    state.topError?.let { msg ->
-        ElderToast(
-            message = msg,
-            onDismiss = vm::dismissError,
-        )
     }
 }
 
@@ -260,7 +151,7 @@ private fun HeaderCard() {
         color = BrandColor.BgGray,
         shape = RoundedCornerShape(Corner.Card),
     ) {
-       Text(
+        Text(
             stringResource(R.string.asr_config_header),
             modifier = Modifier.padding(Spacing.Md),
             fontSize = FontSize.body(),
@@ -269,81 +160,90 @@ private fun HeaderCard() {
     }
 }
 
-/** v3.0.1 §A.1.b：WorkspaceId + model 只读展示，UI 不能再改 */
+/**
+ * v0.8.1 整改：按缺口 Provider 动态列出（取代"请补全各 Provider 所需 API Key 后再保存"）。
+ * 老人一眼看到还差哪几个，比静态文案更明确。
+ */
 @Composable
-private fun BailianConfigCard() {
+private fun MissingProvidersHint(missingAsr: Boolean, missingTts: Boolean, missingLlm: Boolean) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = BrandColor.BgGray,
+        color = BrandColor.NetYellow,
         shape = RoundedCornerShape(Corner.Card),
     ) {
-        Column(
-            modifier = Modifier.padding(Spacing.Md),
-            verticalArrangement = Arrangement.spacedBy(Spacing.Xs),
-        ) {
-            Text(stringResource(R.string.asr_config_provider), fontSize = FontSize.body(), color = BrandColor.TextPrimary)
-            Text(stringResource(R.string.asr_config_model, BAILIAN_MODEL), fontSize = FontSize.BodySmallSp.sp, color = BrandColor.TextSecondary)
-            Text(stringResource(R.string.asr_config_workspace_id, BAILIAN_WORKSPACE_ID), fontSize = FontSize.BodySmallSp.sp, color = BrandColor.TextSecondary)
+        Column(modifier = Modifier.padding(Spacing.Md)) {
+            Text(
+                text = stringResource(R.string.asr_config_missing_title),
+                fontSize = FontSize.body(),
+                fontWeight = FontWeight.Bold,
+                color = BrandColor.TextPrimary,
+            )
+            if (missingAsr) Text("• ${stringResource(R.string.asr_config_card_asr_title)}", fontSize = FontSize.body())
+            if (missingTts) Text("• ${stringResource(R.string.asr_config_card_tts_title)}", fontSize = FontSize.body())
+            if (missingLlm) Text("• ${stringResource(R.string.asr_config_card_llm_title)}", fontSize = FontSize.body())
         }
     }
 }
 
 @Composable
-private fun LabeledField(
-    label: String,
-    value: String,
-    onChange: (String) -> Unit,
-    placeholder: String = "",
-    isPassword: Boolean = false,
-    keyboardType: KeyboardType = KeyboardType.Text,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.Xs)) {
-        Text(label, fontSize = FontSize.body(), color = BrandColor.TextPrimary)
-        OutlinedTextField(
-            value = value,
-            onValueChange = onChange,
-            placeholder = { Text(placeholder, fontSize = FontSize.caption(), color = BrandColor.TextSecondary) },
-            singleLine = true,
-            visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = FontSize.BodyInputSp.sp),
-            modifier = Modifier.fillMaxWidth(),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = BrandColor.CardWhite,
-                unfocusedContainerColor = BrandColor.CardWhite,
-                focusedIndicatorColor = BrandColor.Brand500,
-            ),
-        )
-    }
-}
-
-@Composable
-private fun TestButton(
-    isLoading: Boolean,
-    enabled: Boolean,
-    label: String = "",
+private fun ProviderEntryCard(
+    title: String,
+    subtitle: String,
     onClick: () -> Unit,
+    showRedDot: Boolean = false,
 ) {
-    OutlinedButton(
+    Surface(
         onClick = onClick,
-        enabled = enabled && !isLoading,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(Size.SecondaryButtonHeight),
-        shape = RoundedCornerShape(Corner.Button),
-        colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = BrandColor.Brand500,
-            disabledContentColor = BrandColor.TextSecondary,
-        ),
+        modifier = Modifier.fillMaxWidth(),
+        color = BrandColor.CardWhite,
+        shape = RoundedCornerShape(Corner.Card),
+        border = BorderStroke(1.dp, BrandColor.BgGray),
     ) {
-        if (isLoading) {
-            CircularProgressIndicator(color = BrandColor.Brand500)
-        } else {
-            Text(
-                label.ifBlank { stringResource(R.string.asr_config_test) },
-                fontSize = FontSize.body(FontLevel.LARGE),
-                fontWeight = FontWeight.Bold,
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = Size.ListRowMinHeight)
+                .padding(horizontal = Spacing.Md, vertical = Spacing.Sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    title,
+                    fontSize = FontSize.body(),
+                    fontWeight = FontWeight.Bold,
+                    color = BrandColor.TextPrimary,
+                )
+                Text(
+                    subtitle,
+                    fontSize = FontSize.caption(),
+                    color = BrandColor.TextSecondary,
+                )
+            }
+            if (showRedDot) {
+                RedDot()
+                Spacer8()
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = BrandColor.TextSecondary,
+                modifier = Modifier.size(Size.IconMd),
             )
         }
     }
+}
+
+@Composable
+private fun RedDot() {
+    Box(
+        modifier = Modifier
+            .size(Size.WarningDotSize)
+            .clip(CircleShape)
+            .background(BrandColor.Error500),
+    )
+}
+
+@Composable
+private fun Spacer8() {
+    androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(Spacing.Sm))
 }

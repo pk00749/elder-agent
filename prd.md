@@ -3,7 +3,7 @@
 > 文档版本：v3.0
 > 文档状态：定稿
 > 当前已交付基线：v3.0.1 / App 0.4.0
-> 当前目标发布版本：0.5.0
+> 当前目标发布版本：0.7.0
 > 品牌：老友
 > 平台：Android App（不再做微信小程序）
 > 目标读者：产品 / 工程 / 测试
@@ -21,110 +21,48 @@
 | v3.0 | 2026-09-05 | Codex | **MVP 范围重定**：老人端完全离线可跑——服务端 / 家属端整段推迟到 v2.x；MVP 仅保留 §3.1.2 单次录音 → ASR → 本地日记 + 新增 §3.1.9 ASR API 配置页；§3.1.1 / §3.1.3 / §3.1.4 / §3.1.6 / §3.2 / §5（服务端集合）/ §6 全部标记 MVP-DEFER；§5 改为以本地 Room 表为真源；§0 / §1 / §10 / §11 同步精简 |
 | v3.0.1 | 2026-09-06 | Codex | **ASR 切到阿里百炼 Qwen-Audio-Realtime Android SDK**（非 v3.0 自建 m4a WS duplex）：模型 `qwen-audio-3.0-realtime-flash`，AAR 落 `app/libs/`，SDK adapter 模式封装在 `app/data/asr/`；§A.8 整体重写；§3.1.2 录音改 `AudioRecord` PCM 16 kHz / 单声道 / 16-bit 流式 `updateAudio()`，进入录音屏即开始、底部"正在录音"+"停止录音"两按钮、正文实时显示返回文字、60 s 硬限；§3.1.5 主屏按钮文案改为"点击开始写日志"；§3.1.7 移除"▶ 重播自己语音"（SDK 流式消费，无 audio 文件落地）；§3.1.9 ASR 配置页：Provider 只读（百炼 / qwen-audio-3.0-realtime-flash / workspaceId），单字段 API Key，顶部 ✓ 升级为真 `TextButton` 调 `vm.save()`，删除正文"保存"按钮，"测试一下"改走 SDK 流式 + 5 s 合成 PCM；§11.28 11.28.1 / 11.28.2 / 11.28.3 / 11.28.5 同步更新；§9 加 D7（`nls_config.modalities = ["text"]`，MVP 关闭 SDK 音频输出） |
 | v0.5.0 | 2026-09-14 | Codex | **设定 App 0.5.0 目标**：从 v3.0.1 的单次录音写日记升级为本地 Agent 多轮访谈；ASR 使用阿里千问 Realtime、LLM 使用 MiniMax M3、TTS 使用 `qwen3-tts-flash-realtime` + 音色 `Kiki`；0.5.0 不做 Gateway，沿用用户自填 Key 直连；Agent 状态机、会话状态、安全关键词和本地工具运行在 Android；0.5.0 不承诺离线 Agent；同步新增 D8-D12 架构决策并启用 §3.1.4 / §3.1.6 |
+| v0.7.0 | 2026-09-18 | Codex | **设定 App 0.7.0 目标**：老人端 Settings「AI 服务」从单 Provider（千问）升级为 ASR/TTS 双 Provider 可切换
+| v0.8.0 | 2026-09-19 | Codex | **AI 服务 LLM Provider 可切换**：Settings「AI 服务」新增「大语言模型」入口卡 + LLM 子页，Provider 选项：`千问 qwen-plus`（OpenAI 兼容 dashscope）/ `MiniMax M3`（默认，回滚路径）/ `DeepSeek deepseek-chat`（api.deepseek.com）；新增 `QwenLlmClient` / `DeepSeekLlmClient`（OpenAI 兼容协议），`MiniMaxClient` 不动；`asr_config` Migration 5→6 增加 `llm_provider` / `llm_endpoint` / `llm_model` / `qwen_llm_api_key_enc` / `qwen_llm_last_test_result` / `deepseek_llm_api_key_enc` / `deepseek_llm_last_test_result` 列；§3.1.9 / §5.11 / §A.11.1 / AGENTS.md §A.15 同步修订；不动服务端 / 家属端 / §3.1.4 行为约束 / Hermes 记忆层；按 §16 / §17 与客户端代码同 PR 合并提交（产品评审通过为前置） |：ASR 支持 `bailian`（千问百炼）/`minimax_realtime`（MiniMax Realtime），TTS 支持 `qwen`（千问 `Kiki`）/`minimax`（MiniMax `Cantonese_KindWoman`）；**默认 Provider = MiniMax ASR + MiniMax TTS**，千问作为可选回滚路径保留；MiniMax LLM 不动；不动服务端 / 家属端 / 记忆层 / §3.1.4 行为约束；AGENTS.md 新增 §A.12（MiniMax Realtime ASR）+ §A.13（MiniMax T2A WebSocket）+ §18 「0.7.0 例外」；§3.1.9 / §5.11 / §6.4 / §11.15 / §11.28.2 / §A.11.1 同步修订；`asr_config` 走 Migration 4→5 DROP+CREATE 强制重输 4 份 Key（`api_key_enc` 千问共用 / `minimax_api_key_enc` MiniMax LLM+ASR 共用 / `tts_minimax_api_key_enc` MiniMax TTS 独立）。 |
+| v0.6.0 | 2026-09-17 | Codex | **设定 App 0.6.0 目标**：在 0.5.0 基础上让访谈 Agent 学习窦文涛式访谈手法（先共情命名情绪、再用细节阶梯追问）并加 Hermes 风格纯 Room 记忆层（`elder_facts` 表 + `remember_fact` / `search_memory` 工具 + 仅 `save_diary` 后 background learning + 三块 system prompt 注入 `<elder-facts>` / `<recent-summaries>` / `<memory-policy>`）；AGENTS.md §A.11 范围内，客户端 Kotlin 实现；`prd.md §3.1.4` 修订：A6 共情前置 + A4 澄清 + C1 修订；新增 §3.1.4.E 访谈技巧 E1–E6、§3.1.4.F 记忆层 F1–F7；纯文本边界：不引 embedding / 不引 FTS / 不引 MD 文件 / 不引新 SDK；对照脚本评分验收；走修订记录 + 产品评审门后合入 |
 
 
 ---
 
 ## 0. 一页纸
 
-### 0.1 0.5.0 版本目标（当前）
+### 0.7 0.7.0 版本目标（当前）
 
-**目标**：把老人端从“单次录音 → ASR → 本地日记”升级为“本地 Agent 多轮访谈 → 在线模型推理 → 总结并保存日记”。
+> **目标**：在 0.6.0 基础上把老人端 Settings「AI 服务」从单 Provider 升级为 ASR/TTS 双 Provider 可切换，默认切换到 MiniMax ASR + MiniMax TTS（音色 `Cantonese_KindWoman`）；LLM 仍是 MiniMax M3；不动服务端 / 家属端 / §3.1.4 行为约束 / Hermes 记忆层。
 
 **目标链路**
 
 ```text
 老人说话
-  -> 千问 Realtime ASR（在线）
+  -> Provider-asr(MiniMax Realtime / 百炼) ASR（在线）   <-- v0.7.0 切换
   -> Android 本地 Agent 状态机 + 关键词安全规则
-  -> MiniMax M3 LLM（在线）
-  -> 千问 Realtime TTS `qwen3-tts-flash-realtime` / `Kiki`（在线）
+  -> loadRecentSummaries(3d) + loadElderFacts(top 50)        <-- v0.6.0 注入
+  -> render system_v2 注入 <elder-facts> / <recent-summaries> / <memory-policy>  <-- v0.6.0
+  -> MiniMax M3 LLM（在线，可调 remember_fact / search_memory）
+  -> Provider-tts(MiniMax `Cantonese_KindWoman` / 千问 `Kiki`) TTS（在线）   <-- v0.7.0 切换
   -> Android 播放
-  -> 本地收尾、摘要并写入 Room
+  -> 本地收尾 → save_diary 后追加 background_learning 抽取 facts <-- v0.6.0
+  -> elder_facts Room 表持久化
 ```
 
-**0.5.0 功能目标**
+**0.7.0 功能目标**
 
-- 启用 §3.1.4 Agent 行为约束：每次只问一个问题、单次回复 ≤ 25 个汉字、关键词安全分流、最多 8 轮、满足收尾条件后保存。
-- 启用 §3.1.6 访谈总结屏：展示最终日记与一句话摘要，支持“改一下”继续访谈。
-- 0.5.0 仅使用 Kotlin 实现客户端 Agent；不新增 Python / Node 运行时。
-- Prompt 作为版本化资源打包进 APK；MiniMax M3 通过 tool call 调用本地工具，Kotlin 必须再次校验工具名、参数和状态转移。
-- Kotlin 行为测试使用 JUnit / Robolectric / MockWebServer，LLM 响应使用录制 fixture，不调用真实模型。
-- ASR、LLM、TTS 均使用在线模型 API；不在手机端运行 LLM，不下载本地模型。
-- Agent 状态机、会话状态、关键词规则、本地工具和 Room 持久化运行在 Android。
-- 0.5.0 不使用 Agent Gateway；Android 直接调用千问和 MiniMax API。
-- 千问 Key 与 MiniMax Key 均由用户自填，分别使用 Keystore 加密；产品级 Key 不进入 APK。
-- ASR partial/final、LLM token 流和 TTS 音频流必须端到端流式处理；TTS 不等待 LLM 全文完成。
-- TTS 固定 `qwen3-tts-flash-realtime` + `Kiki`，使用 WebSocket 和 24kHz / mono / 16-bit PCM。
-- 0.5.0 不实现语音打断；TTS 播放期间不录音，播放结束后进入下一轮。
-- LLM 失败最多重试 3 次；ASR 断线后基于本地音频缓冲重放完整音频并建立新 session；TTS 失败时改为文字展示。
-- 网络不可用时自动降级为本地录音，不要求老人确认；联网后尝试重新 ASR、Agent 整理和摘要补做。
+- 启用 §3.1.9 ASR Provider 切换：百炼 / MiniMax Realtime 二选一；MiniMax Realtime 为默认。
+- 启用 §3.1.9 TTS Provider 切换：千问 `Kiki` / MiniMax `Cantonese_KindWoman` 二选一；MiniMax 为默认。
+- LLM 在 0.7.0 仍不切换；**v0.8.0 修订为可切换**——「AI 服务」顶层新增「大语言模型」入口卡，跳转至 LLM 子页。Provider 选项：`千问 qwen-plus`（OpenAI 兼容端点 dashscope）/ `MiniMax M3`（默认，回滚路径）/ `DeepSeek deepseek-chat`（api.deepseek.com）。每个 Provider 独立 Key：`minimax_api_key_enc`（MiniMax LLM，沿用 v0.7.0）/ `qwen_llm_api_key_enc`（千问 LLM，新增）/ `deepseek_llm_api_key_enc`（DeepSeek LLM，新增）；原有千问 ASR/TTS 共用 `api_key_enc` **不**承载 LLM Key。Client 通过 `LlmClientFactory` 按 `llm_provider` 路由到对应 OpenAI 兼容客户端，工具调用 / system prompt / 三次重试策略沿用 §A.11.4 / §A.11.2，沿用 v0.5.0/0.6.0 用户自填 Key 直连。
+- 启用 AGENTS.md §A.12（MiniMax Realtime ASR）+ §A.13（MiniMax T2A WebSocket）+ §18 「0.7.0 例外」。
+- `asr_config` Room 表走 Migration 4→5 DROP+CREATE，强制老人重输 4 份 Key（千问共用 / MiniMax LLM+ASR 共用 / MiniMax TTS 独立）。
+- 主屏一次性 Toast 提示「0.7.0 升级：请到 AI 服务 重新配置 ASR 与 TTS」。
 
-**0.5.0 性能目标**
+**0.7.0 性能目标（沿用 v0.6.0）**
 
-- 正常 Wi-Fi / 5G 网络下，停止录音到 ASR final P95 ≤ 2 秒。
-- 正常 Wi-Fi / 5G 网络下，MiniMax M3 完整回复 P95 ≤ 3 秒。
-- 正常 Wi-Fi / 5G 网络下，TTS 首段音频 P95 ≤ 2 秒。
-- 正常 Wi-Fi / 5G 网络下，首个可播放语音 P95 ≤ 5 秒。
-- 正常 Wi-Fi / 5G 网络下，Agent 单轮完成 P95 ≤ 8 秒。
-- 进入写日志流程时预连接千问和 MiniMax；不得在老人点击停止后才完成 DNS、TLS 和 ASR 握手。
-- 各上游调用分别记录延迟、状态和错误码，禁止只记录总耗时。
-
-**0.5.0 范围边界**
-
-- 0.5.0 不承诺离线 Agent。断网时只允许保存本地录音并在联网后重试；ASR、LLM、TTS 均不可用时不得假装完成访谈。
-- 0.5.0 不做端侧 ASR / LLM / TTS、家属端、扫码绑定、提醒、推送或 CloudBase 数据同步。
-- 0.5.0 不依赖 DeepSeek Harness；DSH 相关方案仅保留为历史架构，不作为本版本运行依赖。
-- 0.5.0 最终写入 Room 的日记正文 `text ≤ 100` 汉字，摘要 `summary ≤ 60` 汉字。
-- 真实老人语音需分别验证粤语 ASR、MiniMax 对话语言风格和粤语 TTS；未通过方言验收不得宣称支持粤语 Agent。
-
-### 0.2 v3.0.1 已交付基线
-
-> 以下内容描述当前已交付的 App 0.4.0 / PRD v3.0.1 基线。与 §0.1 的 0.5.0 目标冲突时，以 0.5.0 目标为准。
-
-**产品**：老友（Android App）
-
-**形态**：单个 Android 应用，首启即进入老人端（MVP 不做身份切换）。同一台设备**只服务一位老人**——一个老人账号对应一台主设备。
-
-**MVP 功能（老人端 1 项 + 配置 1 项）**
-
-| 端 | 功能 | 一句话 |
-|----|------|--------|
-| 老人 | AI 写日志 | 长按说话 → 大模型 ASR 转写 → 一句话落本地日记（§3.1.2） |
-| 老人 | ASR API 配置 | 设置页第 7 项 → 自填 API endpoint / key / model（§3.1.9），老人自己拥有 ASR 凭证 |
-
-**MVP 不做（推迟到 v2.x）**：家属端全部功能、扫码绑定、服药提醒、就医提醒、Agent 多轮访谈、TTS 播报、推送通道、服务端持久化、跨端同步、灰度发布。完整推迟清单见 §12 路线图。
-
-**老年友好原则（硬约束）**
-1. 默认正文字号 ≥ 20sp，按钮文字 ≥ 28sp
-2. 主界面元素 ≤ 3 个（不堆叠）
-3. 所有操作 ≤ 2 步（含确认）
-4. 语音优先：默认按钮「按住说话」
-5. 关键操作有震动反馈 + 语音播报反馈
-
-**核心架构（一句话）**
-> 单 Android App，老人端独立运行：录音 → 调用用户自配的大模型 ASR endpoint → 文本落本地 Room（无服务端、无家属端、无推送、无同步）。
-
-**MVP 能力范围**
-- 大模型 ASR API（老人语音 → 文字）—— endpoint / key / model 由老人在 §3.1.9 自配
-- 本地 Room 持久化（diary_entry / asr_config / device_meta），见 §5.1-§5.3
-- 客户端 UI token 体系沿用 §4
-
-**MVP 已知限制**（产品验收范围声明，非缺陷）
-- **无家属端**：老人看不到家人，家人也看不到老人——MVP 不解决"家属关怀"诉求
-- **无云端备份**：日记只在本机；卸载 / 换机即丢失，§3.1.8 第 6 项退出登录必须二次提示
-- **ASR key 在本机**：用户自填，存在 Keystore-wrapped EncryptedSharedPreferences；截图有外泄风险——MVP 演示 / 个人使用可接受
-- **音频明文上送第三方 ASR**：隐私敏感场景（医疗 / 家庭对话）需自行评估
-
-**架构决策（已锁定，见 §9）**
-- D1：Android 客户端 = 原生 Kotlin
-- D2（v3.0 修订）：MVP **不引入后端**——所有持久化在客户端 Room；v2.x 恢复 CloudBase（NoSQL）+ COS
-- D3（v3.0 修订）：MVP 仅用 **ASR 一个独立 API**；TTS 推迟到 v2.x
-- D4（v3.0 修订）：MVP **单端形态**（仅老人端）；v2.x 恢复单 App 切换身份
-- D5：保留——Android 从不使用 DSH 客户端 SDK；v2.x 服务端独占 DeepSeek Harness
-- D6（v3.0 新增）：MVP 所有数据归属本机 `elder_id = "local"`；v2.x 接回服务端时再生成真实 UUID
-
----
+- 正常 Wi-Fi / 5G 网络下，停止录音到 ASR final P95 ≤ 2 秒（百炼 / MiniMax Realtime 同限）。
+- 正常 Wi-Fi / 5G 网络下，TTS 首段音频 P95 ≤ 2 秒（千问 / MiniMax 同限）。
+- 切换 Provider 不引入额外延迟（Provider 选择只在配置阶段生效；录音 / 播放走对应 client）。
 
 ## 1. 背景与目标
 
@@ -294,18 +232,21 @@ MVP 老人端录音 → 日记 全流程在客户端独立完成，**不依赖�
 
 **完成反馈（§K.3g 决议）**：老人点「知道了」→ 写 ack + 后端发推送 → 家属端通知栏收到"老人已确认 10:00 就医"；家属端日志 Tab / 提醒 Tab 同时可见。
 
-### 3.1.4 Agent 行为约束（硬规则；**0.5.0 启用**）
+### 3.1.4 Agent 行为约束（硬规则；**0.5.0 启用 / v0.6.0 扩展**）
 
-> 本节为 0.5.0 本地 Agent 多轮访谈的硬规则。**Agent 状态机、安全关键词和本地工具运行在 Android；ASR / LLM / TTS 由 Android 使用用户自填 Key 直连在线模型 API**。
+> 本节为 0.5.0 本地 Agent 多轮访谈的硬规则；v0.6.0 在不破既有 A1–A3、A5、B1–B4、C2、C3、D1–D3 的前提下，**扩展 A6 共情前置 + 修订 A4 + 修订 C1 + 新增 E 节访谈技巧 + 新增 F 节 Hermes 风格记忆层**。**Agent 状态机、安全关键词和本地工具运行在 Android；ASR / LLM / TTS 由 Android 使用用户自填 Key 直连在线模型 API**。
 >
 > 0.5.0 启用条件：千问 Realtime ASR + MiniMax M3 + 千问 `qwen3-tts-flash-realtime` 联调通过；客户端本地状态机、流式播放和凭据配置均落地。v3.0.1 单次录音模式继续作为断网降级路径。
+>
+> 0.6.0 启用条件：v0.5.0 联调通过 + `system_v2.txt` / `save_v2.txt` 版本化 prompt 落地 + Room Migration 3→4 + `elder_facts` 表 + `remember_fact` / `search_memory` / `mark_dimension_covered` / `MOVE_ON` 工具在 Kotlin 二次校验；对照脚本评分（`scripts/interview_eval/`）通过后方可宣称支持窦文涛式访谈 + Hermes 风格记忆。
 
 **A. 表达约束**
 - A1. 每次回复只问一个问题或说一件事，说完即停；禁止连续追问
 - A2. 单次回复不超过 25 个汉字
 - A3. 使用口语化中文，避免书面语；可用常见感叹词（「嗯」「挺好的」「然后呢？」）
-- A4. 不得复述老人说过的话，不得总结，不得用「1.2.3.4.」分点
+- A4. 不得完整复述或总结老人**当前会话**说过的话；允许在共情前置中用 ≤3 个汉字轻量回扣前文细节（如「那老张…」「刚才那个…」）；不得用「1.2.3.4.」分点。**F 节注入的 `<elder-facts>` / `<recent-summaries>` 不算被 LLM 复述的对象**，但 LLM 不得在输出中原样复制记忆文本
 - A5. 方言容忍：ASR 转写后保留口语化文本，不要因方言用法判定为无效输入
+- **A6.（v0.6.0 新增）共情前置**：单轮回复允许先用 ≤10 个汉字做情绪命名或轻量认可（例：`听起来挺高兴`、`有点意外吧`、`这事挺闹心的`），紧接其后用一个 ≤25 个汉字的追问；**单轮总长 ≤35 个汉字**，问句部分仍受 A2 ≤25 字限制。A1（一次只问一件事）不变——情绪命名算"前置识别"不算"问一件事"。Kotlin 端 `InterviewAgent.respond()` 在产出 assistantText 后拆段：前 ≤10 字作为 `ack`，剩余 ≤25 字作为 `probe`，总长超 35 字截断至 35。
 
 **B. 安全约束**
 - B1. 老人提及金钱、转账、验证码、陌生链接时，立即调用 ask_clarify 工具跳过该话题并转向日常闲聊
@@ -314,7 +255,7 @@ MVP 老人端录音 → 日记 全流程在客户端独立完成，**不依赖�
 - B4. 老人提及医疗问答（症状诊断、用药建议），调用 ask_clarify 换话题
 
 **C. 收尾触发（满足任一即收尾）**
-- C1. 信息维度足够：对话累计覆盖「时间 / 地点 / 人物 / 事件」≥ 2 项
+- C1.（v0.6.0 修订）信息维度足够：LLM 显式调用 `mark_dimension_covered(dim)` 工具累计覆盖 ≥2 项（维度枚举扩到 5：`time / place / person / event / feeling`），且 E2 细节阶梯至少走到 `how-felt` 阶段。维度判定由客户端 `AgentSafety.kt` 的 keyword 字典迁到 LLM 工具调用，`feeling` 维度保留 keyword 字典兜底
 - C2. 轮数达到硬上限（默认 8 轮，见 §11.5）
 - C3. 老人明确说收尾（如「就到这」「不聊了」）
 - 收尾动作：调用 save_diary 工具，将 text（≤ 100 字）+ summary（≤ 60 字）落库，audio_segments 含每轮语音 COS key 与 ASR 文字
@@ -323,6 +264,61 @@ MVP 老人端录音 → 日记 全流程在客户端独立完成，**不依赖�
 - D1. 日记正文 text 长度 ≤ 100 字
 - D2. 一句话摘要 summary 长度 ≤ 60 字
 - D3. 必须同时返回 text + summary + audio_segments 三段；不得只返回其中之一
+
+
+**E. 访谈技巧（v0.6.0 新增；参考窦文涛《锵锵三人行》手法）**
+
+访谈技巧是 **软指令**——通过 `system_v2.txt` 提示词 + few-shot 范例引导 LLM 采用；硬约束仍是 A1–A6 / B / C / D。技术细节由 `system_v2.txt` 文件承载（AGENTS.md §A.11.2 prompt 版本化），本节规定要点：
+
+- E1 **命名情绪再探细节**：单轮先 ≤10 字情绪命名（A6 已授权），再 ≤25 字追问；不要冷启动追问
+- E2 **细节阶梯**：按 `who → what → how-felt → small-detail` 顺序推进；后一阶是前一阶的具体化，不另起话题；C1 要求至少走到 `how-felt` 阶段
+- E3 **开放探针句式**：优先用 `那…呢？` / `怎么…的？` / `当时…？` / `后来呢？`；避免 `是不是 / 对不对 / 几岁` 等闭式问句（闭式问句易让老人陷入"是 / 不是"短答）
+- E4 **节奏控制**：连续两轮追问同一维度触发 `MOVE_ON` 工具，进入下一维度或收尾；防止"审问感"
+- E5 **停顿与沉默**：老人回复 `嗯 / 对 / 是` 等 1–2 字时不主动转话题，等下一轮再探；让老人有时间回忆
+- E6 **跨会话回扣**：基于 F 节注入的 `<recent-summaries>` / `<elder-facts>` 引用其中的人物 / 地点 / 事件作为追问锚点（例：`你常去公园，今天呢？`）；**禁止完整复述记忆文本**（A4 联动）
+
+**F. Hermes 风格记忆层（v0.6.0 新增；纯 Room 方案）**
+
+> v0.6.0 不引 embedding / 不引向量库 / 不引 Room FTS / 不引 MD 文件 / 不引新 SDK。记忆检索用 SQL `LIKE '%query%'`；事实抽取由 LLM 主动调用工具 + `save_diary` 后 background learning 双轨。参考 `NousResearch/hermes-agent` + `ClaudioDrews/memory-os` Layer 7 + `chandra447/pi-hermes-memory`，但剥离 FTS / 向量 / Markdown 文件层。
+
+- **F1 数据源**：
+  - `diary_entry_local.summary`：最近 3 天 summary（按 `date` 倒序，含当天）
+  - `elder_facts` Room 表（v0.6.0 新增）：长期结构化事实
+- **F2 `elder_facts` 表 schema**（AGENTS.md §A.11.3 兼容；Migration 3→4 用 `CREATE TABLE` + 索引）：
+  - `id: UUID PRIMARY KEY`
+  - `type: TEXT NOT NULL` —— 枚举 `person / place / event / preference / health`
+  - `content: TEXT NOT NULL` —— ≤100 汉字（与 `diary_entry.text` 同限）
+  - `confidence: TEXT NOT NULL` —— 枚举 `high / medium / low`（静态标注，v0.6.0 不引入 trust_score 反馈循环）
+  - `last_used_at: INTEGER NOT NULL` —— epoch ms
+  - `mention_count: INTEGER NOT NULL DEFAULT 0` —— 被 `search_memory` 命中次数
+  - `source_session_id: TEXT` —— nullable；哪次访谈学到
+  - `created_at: INTEGER NOT NULL` / `updated_at: INTEGER NOT NULL`
+  - 索引：`(type, last_used_at DESC)`
+- **F3 LLM 主动记忆工具**：
+  - `remember_fact(type, content, confidence)` —— LLM 主动保存新事实；Kotlin 校验 type ∈ 五类枚举、content ≤100 字、confidence ∈ 三档；调用 `ElderFactDao.findSimilar(content)` 做 substring overlap > 0.6 去重；冲突时 update 而非 insert
+  - `search_memory(query, limit=5)` —— LLM 主动查询；Kotlin 调 `ElderFactDao.searchByContent(query, typeFilter, limit)` 用 SQL `WHERE content LIKE '%query%' OR type = ?` 返回 top N；不读 MD 文件、不做 embedding
+  - 工具名仅上述两个 + 既有 `ask_clarify` / `save_diary` + v0.6.0 新增 `mark_dimension_covered` / `MOVE_ON`；Kotlin 端 `InterviewAgent.validateCall()` 仍二次校验
+- **F4 system prompt 三块注入**（`AgentPrompts.system(recentSummaries, elderFacts)` 渲染）：
+  - `<elder-facts count="50">` —— 当前 `elder_facts` 全量（按 `mention_count DESC, last_used_at DESC` 排序，前 50 条）；每行格式 `- [type, confidence] content`
+  - `<recent-summaries>` —— 最近 3 天 summary；每行格式 `- 【日期】summary`
+  - `<memory-policy>` —— Hermes Layer 7 风格指令块；告诉 LLM 记忆权威、如何使用、何时调用工具；明确"不要复述原文 / 不要让老人察觉'查资料'"；明确"history 不参与 B 节安全判定"
+- **F5 Background learning**（仅 `save_diary` 后触发）：
+  - 时机：`save_diary` tool 处理完成 + diary 落库后，由 `InterviewAgent.backgroundLearning()` 追加调用
+  - 输入：`prompts.saveForBackgroundLearning()`（复用 `save_v2.txt` 但要求返回 `{text, summary, facts_to_remember:[...]}`）+ 本次 transcript（≤4000 字）
+  - 输出解析：`facts_to_remember[]` 每条走 `remember_fact` 工具同一路径（校验 + 去重 + 写入 Room）
+  - 限制：单次抽取 ≤5 条 / fact content ≤100 字 / LLM 失败静默 `catch` + warning 日志（§7 sanitize 拦截 `elder_facts` 内容）；不阻塞 diary 保存路径
+- **F6 隐私与边界**：
+  - 本地 Room（`elder_v3.db`），不上传服务端；与 v0.5.0 一致
+  - `elder_facts` 内容**不入日志**（§7 sanitize 必须过滤；含 PII 字段如手机号 / 身份证 / 密码 / 地址门牌 由 `save_v2.txt` 提示词禁止字段白名单 + Kotlin 二次过滤）
+  - 历史 `<recent-summaries>` / `<elder-facts>` **不参与 B 节安全判定**（emergency / money / medical 仍只基于 `elderText`，不读 history）；但 `<recent-summaries>` 里有"摔了一跤"等急救记录时，Agent 在 prompt 层被要求"history 不引发 emergency 流程"
+  - **纯文本边界**：不引 embedding / 不引向量库 / 不引 Room FTS / 不引 MD 文件 / 不引 Markdown 解析库 / 不引新 SDK
+  - 不实现跨会话语义检索（v0.6.0 不引 MiniMax embedding / 千问 embedding）
+- **F7 类型枚举与 C1 `feeling` 维度对齐**：
+  - `person` → C1 `person` 维度
+  - `place` → C1 `place` 维度
+  - `event` → C1 `event` 维度
+  - `preference` → C1 `feeling` 维度（替代 `AgentSafety.kt` 中 `dimensions` 字典的 keyword 兜底）
+  - `health` → 单独类型（隐私敏感）；`search_memory` 不默认召回 `health` 类，必须 LLM 显式 `query` 字段包含健康关键词
 
 #### 3.1.5 老人端主屏（v3.0 MVP 版）
 
@@ -442,7 +438,7 @@ MVP 老人端录音 → 日记 全流程在客户端独立完成，**不依赖�
 
 > 本节是 v3.0 MVP 的**唯一新增功能章节**——老人端日记流程不依赖服务端，因此老人必须在本地配置一个大模型 ASR API 的凭证与 endpoint。本节定义配置页 UI、配置 schema、调用约定、安全边界。AGENT.md / Android 实现层在本节引用。
 >
-> **0.5.0 修订**：页面升级为「AI 服务」，包含千问 Key（ASR + TTS 共用）和 MiniMax Key（M3 LLM）。模型和 endpoint 固定，不再展示多 Provider 或 endpoint 编辑。
+> **0.7.0 修订**：页面升级为「AI 服务」双 Provider 可切换——ASR 子页 Provider 选项：`百炼`（千问 qwen-audio-3.0-realtime-plus）/ `MiniMax Realtime`（MiniMax Realtime ASR WebSocket）；TTS 子页 Provider 选项：`千问 Kiki`（`qwen3-tts-flash-realtime`）/ `MiniMax Cantonese_KindWoman`（MiniMax T2A WebSocket）。**默认 Provider = MiniMax ASR + MiniMax TTS**（音色 `Cantonese_KindWoman`），千问作为可选回滚路径保留；voice_id 在 MiniMax TTS 上硬编码为 `Cantonese_KindWoman`，不暴露 UI。LLM（M3）Provider 不切换，沿用 v0.5.0/0.6.0。**0.5.0 修订（已废止）**：页面升级为「AI 服务」，包含千问 Key（ASR + TTS 共用）和 MiniMax Key（M3 LLM）。模型和 endpoint 固定，不再展示多 Provider 或 endpoint 编辑。
 
 **进入路径**：§3.1.8 第 3 项「AI 语音识别」（v3.0 移到首位）。
 
@@ -476,17 +472,17 @@ MVP 老人端录音 → 日记 全流程在客户端独立完成，**不依赖�
 └──────────────────────────────────────────┘
 ```
 
-**Provider 字段表**（v3.0.1 单一上游 §A.1.b）：
+**Provider 字段表**（v0.7.0 多 Provider；endpoint / voice_id 客户端硬编码，UI 不暴露）：
 
 | Provider | Endpoint | Model | 请求体格式 |
 |----------|----------|-------|-----------|
-| 阿里云百炼（唯一） | `wss://dashscope.aliyuncs.com/api-ws/v1/inference` | `Qwen-Audio-3.0-ASR-Flash-Streaming` | DashScope WebSocket duplex：`run-task` → `continue-task`(audio base64 m4a) → `finish-task` → `result-generated` × N → `task-finished` |
+| 千问百炼（默认回滚路径） | `wss://llm-svrk4hi977f8t2fe.cn-beijing.maas.aliyuncs.com/api-ws/v1/realtime` | `qwen-audio-3.0-realtime-plus` | Qwen-Audio Realtime WS：`session.update` → `input_audio_buffer.append` × N → `commit` → `transcription.completed` || MiniMax Realtime（默认） | `wss://api.minimax.cn/ws/v1/stt` | `<待 0.7.0 真实抓包>`（AGENTS §A.12.1 占位） | MiniMax Realtime WS：`session.start` → `audio.chunk` × N → `transcript.partial` / `transcript.final` → `session.finish` || 千问 Kiki | `wss://dashscope.aliyuncs.com/api-ws/v1/realtime` | `qwen3-tts-flash-realtime` | DashScope TTS Realtime WS：`session.update`（`voice=Kiki` / `response_format=PCM_24000HZ_MONO_16BIT`）→ `response.audio.delta` × N → `response.done` || MiniMax Cantonese_KindWoman（默认） | `wss://api.minimax.cn/ws/v1/t2a` | `<待 0.7.0 真实抓包>`（AGENTS §A.13.1 占位） | MiniMax T2A WS：`session.start`（`voice=Cantonese_KindWoman`）→ `text.chunk` → `audio.delta` × N → `session.done` |
 
 **字段约束**（v3.0.1 §A.1.b）：
 
 | 字段 | 类型 | 必填 | 校验 |
 |------|------|------|------|
-| `api_key` | string | 是 | 长度 8–200；**保存前用 Keystore-wrapped EncryptedSharedPreferences 加密**，落盘不可读 |
+| `api_key` | string | 是（千问 ASR + TTS 共用） | 长度 8–200；**保存前用 Keystore-wrapped EncryptedSharedPreferences 加密**，落盘不可读 || `minimax_api_key_enc` | string | 是（MiniMax LLM + MiniMax ASR 共用） | 同上加密方式 || `tts_minimax_api_key_enc` | string | 是（MiniMax TTS 独立 Key） | 同上加密方式；与 LLM/ASR 区分 || `asr_provider` | string | 是 | 取值 `bailian`（默认回滚）/ `minimax_realtime`（默认） || `tts_provider` | string | 是 | 取值 `qwen`（默认回滚）/ `minimax`（默认） || `tts_voice_id` | string | 否（仅 MiniMax TTS 写入） | MiniMax TTS 硬编码 `Cantonese_KindWoman`；UI 不暴露 |
 
 **Room 表 schema（§5.11 `asr_config` v3.0.1 §A.1.b）**：仅 `id` / `api_key_enc` / `updated_at` / `last_tested_at` / `last_test_result`；详见 §5.11。
   last_test_result     TEXT                     -- JSON: {"text": "...", "latency_ms": 1234} 或 {"error": "..."}
@@ -1067,7 +1063,9 @@ pending_diary(
 >
 > **v3.0.1 修订**（§A.1.b）：客户端 ASR 上游单一化为阿里云百炼 `Qwen-Audio-3.0-ASR-Flash-Streaming`，`WorkspaceId` 与 `model` 硬编码进客户端代码；本地表只保留 `api_key_enc`。迁移脚本 `MIGRATION_1_2` 直接 `DROP TABLE asr_config` 重建，强制用户重新输入 API Key。
 >
-> **0.5.0 扩展**：`api_key_enc` 供千问 ASR/TTS 共用；新增 `minimax_api_key_enc` / `minimax_last_test_result`。Migration `2→3` 保留旧千问 Key，只新增 nullable 列。
+> **0.7.0 扩展**：列扩到 16 列，新增 Provider 切换 + MiniMax TTS 独立 Key。`asr_provider` 默认 `minimax_realtime` / `tts_provider` 默认 `minimax`；Migration `4→5` 走 `DROP TABLE asr_config` + `CREATE TABLE`，强制老人重输 4 份 Key（`api_key_enc` 千问共用 / `minimax_api_key_enc` MiniMax LLM+ASR 共用 / `tts_minimax_api_key_enc` MiniMax TTS 独立）。**0.5.0 扩展**：`api_key_enc` 供千问 ASR/TTS 共用；新增 `minimax_api_key_enc` / `minimax_last_test_result`。Migration `2→3` 保留旧千问 Key，只新增 nullable 列。
+>
+> **v0.8.0 扩展**：列扩到 23 列，新增 LLM Provider 切换 + 千问 LLM 独立 Key + DeepSeek LLM Key。`llm_provider` 默认 `minimax`；可选 `qwen` / `deepseek`。Migration `5→6` 走 `ALTER TABLE` 新增 7 列（`llm_provider` / `llm_endpoint` / `llm_model` / `qwen_llm_api_key_enc` / `qwen_llm_last_test_result` / `deepseek_llm_api_key_enc` / `deepseek_llm_last_test_result`），不 drop 既有数据；首次进入 v0.8.0 时 LLM 端会提示「AI 服务 → 大语言模型」补填 Key。
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
@@ -1078,6 +1076,23 @@ pending_diary(
 | `last_test_result` | TEXT | 否 | JSON：`{"text": "...", "latency_ms": 1234}` 或 `{"error": "..."}` |
 | `minimax_api_key_enc` | TEXT | 否 | MiniMax M3 Key 的 Keystore token；新增用户必填 |
 | `minimax_last_test_result` | TEXT | 否 | MiniMax 测试结果 JSON |
+| `asr_provider` | TEXT | 是 | 默认 `minimax_realtime`；可选 `bailian` |
+| `asr_endpoint` | TEXT | 否 | Provider 硬编码 endpoint（写库常量） |
+| `asr_model` | TEXT | 否 | Provider 硬编码 model（写库常量） |
+| `tts_provider` | TEXT | 是 | 默认 `minimax`；可选 `qwen` |
+| `tts_endpoint` | TEXT | 否 | Provider 硬编码 endpoint |
+| `tts_model` | TEXT | 否 | Provider 硬编码 model |
+| `tts_voice_id` | TEXT | 否 | MiniMax TTS 写 `Cantonese_KindWoman`；千问 TTS 留空 |
+| `tts_minimax_api_key_enc` | TEXT | 否 | MiniMax TTS 独立 Key 的 Keystore token；与 LLM/ASR 区分 |
+| `tts_minimax_last_test_result` | TEXT | 否 | MiniMax TTS 测试结果 JSON |
+| `llm_provider` | TEXT | 是 | 默认 `minimax`；可选 `qwen` / `deepseek` |
+| `llm_endpoint` | TEXT | 否 | Provider 硬编码 endpoint（写库常量） |
+| `llm_model` | TEXT | 否 | Provider 硬编码 model |
+| `qwen_llm_api_key_enc` | TEXT | 否 | 千问 LLM Key 密文；独立于 ASR/TTS 共用 Key |
+| `qwen_llm_last_test_result` | TEXT | 否 | 千问 LLM 测试结果 JSON |
+| `deepseek_llm_api_key_enc` | TEXT | 否 | DeepSeek LLM Key 密文 |
+| `deepseek_llm_last_test_result` | TEXT | 否 | DeepSeek LLM 测试结果 JSON |
+
 
 索引建议：单行表，无额外索引。
 
@@ -1241,6 +1256,9 @@ pending_diary(
 | `LLM_RATE_LIMITED` | MiniMax 返回 429 | 「AI 太忙了，等等再试」 | 指数退避后重试，最多 3 次 |
 | `LLM_UPSTREAM` | MiniMax 超时 / 5xx / SSE 断流 | 「AI 没回答上来」 | 最多重试 3 次；全部失败后进入离线补做 |
 | `TTS_AUTH_FAILED` | 千问 TTS 鉴权失败 | 「语音 Key 不对」 | 保留文字回复，不判对话失败 |
+| `TTS_ASR_AUTH_FAILED` | MiniMax Realtime ASR 返回 401/403 | 「API Key 不对」 | UI 区分 Provider 来源；不重试 |
+| `TTS_ASR_RATE_LIMITED` | MiniMax Realtime ASR 返回 429 | 「太快了，等等再试」 | 5 秒后自动重试 1 次 |
+| `TTS_ASR_UPSTREAM` | MiniMax Realtime ASR 返回 5xx / 超时 | 「对方服务器没响应」 | 弹"再试一次"按钮 |
 | `TTS_UPSTREAM` | TTS WebSocket / PCM 播放失败 | 「语音暂时说不出来」 | 只展示 `assistant_text`，继续下一轮 |
 | `RECORDING_PERMISSION_DENIED` | MediaRecorder 启动时缺 RECORD_AUDIO 权限 | 「需要麦克风权限才能写日志」 | 弹跳转系统设置按钮 |
 | `RECORDING_FAILED` | MediaRecorder 启动 / 写入失败 | 「录音没成功，再试一次」 | 弹"再试一次"按钮 |
@@ -1438,7 +1456,7 @@ pending_diary(
 | 11.12 | 客户端位置采集 | MVP 不采集 GPS；时区取系统时区 | 已定（§7.5） |
 | 11.13 | COS 临时对象生命周期 | 24h | 已定（§5.8 / §7.6） |
 | 11.14 | 灰度发布策略 | 单户手动开启（`elder_id` 白名单，配置注入见 §8.3） | 已定（§8.3） |
-| 11.15 | TTS 默认音色与语速 | 历史 v2.x 默认粤语男声；**0.5.0 以 `qwen3-tts-flash-realtime` + `Kiki` 为准** | 0.5.0 重定（§4.5） |
+| 11.15 | TTS 默认音色与语速 | 历史 v2.x 默认粤语男声；0.5.0 以 `qwen3-tts-flash-realtime` + `Kiki` 为准；**0.7.0 默认 `MiniMax` + `Cantonese_KindWoman`（MiniMax T2A WebSocket，§A.13）**，千问 `Kiki` 作为回滚路径保留 | 0.5.0 / 0.7.0 重定（§4.5 / §3.1.9） |
 | 11.16 | 老人端字体档位 sp 值 | **默认 24/32 → 大 28/38 → 特大 32/44**（body/title） | 已定（§H.16 / §I-7）|
 | 11.17 | TTS 失败兜底 | **0.5.0 只展示文字并继续对话**；系统铃声仅保留为历史 v2.x 提醒场景 | 0.5.0 重定（§4.5） |
 | 11.18 | 通知优先级 | 拆两条 TPush 通道：**服药 = 中优**（声音 + 通知栏，无全屏），**就医 = 高优**（绕过勿扰） | 已定（§H.18 / §3.1.1 §3.1.3）|
@@ -1470,7 +1488,7 @@ pending_diary(
 | # | 项 | v3.0 MVP 默认 | 状态 |
 |---|----|---------------|------|
 | 11.28.1 | **ASR API 配置** | 用户在 §3.1.9 自填 Provider / Endpoint / Key / Model；首次启动 §3.1.9 未配置时主屏 Toast + 红点提示，**不强制** | 已定 |
-| 11.28.2 | **ASR Provider 列表** | MVP 仅 3 个：`dashscope` / `whisper_openai` / `custom`（千问 / Whisper 直连+OpenAI 共用 / 自定义 HTTP） | 已定（§3.1.9）|
+| 11.28.2 | **ASR Provider 列表** | 0.7.0 起 2 个：`dashscope_bailian` / `minimax_realtime`（默认）；历史 `dashscope` / `whisper_openai` / `custom` 标记 MVP-DEFER，0.7.0 不启用 | 0.7.0 修订（§3.1.9 / §A.12） |
 | 11.28.3 | **录音规格** | MediaRecorder AAC/m4a；16 kHz / 单声道 / 64 kbps；60 秒硬限 | 已定（§3.1.2）|
 | 11.28.4 | **日记正文上限** | 200 字（v3.0 放宽，v2.x 接服务端 LLM 后收紧到 100） | 已定（§5.10）|
 | 11.28.5 | **ASR 置信度低处理** | < 0.6 时 §3.1.2 弹"没听清，再说一次"回录音重新开始；连续 3 次低 → 回主屏 | 已定（§3.1.2）|
@@ -1484,6 +1502,12 @@ pending_diary(
 | 11.28.13 | **本机隐私策略** | 仅申请 RECORD_AUDIO + INTERNET 两权限；不读联系人 / 相册 / 定位 | 已定（§7.5）|
 | 11.28.14 | **本机首启生成** | `device_meta.device_id` UUID v4，落 SharedPreferences；`device_meta.timezone` 动态读 `TimeZone.getDefault()` | 已定（§5.12）|
 | 11.28.15 | **日志无云端备份** | 卸载 App / 清 cacheDir 即丢失；§3.1.8 第 6 项退出登录兜底二次提示 | 已定（§0 / §3.1.8）|
+
+---
+
+### §A 0.7.0 新增上游引用（对应 AGENTS.md §A.12 / §A.13 / §18 例外）
+
+> 0.7.0 引入两个客户端直属上游——**AGENTS §A.12 MiniMax Realtime ASR WebSocket**：客户端直连 `wss://api.minimax.cn/ws/v1/stt`；**AGENTS §A.13 MiniMax T2A WebSocket**：客户端直连 `wss://api.minimax.cn/ws/v1/t2a`，voice_id 硬编码 `Cantonese_KindWoman`。这两个客户端不在 `elder_common` 统一封装（沿用 0.5.0/0.6.0 直连架构）；AGENTS §18 「不要在客户端引入新上游 SDK」条款为它们开后门。
 
 ---
 

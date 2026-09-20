@@ -1,4 +1,6 @@
 // 顶层导航图（v3.0 MVP —— 单端 5 屏，no role switch, no family side）
+// v0.7.0：新增 ElderAsrProvider / ElderTtsProvider 两个 Provider 子页（§A.14）。
+// v0.8.0：新增 ElderLlmProvider Provider 子页（§A.15）。
 package com.elder.android.nav
 
 import androidx.compose.runtime.Composable
@@ -6,6 +8,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.elder.android.screen.asr.AsrConfigScreen
+import com.elder.android.screen.asr.AsrProviderScreen
+import com.elder.android.screen.asr.LlmProviderScreen
+import com.elder.android.screen.asr.TtsProviderScreen
 import com.elder.android.screen.elder.ElderDiaryRecentScreen
 import com.elder.android.screen.elder.ElderDiaryRecordScreen
 import com.elder.android.screen.elder.ElderHomeScreen
@@ -60,7 +65,21 @@ fun AppNavGraph() {
             )
         }
         composable(Route.ElderAsrConfig.path) {
-            AsrConfigScreen(onBack = { nav.popBackStack() })
+            AsrConfigScreen(
+                onBack = { nav.popBackStack() },
+                onOpenAsrProvider = { nav.navigate(Route.ElderAsrProvider.path) },
+                onOpenTtsProvider = { nav.navigate(Route.ElderTtsProvider.path) },
+                onOpenLlmProvider = { nav.navigate(Route.ElderLlmProvider.path) },
+            )
+        }
+        composable(Route.ElderLlmProvider.path) {
+            LlmProviderScreen(onBack = { nav.popBackStack() })
+        }
+        composable(Route.ElderAsrProvider.path) {
+            AsrProviderScreen(onBack = { nav.popBackStack() })
+        }
+        composable(Route.ElderTtsProvider.path) {
+            TtsProviderScreen(onBack = { nav.popBackStack() })
         }
     }
 }

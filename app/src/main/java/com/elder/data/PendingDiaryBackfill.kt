@@ -1,7 +1,8 @@
 package com.elder.android.data
 
 import com.elder.android.agent.InterviewAgent
-import com.elder.android.data.asr.AsrApiClient
+import com.elder.android.data.asr.AsrClient
+import com.elder.android.data.llm.LlmCredentials
 import com.elder.android.data.db.DiaryEntryEntity
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -11,7 +12,7 @@ class PendingDiaryBackfill(
     private val configRepo: AsrConfigRepository,
     private val pendingRepo: PendingDiaryRepository,
     private val diaryRepo: DiaryRepository,
-    private val asr: AsrApiClient,
+    private val asr: AsrClient,
     private val agent: InterviewAgent,
 ) {
     private val mutex = Mutex()
@@ -30,10 +31,17 @@ class PendingDiaryBackfill(
                 return@forEach
             }
             runCatching {
-                val asrResult = asr.transcribe(config.apiKey, file)
+                val asrResult = asr.transcribe(config.asrKey(), file)
                 val transcript = asrResult.text.trim()
                 require(transcript.isNotBlank())
-                val (text, summary) = agent.summarize(config.minimaxApiKey, transcript)
+                // v0.8.0 §A.15：构造 LlmCredentials；provider 路由由 LlmClientFactory 完成
+                val llmCredentials = LlmCredentials(
+                    provider = config.llmProvider,
+                    minimaxApiKey = config.minimaxApiKey,
+                    qwenApiKey = config.qwenLlmApiKey,
+                    deepseekApiKey = config.deepseekLlmApiKey,
+                )
+                val (text, summary) = agent.summarize(llmCredentials, transcript)
                 val now = System.currentTimeMillis()
                 diaryRepo.insert(
                     DiaryEntryEntity(
@@ -46,8 +54,8 @@ class PendingDiaryBackfill(
                         source = DiaryEntryEntity.Source.ASR_ORIGINAL,
                         audioPath = pending.audioPath,
                         durationMs = pending.durationMs,
-                        asrProvider = AsrApiClient.BAILIAN_PROVIDER,
-                        asrModel = AsrApiClient.BAILIAN_MODEL,
+                        asrProvider = asr.providerRaw,
+                        asrModel = asr.model,
                         asrConfidence = asrResult.confidence,
                         asrLatencyMs = null,
                         createdAt = now,

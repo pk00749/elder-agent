@@ -1,0 +1,12 @@
+{
+  "name": "feeling_dimension",
+  "description": "C1 修订 + E2 字段阶梯：老人聊到情绪，要求 Agent 显式 mark_dimension_covered feeling",
+  "elder_facts": [],
+  "recent_summaries": [],
+  "turns": [
+    {"elder": "今天和老伴吵架了。"},
+    {"elder": "挺烦的。"},
+    {"elder": "因为她不让我出去散步。"},
+    {"elder": "唉。"}
+  ]
+}

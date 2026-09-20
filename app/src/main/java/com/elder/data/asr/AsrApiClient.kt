@@ -1,4 +1,6 @@
-// 对应 PRD §3.1.9 + §10.4 阿里云百炼 ASR 客户端（v3.0 MVP 唯一上游）
+// 对应 PRD §3.1.9 + §A.8 阿里云百炼 ASR 客户端（v3.0 MVP 唯一上游）
+// v0.7.0 修订：实现 AsrClient 接口（§A.14），inner RealtimeAsrSession 提升为顶层
+// BailianRealtimeAsrSession；与 MiniMaxAsrClient 共用 AsrProvider 切换逻辑。
 //
 // Realtime WebSocket 协议（对齐 scripts/realtime_quickstart.py）：
 //   - 端点：wss://{WorkspaceId}.cn-beijing.maas.aliyuncs.com/api-ws/v1/realtime?model=...
@@ -30,16 +32,20 @@ import java.util.concurrent.TimeUnit
 class AsrApiClient(
     private val client: OkHttpClient = defaultClient(),
     private val wsUrl: String = WS_URL,
-) {
-    suspend fun openSession(
+) : AsrClient {
+
+    override val providerRaw: String = BAILIAN_PROVIDER
+    override val model: String = BAILIAN_MODEL
+
+    override suspend fun openSession(
         apiKey: String,
-        onPartial: (String) -> Unit = {},
+        onPartial: (String) -> Unit,
     ): RealtimeAsrSession = withContext(Dispatchers.IO) {
         if (apiKey.isBlank()) throw AppError.AsrAuthFailed()
         createSession(apiKey, onPartial)
     }
 
-    suspend fun transcribe(apiKey: String, audioFile: File): AsrResult {
+    override suspend fun transcribe(apiKey: String, audioFile: File): AsrResult {
         val session = openSession(apiKey)
         return try {
             FileInputStream(audioFile).use { input ->
@@ -129,44 +135,10 @@ class AsrApiClient(
             withTimeoutOrNull(SESSION_TIMEOUT_MS) { sessionReady.await() }
                 ?: throw AppError.AsrUpstream(IOException("Bailian Realtime session.updated timeout"))
 
-            RealtimeAsrSession(ws, transcript)
+            BailianRealtimeAsrSession(ws, transcript)
         } catch (t: Throwable) {
             ws.close(WS_CLOSE_NORMAL, "failed")
             throw t
-        }
-    }
-
-    inner class RealtimeAsrSession internal constructor(
-        private val socket: WebSocket,
-        private val transcript: CompletableDeferred<String>,
-    ) {
-        @Volatile private var closed: Boolean = false
-
-        fun appendAudio(audio: ByteArray) {
-            if (closed || transcript.isCompleted) return
-            if (!socket.send(buildAppendMessage(audio))) {
-                completeException(
-                    transcript,
-                    AppError.AsrUpstream(IOException("Failed to send Realtime audio frame")),
-                )
-                closed = true
-            }
-        }
-
-        suspend fun finish(): AsrResult {
-            if (!socket.send(buildCommitMessage())) {
-                throw AppError.AsrUpstream(IOException("Failed to send Realtime input_audio_buffer.commit"))
-            }
-            val text = withTimeoutOrNull(TRANSCRIPT_TIMEOUT_MS) {
-                transcript.await()
-            } ?: throw AppError.AsrUpstream(IOException("Bailian Realtime transcript timeout"))
-            if (text.isBlank()) throw AppError.AsrEmptyTranscript()
-            return AsrResult(text = text.trim(), confidence = null, httpStatus = 200)
-        }
-
-        fun close() {
-            closed = true
-            socket.close(WS_CLOSE_NORMAL, "done")
         }
     }
 
@@ -234,6 +206,54 @@ class AsrApiClient(
     }
 
     private fun newEventId(): String = "event_${UUID.randomUUID()}"
+
+    /**
+     * 顶层 Session 类（v0.7.0 提升）：实现 [RealtimeAsrSession] 接口；
+     * InterviewScreen / ElderDiaryRecord 通过接口持有，Provider 切换不影响调用方。
+     */
+    class BailianRealtimeAsrSession internal constructor(
+        private val socket: WebSocket,
+        private val transcript: CompletableDeferred<String>,
+    ) : RealtimeAsrSession {
+        @Volatile private var closed: Boolean = false
+
+        override fun appendAudio(audio: ByteArray) {
+            if (closed || transcript.isCompleted) return
+            val message = JSONObject().apply {
+                put("event_id", "event_${UUID.randomUUID()}")
+                put("type", "input_audio_buffer.append")
+                put("audio", Base64.getEncoder().encodeToString(audio))
+            }.toString()
+            if (!socket.send(message)) {
+                if (!transcript.isCompleted) {
+                    transcript.completeExceptionally(
+                        AppError.AsrUpstream(IOException("Failed to send Realtime audio frame")),
+                    )
+                }
+                closed = true
+            }
+        }
+
+        override suspend fun finish(): AsrResult {
+            val commit = JSONObject().apply {
+                put("event_id", "event_${UUID.randomUUID()}")
+                put("type", "input_audio_buffer.commit")
+            }.toString()
+            if (!socket.send(commit)) {
+                throw AppError.AsrUpstream(IOException("Failed to send Realtime input_audio_buffer.commit"))
+            }
+            val text = withTimeoutOrNull(TRANSCRIPT_TIMEOUT_MS) {
+                transcript.await()
+            } ?: throw AppError.AsrUpstream(IOException("Bailian Realtime transcript timeout"))
+            if (text.isBlank()) throw AppError.AsrEmptyTranscript()
+            return AsrResult(text = text.trim(), confidence = null, httpStatus = 200)
+        }
+
+        override fun close() {
+            closed = true
+            socket.close(WS_CLOSE_NORMAL, "done")
+        }
+    }
 
     companion object {
         const val BAILIAN_WORKSPACE_ID = "llm-svrk4hi977f8t2fe"

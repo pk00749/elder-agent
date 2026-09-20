@@ -43,6 +43,7 @@ data class ElderHomeUiState(
     val dateLine: String = formatToday(),
     val todayRecorded: Boolean = false,
     val showAsrHint: Boolean = false,
+    val upgradeToast: String? = null,
 )
 
 class ElderHomeViewModel(app: Application) : AndroidViewModel(app) {
@@ -64,11 +65,21 @@ class ElderHomeViewModel(app: Application) : AndroidViewModel(app) {
             ServiceLocator.pendingBackfill.run()
             combineState()
         }
+        viewModelScope.launch {
+            ServiceLocator.upgradeToast.collect { msg ->
+                if (!msg.isNullOrBlank()) {
+                    _uiState.update { it.copy(upgradeToast = msg) }
+                    ServiceLocator.consumeUpgradeToast()
+                }
+            }
+        }
         connectivityManager?.registerNetworkCallback(
             NetworkRequest.Builder().build(),
             networkCallback,
         )
     }
+
+    fun dismissUpgradeToast() = _uiState.update { it.copy(upgradeToast = null) }
 
     private fun combineState() {
         viewModelScope.launch {

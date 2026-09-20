@@ -1,14 +1,21 @@
-// §3.1.8 老人端设置（主屏可见入口，v3.0 MVP 版）
+// §3.1.8 老人端设置（主屏可见入口，v3.0 MVP 版 + v0.8.1 整改）
+// v0.8.1 整改：
+//   - ASR 入口卡副标题加 LLM 信息（之前只有 ASR + TTS）
+//   - 跳系统音量设置加 try-catch（部分定制 ROM 会抛 ActivityNotFoundException）
+//   - 退出登录 dialog 改用老人版文案（老人端没有"接收提醒"概念）
 package com.elder.android.screen.elder
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.provider.Settings
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import com.elder.android.ui.component.ElderToast
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,8 +27,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
@@ -44,7 +51,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -87,14 +93,28 @@ fun ElderSettingsScreen(
             )
 
             Column(modifier = Modifier.fillMaxSize()) {
-                SettingRow1Asr(configured = state.asrConfigured, onClick = onOpenAsr)
+                SettingRow1Asr(
+                    configured = state.asrConfigured,
+                    asrProviderLabel = state.asrProviderLabel,
+                    ttsProviderLabel = state.ttsProviderLabel,
+                    llmProviderLabel = state.llmProviderLabel,   // v0.8.1 新增
+                    onClick = onOpenAsr,
+                )
                 Divider()
                 SettingRow2FontScale(current = state.fontScale, onPick = vm::setFontScale)
                 Divider()
                 SettingRow3Tts(enabled = state.ttsEnabled, onChange = vm::setTtsEnabled)
                 Divider()
                 SettingRow4Volume(onClick = {
-                    ctx.startActivity(Intent(Settings.ACTION_SOUND_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    // v0.8.1 整改：try-catch 包装（MIUI / ColorOS 部分版本无 ACTION_SOUND_SETTINGS）
+                    runCatching {
+                        ctx.startActivity(
+                            Intent(Settings.ACTION_SOUND_SETTINGS)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    }.onFailure {
+                        Toast.makeText(ctx, R.string.settings_volume_no_app, Toast.LENGTH_SHORT).show()
+                    }
                 })
                 Divider()
                 SettingRow5About(versionName = state.versionName)
@@ -105,13 +125,19 @@ fun ElderSettingsScreen(
         }
     }
 
+    // v0.8.1 整改：退出登录失败等异常通过 ElderToast 兜底（之前会被吞掉）
+    if (!state.topError.isNullOrBlank()) {
+        ElderToast(message = state.topError, onDismiss = vm::dismissError)
+    }
+
     if (state.showLogoutConfirm) {
         AlertDialog(
             onDismissRequest = vm::cancelLogout,
             title = { Text(stringResource(R.string.settings_logout), fontSize = FontSize.body(), fontWeight = FontWeight.Bold) },
+            // v0.8.1 整改：老人端用专属文案（"接收提醒"是家属端概念，老人听不懂）
             text = {
                 Text(
-                    stringResource(R.string.settings_logout_warning),
+                    stringResource(R.string.settings_logout_warning_elder),
                     fontSize = FontSize.body(),
                     color = BrandColor.TextPrimary,
                 )
@@ -131,10 +157,22 @@ fun ElderSettingsScreen(
 }
 
 @Composable
-private fun SettingRow1Asr(configured: Boolean, onClick: () -> Unit) {
+private fun SettingRow1Asr(
+    configured: Boolean,
+    asrProviderLabel: String,
+    ttsProviderLabel: String,
+    llmProviderLabel: String,   // v0.8.1 新增
+    onClick: () -> Unit,
+) {
     SettingRow(
         title = stringResource(R.string.settings_asr),
-        subtitle = if (configured) stringResource(R.string.settings_asr_configured) else stringResource(R.string.settings_asr_not_configured),
+        // v0.8.1 整改：副标题加 LLM 信息
+        subtitle = if (configured) stringResource(
+            R.string.settings_asr_summary_v2,
+            asrProviderLabel,
+            ttsProviderLabel,
+            llmProviderLabel,
+        ) else stringResource(R.string.settings_asr_not_configured),
         onClick = onClick,
         trailing = {
             if (!configured) RedDot()
@@ -168,6 +206,7 @@ private fun SettingRow2FontScale(current: FontScale, onPick: (FontScale) -> Unit
                 )
             }
         }
+
         Spacer(modifier = Modifier.height(Spacing.Sm))
         Text(
             text = stringResource(R.string.settings_font_preview),
@@ -228,8 +267,6 @@ private fun SettingRow6Logout(onClick: () -> Unit) {
 private fun SettingRow(
     title: String,
     subtitle: String,
-    // PR #5：onClick 改 nullable；为 null 时整行不挂 clickable，
-    // 避免吞掉 trailing slot 里 Switch 自身 onCheckedChange 事件
     trailing: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     danger: Boolean = false,
@@ -250,6 +287,7 @@ private fun SettingRow(
             )
             Text(subtitle, fontSize = FontSize.caption(), color = BrandColor.TextSecondary)
         }
+
         trailing?.invoke()
         if (onClick != null) {
             Icon(
@@ -259,6 +297,7 @@ private fun SettingRow(
                 modifier = Modifier.size(Size.IconMd),
             )
         }
+
     }
 }
 

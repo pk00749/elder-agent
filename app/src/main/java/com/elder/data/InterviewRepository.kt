@@ -15,6 +15,8 @@ data class InterviewTurn(
     val turnNo: Int,
     val elderText: String,
     val assistantText: String,
+    val ack: String? = null,                  // v0.6.0: A6 共情前置 ≤10 字
+    val probe: String? = null,                // v0.6.0: A2 追问 ≤25 字
     val audioPath: String? = null,
     val durationMs: Int = 0,
     val createdAt: Long,

@@ -1,6 +1,6 @@
 package com.elder.android.screen.interview
 
-import com.elder.android.data.asr.AsrApiClient
+import com.elder.android.data.asr.RealtimeAsrSession
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicReference
 
@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference
 class AsrSessionBridge(
     private val onPartial: (String) -> Unit,
 ) {
-    private val session = AtomicReference<AsrApiClient.RealtimeAsrSession?>(null)
+    private val session = AtomicReference<RealtimeAsrSession?>(null)
     private val buffered = Collections.synchronizedList(mutableListOf<ByteArray>())
     @Volatile private var detached = false
 
@@ -23,7 +23,7 @@ class AsrSessionBridge(
         }
     }
 
-    fun attach(value: AsrApiClient.RealtimeAsrSession) {
+    fun attach(value: RealtimeAsrSession) {
         if (detached) {
             value.close()
             return
@@ -39,7 +39,7 @@ class AsrSessionBridge(
 
     fun observePartial(text: String) = onPartial(text)
 
-    fun finish(): AsrApiClient.RealtimeAsrSession? {
+    fun finish(): RealtimeAsrSession? {
         detached = true
         return session.getAndSet(null)
     }

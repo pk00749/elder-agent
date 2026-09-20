@@ -31,7 +31,7 @@ class QwenTtsClientLiveTest {
         assertTrue("TTS first audio delay should be reported", result.totalLatencyMs > 0)
     }
 
-    private class RecordingSink : QwenTtsClient.PcmSink {
+    private class RecordingSink : com.elder.android.data.tts.PcmSink {
         @Volatile var byteCount: Int = 0
             private set
 

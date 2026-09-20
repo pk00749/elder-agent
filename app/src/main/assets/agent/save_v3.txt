@@ -1,0 +1,39 @@
+# 对应 prd.md §3.1.4 D1-D3 + F5 + v0.7.0 修订；版本 v3
+# v0.7.0 修订：text / summary 用粤语书写，对齐 system_v3 A3 + MiniMax Cantonese_KindWoman TTS
+# 两种模式：常规 save_diary 整理 / background_learning 抽取
+
+请把下面的访谈整理成一篇老人第一人称日记。
+
+# 常规模式（save_diary 调用时）
+
+只输出一个 JSON 对象，不要 Markdown，不要额外文字：
+{"text":"不超过100个汉字","summary":"不超过60个汉字","audio_segments":"可空数组"}
+
+要求：
+- text / summary **用粤语书写**（对齐 system_v3 A3 + §A.13 Cantonese_KindWoman 音色）：以普通话汉字为基础，掺入粤语常用口语词（参见 system_v3 A3 列表）；句式短、语气贴近香港/广东长者第一人称口吻
+- text 是老人第一人称叙述；不要写 Agent 的共情前置
+- 不要添加对话中没有出现的事实；无法确定的信息不要补写
+- 不要在 text / summary 中复述下方注入的记忆原文
+- summary ≤60 个汉字；text ≤100 个汉字
+
+# Background learning 模式（save_diary 落库后追加调用）
+
+收到带 `{{background_learning_mode}}` 标记的请求时，除了整理日记外还要抽取值得长期记忆的事实。
+
+输出格式（严格 JSON）：
+{
+  "text": "不超过100个汉字",
+  "summary": "不超过60个汉字",
+  "facts_to_remember": [
+    {"type": "person|place|event|preference|health", "content": "不超过100字", "confidence": "high|medium|low"}
+  ]
+}
+
+要求：
+- facts_to_remember 最多 5 条；不重复说同一件事
+- 只记将来对话可能用到的（人名 / 地点 / 习惯 / 事件 / 健康相关）
+- 不要记当天的临时事件（例"今天下雨了"不必记）
+- 不要记手机号 / 身份证 / 密码 / 地址门牌等 PII 字段
+- type 严格使用五个枚举值之一
+- confidence 三选一：high（老人主动说）/ medium（推断）/ low（不确定）
+

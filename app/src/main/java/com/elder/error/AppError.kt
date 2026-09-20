@@ -19,9 +19,12 @@ sealed class AppError(
         ASR_RESPONSE_INVALID("对方返回看不懂"),
         ASR_NOT_CONFIGURED("请先在设置 → AI 服务 配置 Key"),
         ASR_EMPTY_TRANSCRIPT("没听清，再说一次"),
-        LLM_AUTH_FAILED("MiniMax Key 不对"),
+        LLM_AUTH_FAILED("API Key 不对"),
         LLM_RATE_LIMITED("AI 太忙了，等等再试"),
         LLM_UPSTREAM("AI 没回答上来"),
+        LLM_BAD_REQUEST("配置有误，去设置检查"),
+        LLM_EMPTY_RESPONSE("AI 没回答上来"),
+        LLM_PROVIDER_UNKNOWN("AI 服务暂不支持"),
         TTS_AUTH_FAILED("语音 Key 不对"),
         TTS_UPSTREAM("语音暂时说不出来"),
         RECORDING_PERMISSION_DENIED("需要麦克风权限才能写日志"),
@@ -34,7 +37,24 @@ sealed class AppError(
 
     class AsrAuthFailed(cause: Throwable? = null) : AppError(Code.ASR_AUTH_FAILED, Code.ASR_AUTH_FAILED.userMessage, cause)
     class AsrRateLimited(cause: Throwable? = null) : AppError(Code.ASR_RATE_LIMITED, Code.ASR_RATE_LIMITED.userMessage, cause)
-    class AsrBadRequest(cause: Throwable? = null) : AppError(Code.ASR_BAD_REQUEST, Code.ASR_BAD_REQUEST.userMessage, cause)
+    class AsrBadRequest(
+        cause: Throwable? = null,
+        val serverErrorCode: String? = null,
+        val serverErrorMessage: String? = null,
+    ) : AppError(
+        Code.ASR_BAD_REQUEST,
+        buildString {
+            append(Code.ASR_BAD_REQUEST.userMessage)
+            if (!serverErrorCode.isNullOrEmpty() || !serverErrorMessage.isNullOrEmpty()) {
+                append(" (server ")
+                append(serverErrorCode ?: "?")
+                append(": ")
+                append(serverErrorMessage ?: "?")
+                append(")")
+            }
+        },
+        cause,
+    )
     class AsrUpstream(
         cause: Throwable? = null,
         val serverErrorCode: String? = null,
@@ -58,6 +78,12 @@ sealed class AppError(
     class AsrEmptyTranscript : AppError(Code.ASR_EMPTY_TRANSCRIPT, Code.ASR_EMPTY_TRANSCRIPT.userMessage)
     class LlmAuthFailed(cause: Throwable? = null) : AppError(Code.LLM_AUTH_FAILED, Code.LLM_AUTH_FAILED.userMessage, cause)
     class LlmRateLimited(cause: Throwable? = null) : AppError(Code.LLM_RATE_LIMITED, Code.LLM_RATE_LIMITED.userMessage, cause)
+    class LlmBadRequest(cause: Throwable? = null) : AppError(Code.LLM_BAD_REQUEST, Code.LLM_BAD_REQUEST.userMessage, cause)
+    class LlmEmptyResponse : AppError(Code.LLM_EMPTY_RESPONSE, Code.LLM_EMPTY_RESPONSE.userMessage)
+    class LlmProviderUnknown(raw: String?) : AppError(
+        Code.LLM_PROVIDER_UNKNOWN,
+        Code.LLM_PROVIDER_UNKNOWN.userMessage + "（" + (raw ?: "") + "）",
+    )
     class LlmUpstream(
         cause: Throwable? = null,
         val serverErrorCode: String? = null,

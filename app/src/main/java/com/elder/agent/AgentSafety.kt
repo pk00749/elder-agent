@@ -1,52 +1,44 @@
+// 对应 PRD §3.1.4 B1-B4 + C3；v0.6.0 弱化：dimensions 字典迁到 LLM 工具调用（mark_dimension_covered）。
 package com.elder.android.agent
 
 object AgentSafety {
+    /** B2 急救关键词：命中即调 save_diary 终止会话 */
     private val emergency = setOf(
         "摔了", "摔伤", "摔跤", "喘不上气", "喘不过气", "胸口疼", "胸口痛",
         "胸闷", "心慌", "晕倒", "昏迷", "中风", "心脏病发作", "脑溢血", "叫救护车",
     )
 
+    /** B1/B4 金钱/医疗：命中即 ask_clarify 换话题 */
     private val moneyOrMedical = setOf(
         "钱", "转账", "汇款", "借我", "借点钱", "验证码", "密码", "链接", "网址",
         "银行卡", "二维码", "扫码支付", "什么病", "什么症状", "什么药", "能不能吃",
         "要不要吃", "吃多少", "剂量", "副作用", "诊断", "是不是病", "严重吗", "要不要去医院",
     )
 
+    /** C3 老人明确收尾 */
     private val explicitClose = setOf(
         "就到这", "就到这儿", "不聊了", "今天到这", "今天到这儿", "够了", "就这样吧", "结束吧",
     )
 
-    private val dimensions = mapOf(
-        "time" to setOf(
-            "今天", "今天早上", "今天下午", "今天晚上", "今早", "今晚", "早上", "下午",
-            "晚上", "中午", "上午", "傍晚", "凌晨", "昨天", "明天", "刚才", "现在", "周末",
-            "周一", "周二", "周三", "周四", "周五", "周六", "周日",
-        ),
-        "place" to setOf(
-            "家", "家里", "外面", "公园", "医院", "超市", "市场", "菜市场", "学校",
-            "广场", "楼下", "门口", "厨房", "客厅", "卧室", "阳台", "车上", "路上", "小区", "商场",
-        ),
-        "person" to setOf(
-            "我", "老伴", "儿子", "女儿", "孙子", "孙女", "外孙", "外孙女", "老张", "老李",
-            "老王", "老赵", "小明", "小红", "小丽", "爸爸", "妈妈", "爷爷", "奶奶", "邻居",
-            "朋友", "医生", "护士",
-        ),
-        "event" to setOf(
-            "吃", "喝", "玩", "看", "走", "跑", "坐", "聊天", "下棋", "打牌", "买菜", "做饭",
-            "跳舞", "唱歌", "睡觉", "起床", "出门", "回家", "看病", "拿药", "体检", "散步",
-            "锻炼", "刷手机", "看电视", "接送", "买", "逛", "聊",
-        ),
-    )
-
+    /** B2 急救关键词判定 */
     fun isEmergency(text: String): Boolean = emergency.any(text::contains)
 
+    /** B1/B4 金钱/医疗判定 */
     fun isMoneyOrMedical(text: String): Boolean = moneyOrMedical.any(text::contains)
 
+    /** C3 明确收尾判定 */
     fun isExplicitClose(text: String): Boolean = explicitClose.any(text::contains)
 
+    // v0.6.0 弱化：dimensionCount() 已废弃；维度判定改 LLM 显式 mark_dimension_covered 工具调用。
+    // 保留函数以兼容 0.5.0 测试代码，但标记 @Deprecated。
+    @Deprecated(
+        message = "v0.6.0 改用 LLM mark_dimension_covered 工具调用；此函数仅作 keyword 兜底（feeling 维度）。",
+        replaceWith = ReplaceWith("Dimension.FEELING in coveredDimensions"),
+    )
     fun dimensionCount(texts: List<String>): Int {
         if (texts.isEmpty()) return 0
-        val joined = texts.joinToString(" ")
-        return dimensions.values.count { keys -> keys.any(joined::contains) }
+        // 保留仅 feeling 维度的兜底逻辑（v0.6.0 F7：preference / feeling 维度 keyword 兜底）
+        val feelingKeywords = setOf("高兴", "难过", "开心", "伤心", "生气", "激动", "失望", "意外", "惊喜", "挺")
+        return if (feelingKeywords.any { kw -> texts.joinToString(" ").contains(kw) }) 1 else 0
     }
 }

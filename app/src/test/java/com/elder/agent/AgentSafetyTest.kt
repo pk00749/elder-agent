@@ -18,9 +18,12 @@ class AgentSafetyTest {
     }
 
     @Test
-    fun `dimension counting closes when two facts are present`() {
-        assertTrue(AgentSafety.dimensionCount(listOf("今天和老张下棋")) >= 2)
+    fun `dimension counting v0_6_0 only checks feeling fallback`() {
+        // v0.6.0: dimensionCount 已 @Deprecated，维度判定改 LLM 显式 mark_dimension_covered 工具调用。
+        // 该函数仅作 feeling 维度兜底（returns 0 or 1），不再 ≥2 触发收尾。
+        assertEquals(0, AgentSafety.dimensionCount(listOf("今天和老张下棋")))
         assertEquals(0, AgentSafety.dimensionCount(listOf("嗯，然后呢")))
+        assertEquals(1, AgentSafety.dimensionCount(listOf("今天挺高兴的")))
     }
 
     @Test

@@ -1,6 +1,9 @@
-// v3.0 MVP Room 数据库 + 0.5.0 Agent 会话与离线补做表。
+// v3.0 MVP Room 数据库 + 0.5.0 Agent 会话与离线补做表 + v0.6.0 elder_facts 长期事实表。
 // v3.0.1 §A.1.b：asr_config 砍掉 provider/endpoint/model/extra_headers_json/audio_format，
-// version 1→2，MIGRATION_1_2 直接 drop 列；旧 API Key 强制清空（用户需重输百炼 Key）
+// version 1→2，MIGRATION_1_2 直接 drop 列；旧 API Key 强制清空（用户需重输百炼 Key）。
+// v0.6.0 §3.1.4 F2 / F6 + AGENTS.md §A.11.3：version 3→4，新增 elder_facts 表（用 CREATE TABLE + 索引；不 drop 现有表）。
+// v0.7.0 §3.1.9 / §A.14：version 4→5，asr_config 走 DROP+CREATE（16 列 schema），强制老人重输 4 份 Key。
+// v0.8.0 §3.1.9 / §A.15：version 5→6，asr_config 走 ALTER TABLE 新增 7 列（llm_provider / llm_endpoint / llm_model / qwen_llm_api_key_enc / qwen_llm_last_test_result / deepseek_llm_api_key_enc / deepseek_llm_last_test_result），不 drop 既有数据。
 package com.elder.android.data.db
 
 import android.content.Context
@@ -17,8 +20,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         DeviceMetaEntity::class,
         InterviewSessionEntity::class,
         PendingDiaryEntity::class,
+        ElderFactEntity::class, // v0.6.0 新增：长期事实表
     ],
-    version = 3,
+    version = 6, // v0.8.0: 5→6 asr_config ALTER TABLE 新增 7 列 LLM Provider 字段；不 drop 既有数据
     exportSchema = false,
 )
 abstract class ElderDatabase : RoomDatabase() {
@@ -27,6 +31,7 @@ abstract class ElderDatabase : RoomDatabase() {
     abstract fun deviceMetaDao(): DeviceMetaDao
     abstract fun interviewSessionDao(): InterviewSessionDao
     abstract fun pendingDiaryDao(): PendingDiaryDao
+    abstract fun elderFactDao(): ElderFactDao // v0.6.0 新增
 
     companion object {
         @Volatile private var instance: ElderDatabase? = null
@@ -92,13 +97,97 @@ abstract class ElderDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * v0.6.0 Migration 3→4：新增 elder_facts 表（§3.1.4 F2）。
+         * 用 CREATE TABLE + 索引；不动现有表（AGENTS.md §A.11.3 要求不 drop）。
+         * 老 data（diary_entry_local / interview_session / pending_diary / asr_config / device_meta）保留。
+         */
+        internal val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS elder_facts (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        type TEXT NOT NULL,
+                        content TEXT NOT NULL,
+                        confidence TEXT NOT NULL,
+                        last_used_at INTEGER NOT NULL,
+                        mention_count INTEGER NOT NULL DEFAULT 0,
+                        source_session_id TEXT,
+                        created_at INTEGER NOT NULL,
+                        updated_at INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_elder_facts_type_last_used_at " +
+                        "ON elder_facts(type, last_used_at)"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_elder_facts_source_session_id " +
+                        "ON elder_facts(source_session_id)"
+                )
+            }
+        }
+
+        /**
+         * v0.7.0 Migration 4→5：asr_config 表 DROP+CREATE（§3.1.9 / §A.14）。
+         * asr_config 不在 §18 锁定列表，允许 DROP 重建。
+         * 强制老人重输 4 份 Key（api_key_enc 千问共用 / minimax_api_key_enc MiniMax LLM+ASR 共用 /
+         * tts_minimax_api_key_enc MiniMax TTS 独立）。
+         * 主屏需弹一次性 Toast 提示用户重新配置（由 ServiceLocator.init 检测 schema version 4→5 emit）。
+         */
+        internal val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS asr_config")
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS asr_config (
+                        id INTEGER NOT NULL PRIMARY KEY,
+                        api_key_enc TEXT NOT NULL,
+                        asr_provider TEXT NOT NULL,
+                        asr_endpoint TEXT NOT NULL,
+                        asr_model TEXT NOT NULL,
+                        tts_provider TEXT NOT NULL,
+                        tts_endpoint TEXT NOT NULL,
+                        tts_model TEXT NOT NULL,
+                        tts_voice_id TEXT,
+                        minimax_api_key_enc TEXT,
+                        tts_minimax_api_key_enc TEXT,
+                        updated_at INTEGER NOT NULL,
+                        last_test_result TEXT,
+                        minimax_last_test_result TEXT,
+                        tts_minimax_last_test_result TEXT
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
+        /**
+         * v0.8.0 Migration 5→6：asr_config 表 ALTER TABLE 新增 7 列（§3.1.9 / §A.15.3）。
+         * asr_config 不在 §18 锁定列表，允许 ALTER TABLE；不 drop 既有 16 列数据。
+         * 既有 4→5 DROP+CREATE 是 v0.7.0 重构已落库；本次仅追加，不影响用户已配 Key。
+         */
+        internal val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE asr_config ADD COLUMN llm_provider TEXT NOT NULL DEFAULT 'minimax'")
+                db.execSQL("ALTER TABLE asr_config ADD COLUMN llm_endpoint TEXT")
+                db.execSQL("ALTER TABLE asr_config ADD COLUMN llm_model TEXT")
+                db.execSQL("ALTER TABLE asr_config ADD COLUMN qwen_llm_api_key_enc TEXT")
+                db.execSQL("ALTER TABLE asr_config ADD COLUMN qwen_llm_last_test_result TEXT")
+                db.execSQL("ALTER TABLE asr_config ADD COLUMN deepseek_llm_api_key_enc TEXT")
+                db.execSQL("ALTER TABLE asr_config ADD COLUMN deepseek_llm_last_test_result TEXT")
+            }
+        }
+
         fun get(context: Context): ElderDatabase = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext,
                 ElderDatabase::class.java,
                 "elder_v3.db",
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                 .build()
                 .also { instance = it }
         }
