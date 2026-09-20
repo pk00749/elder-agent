@@ -3,9 +3,10 @@ package com.elder.android.agent
 import android.content.Context
 
 /**
- * 对应 prd.md §3.1.4 v0.6.0；版本 v2。
+ * 对应 prd.md §3.1.4 v0.6.0 + v0.7.0 修订；版本 v3。
+ * v0.7.0 修订（system_v3 / save_v3）：A3 明确"用粤语回答"，对齐 §A.13 MiniMax Cantonese_KindWoman TTS 音色。
  * v0.5.0 仅 system()/save() 两方法；v0.6.0 加 systemWithContext(recentSummaries, elderFacts)
- * 实现 system_v2.txt 的 {{elder_facts_block}} / {{recent_summaries_block}} / {{memory_policy_block}} 三块注入。
+ * 实现 system_v{N}.txt 的 {{elder_facts_block}} / {{recent_summaries_block}} / {{memory_policy_block}} 三块注入。
  */
 interface PromptProvider {
     /** v0.5.0 兼容接口；返回不带任何注入的 v1 prompt 文本（v0.6.0 已 deprecated，但保留可读）。 */
@@ -16,7 +17,7 @@ interface PromptProvider {
     fun system(): String
 
     /**
-     * v0.6.0 主入口：返回三块注入后的完整 system_v2 prompt。
+     * v0.6.0 主入口：返回三块注入后的完整 system_v3 prompt（v0.7.0 起粤语回答）。
      * @param recentSummaries 最近 N 天 diary summary（v0.6.0 N=3）
      * @param elderFacts 长期事实表 top K（v0.6.0 K=50，按 mentionCount DESC, lastUsedAt DESC）
      *
@@ -27,7 +28,7 @@ interface PromptProvider {
         elderFacts: List<ElderFact> = emptyList(),
     ): String = system()
 
-    /** save 模式：v0.6.0 save_v2.txt 已合并 background_learning 模式（普通调用也走同一文件，LLM 根据 prompt 上下文自适应）。 */
+    /** save 模式：v0.7.0 save_v3.txt 已合并 background_learning 模式（普通调用也走同一文件，LLM 根据 prompt 上下文自适应）。 */
     fun save(): String
 }
 
@@ -76,11 +77,11 @@ class AgentPrompts(private val context: Context) : PromptProvider {
         context.assets.open(path).bufferedReader(Charsets.UTF_8).use { it.readText() }
 
     companion object {
-        const val VERSION = "v2"
-        // v0.5.0 旧版本文件保留（AGENTS.md §11 prompt 版本化要求）
+        const val VERSION = "v3"
+        // 旧版本文件保留（AGENTS.md §11 prompt 版本化要求）：v1 = 0.5.0 基础 / v2 = 0.6.0 加记忆层
         private const val SYSTEM_PROMPT_V1 = "agent/system_v1.txt"
-        private const val SYSTEM_PROMPT = "agent/system_v2.txt"
-        private const val SAVE_PROMPT = "agent/save_v2.txt"
+        private const val SYSTEM_PROMPT = "agent/system_v3.txt"
+        private const val SAVE_PROMPT = "agent/save_v3.txt"
 
         /** prd.md §3.1.4 F4：elder-facts 注入上限 = top 50 */
         const val MAX_FACTS_INJECTED = 50

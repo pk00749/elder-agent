@@ -46,7 +46,10 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
     private val metaRepo = ServiceLocator.deviceMetaRepo
     private val recorder: AudioRecorder = ServiceLocator.audioRecorder
     private val asr: AsrApiClient = ServiceLocator.asrApi   // 兜底 Provider=bailian；运行时按 config.asrProvider 解析
-    private val tts: TtsClient = ServiceLocator.ttsClient    // 兜底 Provider=qwen；运行时按 config.ttsProvider 解析
+    // Bug fix：原本注入 ServiceLocator.ttsClient（lateinit property，init 时 hardcode 成 QwenTtsClient），
+    // 运行时从来不按 config.ttsProvider 重新解析 → 选了 MiniMax TTS 仍然跑 QwenTtsClient + 千问 Key。
+    // 改成 var，并在 onEnter() 里用 ServiceLocator.ttsClient() 函数（按 cfg.ttsProvider 路由）覆盖。
+    private var tts: TtsClient = ServiceLocator.ttsClient
     private val agent: InterviewAgent = ServiceLocator.interviewAgent
 
     private val _state = MutableStateFlow(InterviewUiState())
@@ -68,6 +71,8 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         work?.cancel()
         work = viewModelScope.launch {
             config = configRepo.current()
+            // Bug fix：按 config.ttsProvider 解析 TTS 客户端（不再 stale hardcode QwenTtsClient）
+            tts = ServiceLocator.ttsClient()
             ttsEnabled = metaRepo.ensureInitialized().ttsEnabled
             // v0.6.0：进入访谈屏时并发加载 memory context（recent_summaries + elder_facts）
             // PR2.4 会把这两个字段传入 agent.respond(apiKey, session, text, recentSummaries, elderFacts)
@@ -218,9 +223,11 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         val willFinalize = com.elder.android.agent.AgentSafety.isExplicitClose(text) ||
             session.turns.size + 1 >= InterviewAgent.MAX_TURNS
         val speech = StreamingSpeechBuffer(
-            apiKey = credentials.apiKey,
+            // Bug fix：TTS 走 ttsKey()（按 cfg.ttsProvider 选 apiKey / ttsMinimaxApiKey），
+            // 而不是 credentials.apiKey（千问 Key），否则 MiniMax TTS 用千问 Key 永远 401。
+            apiKey = credentials.ttsKey(),
             enabled = ttsEnabled,
-            speak = { segment -> tts.speak(credentials.apiKey, segment) },
+            speak = { segment -> tts.speak(credentials.ttsKey(), segment) },
             onFailure = { _state.update { it.copy(ttsFailed = true) } },
         )
         _state.update { it.copy(assistantText = "") }
@@ -291,7 +298,9 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         text: String,
         nextStage: InterviewStage = InterviewStage.READY,
     ): com.elder.android.data.tts.TtsResult? {
-        val key = config?.apiKey.orEmpty()
+        // Bug fix：TTS 走 ttsKey()（按 cfg.ttsProvider 选 apiKey / ttsMinimaxApiKey），
+        // 而不是 config.apiKey（千问 Key）。
+        val key = config?.ttsKey().orEmpty()
         val result: Result<com.elder.android.data.tts.TtsResult?> = if (ttsEnabled) {
             runCatching { tts.speak(key, text) }
         } else {
