@@ -52,3 +52,4 @@ docs/_build/
 .mypy_cache/
 .ruff_cache/
 .kotlin/
+local.properties
