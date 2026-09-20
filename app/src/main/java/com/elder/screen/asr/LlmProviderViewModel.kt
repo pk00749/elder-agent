@@ -1,6 +1,9 @@
-// §3.1.9 v0.8.0 + §A.15：LLM Provider 子页 ViewModel
+// §3.1.9 v0.8.0 + §A.15：LLM Provider 子页 ViewModel（v0.8.1 整改）
 // Provider 选项 + 当前 Provider 所需 Key + 测试按钮。
-// Provider 切换后通过 [saveAndBack] 落库；测试按钮调用当前 Provider 对应 LlmClient。
+// v0.8.1 整改：
+//   - 加 cancelTest()
+//   - setProvider() 切 Provider 时清空 lastTestResult
+//   - 测试 prompt 改中文"用一句话介绍你自己"（替代英文"hi"）
 package com.elder.android.screen.asr
 
 import android.app.Application
@@ -8,11 +11,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elder.android.data.AsrConfig
 import com.elder.android.data.AsrConfigRepository
-import com.elder.android.data.crypto.ApiKeyCipher
 import com.elder.android.data.db.LlmProvider
 import com.elder.android.data.llm.LlmClientFactory
+import com.elder.android.data.llm.LlmMessage
 import com.elder.android.di.ServiceLocator
 import com.elder.android.error.AppError
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +41,9 @@ class LlmProviderViewModel(app: Application) : AndroidViewModel(app) {
     private val _state = MutableStateFlow(LlmProviderUiState())
     val state: StateFlow<LlmProviderUiState> = _state.asStateFlow()
 
+    // v0.8.1：保存测试协程
+    private var testJob: Job? = null
+
     init {
         viewModelScope.launch {
             val cfg = repo.current() ?: return@launch
@@ -54,7 +61,13 @@ class LlmProviderViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun setProvider(p: LlmProvider) = _state.update { it.copy(provider = p) }
+    // v0.8.1：切 Provider 时清空 lastTestResult
+    fun setProvider(p: LlmProvider) {
+        _state.update {
+            if (it.provider != p) it.copy(provider = p, lastTestResult = null)
+            else it
+        }
+    }
 
     fun setApiKey(v: String) = _state.update { it.copy(apiKey = v) }
 
@@ -67,7 +80,6 @@ class LlmProviderViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         viewModelScope.launch {
-            // 对应 §3.1.9 v0.8.0：未在顶层初始化配置时，子页也能独立保存
             val existing = repo.current()
             val cfg = existing ?: AsrConfig(apiKey = "")
             val updated = cfg.copy(llmProvider = s.provider)
@@ -93,16 +105,17 @@ class LlmProviderViewModel(app: Application) : AndroidViewModel(app) {
             _state.update { it.copy(topError = "请先填 Key") }
             return
         }
-        viewModelScope.launch {
+        // v0.8.1：取消上一个未完的测试
+        testJob?.cancel()
+        testJob = viewModelScope.launch {
             _state.update { it.copy(isTesting = true, topError = null) }
             val client = factory.clientFor(s.provider)
             val started = System.currentTimeMillis()
             val result = runCatching {
                 client.complete(
                     apiKey = s.apiKey,
-                    messages = listOf(
-                        com.elder.android.data.llm.LlmMessage(role = "user", content = "hi"),
-                    ),
+                    // v0.8.1 整改：测试 prompt 改中文 "用一句话介绍你自己"，贴近老人使用场景
+                    messages = listOf(LlmMessage(role = "user", content = "用一句话介绍你自己")),
                     tools = emptyList(),
                 )
             }
@@ -114,10 +127,7 @@ class LlmProviderViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 }
             }.onFailure { e ->
-                val msg = when (e) {
-                    is AppError -> e.message ?: "测试失败"
-                    else -> e.message ?: "测试失败"
-                }
+                val msg = (e as? AppError)?.message ?: e.message ?: "测试失败"
                 _state.update {
                     it.copy(
                         isTesting = false,
@@ -129,7 +139,19 @@ class LlmProviderViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // v0.8.1：测试取消入口
+    fun cancelTest() {
+        testJob?.cancel()
+        testJob = null
+        _state.update { it.copy(isTesting = false) }
+    }
+
     /** 测试用：暴露 factory，便于 mock。 */
     @Suppress("unused")
     internal fun factoryForTest(): LlmClientFactory = factory
+
+    override fun onCleared() {
+        testJob?.cancel()
+        super.onCleared()
+    }
 }

@@ -1,4 +1,4 @@
-// §3.1.9 / §A.14 TTS Provider 子页（v0.7.0）
+// §3.1.9 / §A.14 TTS Provider 子页（v0.7.0 + v0.8.1 整改）
 package com.elder.android.screen.asr
 
 import androidx.compose.runtime.Composable
@@ -25,11 +25,13 @@ fun TtsProviderScreen(
                 raw = TtsProvider.QWEN.raw,
                 title = stringResource(R.string.tts_provider_qwen_title),
                 subtitle = stringResource(R.string.tts_provider_qwen_subtitle),
+                keyGuideUrl = "https://dashscope.console.aliyun.com/",
             ),
             ProviderOption(
                 raw = TtsProvider.MINIMAX.raw,
                 title = stringResource(R.string.tts_provider_minimax_title),
                 subtitle = stringResource(R.string.tts_provider_minimax_subtitle),
+                keyGuideUrl = "https://platform.minimaxi.com/user-center/apikeys",
             ),
         ),
         selectedRaw = state.provider.raw,
@@ -40,6 +42,7 @@ fun TtsProviderScreen(
         onSelect = { vm.setProvider(TtsProvider.fromRaw(it)) },
         onChangeKey = vm::setApiKey,
         onTest = vm::test,
+        onCancelTest = vm::cancelTest,
         onSave = { vm.saveAndBack(onBack) },
         onBack = onBack,
         onDismissError = vm::dismissError,

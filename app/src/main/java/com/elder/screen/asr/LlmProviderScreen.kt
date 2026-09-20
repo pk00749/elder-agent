@@ -1,4 +1,4 @@
-// §3.1.9 v0.8.0 + §A.15：LLM Provider 子页（v0.8.0）
+// §3.1.9 v0.8.0 + §A.15：LLM Provider 子页（v0.8.1 整改）
 package com.elder.android.screen.asr
 
 import androidx.compose.runtime.Composable
@@ -25,16 +25,19 @@ fun LlmProviderScreen(
                 raw = LlmProvider.MINIMAX.raw,
                 title = stringResource(R.string.llm_provider_minimax_title),
                 subtitle = stringResource(R.string.llm_provider_minimax_subtitle),
+                keyGuideUrl = "https://platform.minimaxi.com/user-center/apikeys",
             ),
             ProviderOption(
                 raw = LlmProvider.QWEN.raw,
                 title = stringResource(R.string.llm_provider_qwen_title),
                 subtitle = stringResource(R.string.llm_provider_qwen_subtitle),
+                keyGuideUrl = "https://dashscope.console.aliyun.com/",
             ),
             ProviderOption(
                 raw = LlmProvider.DEEPSEEK.raw,
                 title = stringResource(R.string.llm_provider_deepseek_title),
                 subtitle = stringResource(R.string.llm_provider_deepseek_subtitle),
+                keyGuideUrl = "https://platform.deepseek.com/api_keys",
             ),
         ),
         selectedRaw = state.provider.raw,
@@ -45,6 +48,7 @@ fun LlmProviderScreen(
         onSelect = { vm.setProvider(LlmProvider.fromRaw(it)) },
         onChangeKey = vm::setApiKey,
         onTest = vm::test,
+        onCancelTest = vm::cancelTest,
         onSave = { vm.saveAndBack(onBack) },
         onBack = onBack,
         onDismissError = vm::dismissError,

@@ -1,4 +1,7 @@
-// §3.1.9 TTS Provider 子页 ViewModel（v0.7.0 §A.14）
+// §3.1.9 TTS Provider 子页 ViewModel（v0.7.0 §A.14 + v0.8.1 整改）
+// v0.8.1 整改：
+//   - 加 cancelTest()
+//   - setProvider() 切 Provider 时清空 lastTestResult
 package com.elder.android.screen.asr
 
 import android.app.Application
@@ -11,6 +14,7 @@ import com.elder.android.data.tts.MiniMaxTtsClient
 import com.elder.android.data.tts.QwenTtsClient
 import com.elder.android.di.ServiceLocator
 import com.elder.android.error.AppError
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +38,9 @@ class TtsProviderViewModel(app: Application) : AndroidViewModel(app) {
     private val _state = MutableStateFlow(TtsProviderUiState())
     val state: StateFlow<TtsProviderUiState> = _state.asStateFlow()
 
+    // v0.8.1：保存测试协程
+    private var testJob: Job? = null
+
     init {
         viewModelScope.launch {
             val cfg = repo.current() ?: return@launch
@@ -47,7 +54,13 @@ class TtsProviderViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun setProvider(p: TtsProvider) = _state.update { it.copy(provider = p) }
+    // v0.8.1：切 Provider 时清空 lastTestResult
+    fun setProvider(p: TtsProvider) {
+        _state.update {
+            if (it.provider != p) it.copy(provider = p, lastTestResult = null)
+            else it
+        }
+    }
 
     fun setApiKey(v: String) = _state.update { it.copy(apiKey = v) }
 
@@ -60,8 +73,6 @@ class TtsProviderViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         viewModelScope.launch {
-            // 对应 §3.1.9：未在顶层初始化配置时，子页也能独立保存 —— 用当前选中的 Provider
-            // 反推一份默认 AsrConfig；避免上层未写时这里静默 return 让老人觉得没反应。
             val existing = repo.current()
             val cfg = existing ?: AsrConfig(
                 apiKey = if (s.provider == TtsProvider.QWEN) s.apiKey else "",
@@ -76,7 +87,6 @@ class TtsProviderViewModel(app: Application) : AndroidViewModel(app) {
                 _state.update { it.copy(savedOk = true, topError = null) }
                 onDone()
             } catch (t: Throwable) {
-                // 对应 §4.8：保存失败 / Keystore 不可用走顶部红条兜底
                 _state.update { it.copy(topError = t.message ?: "保存失败") }
             }
         }
@@ -88,7 +98,9 @@ class TtsProviderViewModel(app: Application) : AndroidViewModel(app) {
             _state.update { it.copy(topError = "请先填 Key") }
             return
         }
-        viewModelScope.launch {
+        // v0.8.1：取消上一个未完的测试
+        testJob?.cancel()
+        testJob = viewModelScope.launch {
             _state.update { it.copy(isTesting = true, topError = null) }
             val client = when (s.provider) {
                 TtsProvider.QWEN -> QwenTtsClient()
@@ -100,7 +112,7 @@ class TtsProviderViewModel(app: Application) : AndroidViewModel(app) {
                 _state.update {
                     it.copy(
                         isTesting = false,
-                        lastTestResult = """{"text":"语音连接正常","latency_ms":${System.currentTimeMillis() - started}}""",
+                        lastTestResult = """{"text":"✓ 连接正常","latency_ms":${System.currentTimeMillis() - started}}""",
                     )
                 }
             }.onFailure { e ->
@@ -113,5 +125,17 @@ class TtsProviderViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
         }
+    }
+
+    // v0.8.1：测试取消入口
+    fun cancelTest() {
+        testJob?.cancel()
+        testJob = null
+        _state.update { it.copy(isTesting = false) }
+    }
+
+    override fun onCleared() {
+        testJob?.cancel()
+        super.onCleared()
     }
 }

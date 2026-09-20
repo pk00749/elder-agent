@@ -149,12 +149,16 @@
     <string name="settings_off">关</string>
     <string name="settings_volume">媒体音量</string>
     <string name="settings_volume_hint">跳转系统音量设置</string>
+    <!-- v0.8.1 新增：跳系统设置失败兜底 -->
+    <string name="settings_volume_no_app">本机没找到系统音量设置</string>
     <string name="settings_generate_qr">生成本机二维码</string>
     <string name="settings_about">关于</string>
     <string name="settings_version">版本 %1$s</string>
     <string name="settings_logout">退出登录</string>
     <string name="settings_logout_subtitle">清空本地数据</string>
     <string name="settings_logout_warning">退出后所有日志和设置都会清空。\n\n日志只存在这台手机，退出后无法恢复。</string>
+    <!-- v0.8.1 新增：老人端专属退出文案（"接收提醒"是家属端概念，老人看不懂） -->
+    <string name="settings_logout_warning_elder">退出后日志和设置都会清空。\n\n日志只存在这台手机，退出后没办法找回来。</string>
     <string name="settings_logout_confirm_button">确认退出</string>
     <string name="settings_logout_confirm">退出后将无法接收提醒\n再装此 App 需要家人重新绑定</string>
     <string name="settings_font_normal">默认</string>
@@ -171,7 +175,23 @@
     <string name="asr_config_card_llm_title">大语言模型（LLM）</string>
     <string name="asr_config_card_llm_subtitle">当前：%1$s · %2$s</string>
     <string name="asr_config_api_key">API Key</string>
-    <string name="asr_config_api_key_placeholder">sk-…</string>
+    <string name="asr_config_api_key_placeholder">请粘贴 Key</string>
+    <!-- v0.8.1 新增：OutlinedTextField 的 label / 可见切换按钮文案 -->
+    <string name="asr_config_api_key_label">API Key</string>
+    <string name="asr_config_key_toggle">显示或隐藏 Key</string>
+    <string name="asr_config_key_guide">如何获取？</string>
+    <!-- v0.8.1 新增：测试中按钮文案（替代原"测试"按钮） -->
+    <string name="asr_config_cancel_test">取消测试</string>
+    <!-- v0.8.1 新增：Provider 切换提示 -->
+    <string name="asr_config_switch_title">切换 Provider</string>
+    <string name="asr_config_switch_text">不同 Provider 用不同的 Key，切换后需要重新填。</string>
+    <!-- v0.8.1 新增：未保存改动按返回拦截 -->
+    <string name="asr_config_unsaved_title">还没保存</string>
+    <string name="asr_config_unsaved_text">现在返回会丢失刚填的 Key。</string>
+    <!-- v0.8.1 新增：动态缺口提示（替代静态 "asr_config_save_hint"） -->
+    <string name="asr_config_missing_title">还需要配置：</string>
+    <!-- v0.8.1 新增：跳浏览器失败兜底（用 Android Toast 兜，Toast 不需要 Composable 上下文） -->
+    <string name="asr_config_open_link_failed">浏览器没打开，请手动复制链接</string>
     <string name="asr_config_minimax_api_key">MiniMax API Key（LLM + ASR 共用）</string>
     <string name="asr_config_minimax_api_key_placeholder">MiniMax Key</string>
     <string name="asr_config_tts_minimax_api_key">MiniMax TTS API Key</string>
@@ -206,6 +226,8 @@
 
     <!-- §3.1.8 Settings 摘要（v0.7.0） -->
     <string name="settings_asr_summary">ASR: %1$s · TTS: %2$s</string>
+    <!-- v0.8.1 新增：含 LLM 的完整摘要 -->
+    <string name="settings_asr_summary_v2">ASR: %1$s · TTS: %2$s · LLM: %3$s</string>
 
     <!-- §3.1.5 主屏升级提示（v0.7.0） -->
     <string name="home_upgrade_0_7_0">0.7.0 升级：请到 AI 服务 重新配置 ASR 与 TTS</string>
