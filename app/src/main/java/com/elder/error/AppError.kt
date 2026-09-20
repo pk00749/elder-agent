@@ -37,7 +37,24 @@ sealed class AppError(
 
     class AsrAuthFailed(cause: Throwable? = null) : AppError(Code.ASR_AUTH_FAILED, Code.ASR_AUTH_FAILED.userMessage, cause)
     class AsrRateLimited(cause: Throwable? = null) : AppError(Code.ASR_RATE_LIMITED, Code.ASR_RATE_LIMITED.userMessage, cause)
-    class AsrBadRequest(cause: Throwable? = null) : AppError(Code.ASR_BAD_REQUEST, Code.ASR_BAD_REQUEST.userMessage, cause)
+    class AsrBadRequest(
+        cause: Throwable? = null,
+        val serverErrorCode: String? = null,
+        val serverErrorMessage: String? = null,
+    ) : AppError(
+        Code.ASR_BAD_REQUEST,
+        buildString {
+            append(Code.ASR_BAD_REQUEST.userMessage)
+            if (!serverErrorCode.isNullOrEmpty() || !serverErrorMessage.isNullOrEmpty()) {
+                append(" (server ")
+                append(serverErrorCode ?: "?")
+                append(": ")
+                append(serverErrorMessage ?: "?")
+                append(")")
+            }
+        },
+        cause,
+    )
     class AsrUpstream(
         cause: Throwable? = null,
         val serverErrorCode: String? = null,

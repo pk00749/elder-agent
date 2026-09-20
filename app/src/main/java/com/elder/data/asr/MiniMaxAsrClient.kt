@@ -90,7 +90,7 @@ class MiniMaxAsrClient(
             if (audio.isEmpty() || closed.get() || finished.get()) return
             synchronized(lock) {
                 if (!headerWritten) {
-                    writeWavHeader(output, sampleRate = SAMPLE_RATE, channels = 1)
+                    writeWavHeader(output, sampleRate = SAMPLE_RATE, channels = 1, dataSize = 0)
                     headerWritten = true
                 }
                 output.write(audio)
@@ -103,8 +103,7 @@ class MiniMaxAsrClient(
             }
             synchronized(lock) {
                 if (!headerWritten) {
-                    // 没收到任何音频帧：写入最小 WAV 头，保证上传文件结构合法。
-                    writeWavHeader(output, sampleRate = SAMPLE_RATE, channels = 1)
+                    writeWavHeader(output, sampleRate = SAMPLE_RATE, channels = 1, dataSize = 0)
                     headerWritten = true
                 }
                 runCatching { output.close() }
@@ -134,6 +133,7 @@ class MiniMaxAsrClient(
         const val SAMPLE_RATE = 16_000
 
         private val WAV_MEDIA_TYPE = "audio/wav".toMediaType()
+        private const val MAX_ERROR_BODY_BYTES = 4L * 1024L
         private const val DATA_PREFIX = "data:"
 
         fun defaultClient(): OkHttpClient {
@@ -202,7 +202,10 @@ class MiniMaxAsrClient(
                         val delta = event.optString("delta")
                         if (delta.isNotEmpty()) {
                             accumulator.append(delta)
-                            onPartial(delta)
+                            // §A.12 MiniMax SSE 协议：delta 是增量片段，需在客户端累积后
+                            // 再回调 onPartial（与 Bailian WS 的 text+stash 累积语义对齐），
+                            // 否则 UI 每次 delta 都覆盖 state.transcript，前段文字丢失。
+                            onPartial(accumulator.toString())
                         }
                         if (event.optBoolean("finish", false)) break
                     } catch (e: AppError) {
@@ -217,11 +220,48 @@ class MiniMaxAsrClient(
             return AsrResult(text = text, confidence = null, httpStatus = 200)
         }
 
-        private fun mapHttpFailure(response: Response): AppError = when (response.code) {
-            401, 403 -> AppError.AsrAuthFailed(IOException("MiniMax ASR HTTP ${response.code}"))
-            429 -> AppError.AsrRateLimited(IOException("MiniMax ASR HTTP 429"))
-            in 400..499 -> AppError.AsrBadRequest(IOException("MiniMax ASR HTTP ${response.code}"))
-            else -> AppError.AsrUpstream(IOException("MiniMax ASR HTTP ${response.code}"))
+        /**
+         * 把上游 4xx/5xx 映射成 AppError，并把 response body 里能解析出的 error code/message
+         * 塞进 serverErrorCode / serverErrorMessage，让 UI 不再只看到 "配置有误" 这一句笼统文案。
+         * Body 摘要过 §7 sanitize：仅取服务端 error 字段（code / message / type），不传播原始音频。
+         */
+        private fun mapHttpFailure(response: Response): AppError {
+            val code = response.code
+            val (errCode, errMessage) = readErrorBody(response)
+            return when (code) {
+                401, 403 -> AppError.AsrAuthFailed(IOException("MiniMax ASR HTTP $code"))
+                429 -> AppError.AsrRateLimited(IOException("MiniMax ASR HTTP 429"))
+                in 400..499 -> AppError.AsrBadRequest(
+                    cause = IOException("MiniMax ASR HTTP $code"),
+                    serverErrorCode = errCode,
+                    serverErrorMessage = errMessage,
+                )
+                else -> AppError.AsrUpstream(
+                    cause = IOException("MiniMax ASR HTTP $code"),
+                    serverErrorCode = errCode,
+                    serverErrorMessage = errMessage,
+                )
+            }
+        }
+
+        /**
+         * 读取 response body 摘要（最多 4 KiB），从中解析常见 error JSON 形状。
+         * 返回 (errorCode, errorMessage)；任一字段缺失时为 null。
+         * 与 §7 sanitize 对齐：只透服务端 error 字段，不含 PII / 音频内容。
+         */
+        private fun readErrorBody(response: Response): Pair<String?, String?> {
+            return try {
+                val raw = response.peekBody(MAX_ERROR_BODY_BYTES).string().trim()
+                if (raw.isBlank()) return null to null
+                val obj = JSONObject(raw)
+                val err = obj.optJSONObject("error") ?: obj
+                val code = err.optString("code").takeIf { it.isNotBlank() }
+                    ?: err.optString("type").takeIf { it.isNotBlank() }
+                val message = err.optString("message").takeIf { it.isNotBlank() }
+                code to message
+            } catch (_: Throwable) {
+                null to null
+            }
         }
 
         private fun mapStreamFailure(error: JSONObject): AppError {
@@ -236,7 +276,10 @@ class MiniMaxAsrClient(
                 normalized.contains("throttl") || normalized.contains("rate limit") ->
                     AppError.AsrRateLimited()
                 normalized.contains("invalid") || normalized.contains("bad request") ->
-                    AppError.AsrBadRequest()
+                    AppError.AsrBadRequest(
+                        serverErrorCode = code.ifBlank { null },
+                        serverErrorMessage = message.ifBlank { null },
+                    )
                 else -> AppError.AsrUpstream(
                     serverErrorCode = code.ifBlank { null },
                     serverErrorMessage = message.ifBlank { null },
@@ -245,13 +288,14 @@ class MiniMaxAsrClient(
         }
 
         /**
-         * 写入最小合法 RIFF/WAVE 头（16-bit PCM）；data chunk size 留 0 占位，
-         * 服务端按真实文件大小解析。
+         * 写入 16-bit PCM RIFF/WAVE 头；RIFF / data chunk size 都用真实 [dataSize] 算对，
+         * 不留占位 0（之前留 0 占位假设服务端按文件大小解析，严格 wav parser 会拒）。
          */
-        private fun writeWavHeader(out: FileOutputStream, sampleRate: Int, channels: Int) {
+        private fun writeWavHeader(out: FileOutputStream, sampleRate: Int, channels: Int, dataSize: Int) {
             val byteRate = sampleRate * channels * 2
+            val totalRiffSize = 36 + dataSize
             out.write("RIFF".toByteArray())
-            out.write(intToLe(0))         // RIFF chunk size（占位）
+            out.write(intToLe(totalRiffSize))
             out.write("WAVE".toByteArray())
             out.write("fmt ".toByteArray())
             out.write(intToLe(16))
@@ -262,7 +306,7 @@ class MiniMaxAsrClient(
             out.write(shortToLe((channels * 2).toShort()))
             out.write(shortToLe(16))
             out.write("data".toByteArray())
-            out.write(intToLe(0))         // data chunk size（占位）
+            out.write(intToLe(dataSize))
         }
 
         private fun intToLe(v: Int): ByteArray = byteArrayOf(
