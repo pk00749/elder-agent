@@ -26,6 +26,41 @@ class MiniMaxAsrClientLiveTest {
         System.getProperty("MINIMAX_API_KEY")
             ?: System.getenv("MINIMAX_API_KEY")
 
+    @Test fun `minimax asr openSession streams pcm and reaches upstream with well-formed wav`() = runBlocking {
+        // 防 2013 invalid params：openSession 流式录音路径。
+        // 若 header 的 RIFF / data chunk size 没回填，MimiMax strict wav parser 必拒。
+        assumeTrue(
+            "MINIMAX_API_KEY not set (env or -PMINIMAX_API_KEY=...); skip live test",
+            !apiKey.isNullOrBlank(),
+        )
+        val key = apiKey!!
+        val client = MiniMaxAsrClient()
+        val sineWav = makeSineWaveWav()
+        val pcm = sineWav.readBytes().drop(44).toByteArray() // 去掉 wav header，纯 PCM
+
+        val session = client.openSession(apiKey = key)
+        try {
+            // 模拟两段录音流式 append
+            val chunkSize = 1600
+            var i = 0
+            while (i + chunkSize <= pcm.size) {
+                session.appendAudio(pcm.copyOfRange(i, i + chunkSize))
+                i += chunkSize
+            }
+            if (i < pcm.size) session.appendAudio(pcm.copyOfRange(i, pcm.size))
+            val outcome = try {
+                val r = session.finish()
+                "OK text='" + r.text + "'"
+            } catch (_: AppError.AsrEmptyTranscript) {
+                "OK (AsrEmptyTranscript expected for sine wave / silence)"
+            }
+            println("MiniMaxLiveOpenSession " + outcome)
+        } finally {
+            session.close()
+            sineWav.delete()
+        }
+    }
+
     @Test fun `minimax asr reaches upstream with real wav upload`() = runBlocking {
         assumeTrue(
             "MINIMAX_API_KEY not set (env or -PMINIMAX_API_KEY=...); skip live test",
