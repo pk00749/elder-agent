@@ -8,6 +8,8 @@ import com.elder.android.agent.AgentTurnResult
 import com.elder.android.agent.DiarySummary
 import com.elder.android.agent.ElderFact
 import com.elder.android.agent.InterviewAgent
+import com.elder.android.agent.SafetyAgent
+import com.elder.android.agent.TimeOfDay
 import com.elder.android.audio.AudioRecorder
 import com.elder.android.data.AsrConfig
 import com.elder.android.data.AsrConfigRepository
@@ -93,20 +95,63 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 return@launch
             }
+            val assistantHint = if (session.turns.isEmpty()) GREETING else session.turns.last().assistantText
             _state.update {
                 it.copy(
                     stage = InterviewStage.READY,
                     session = session,
-                    assistantText = if (session.turns.isEmpty()) GREETING else session.turns.last().assistantText,
+                    assistantText = assistantHint,
                     needsConfig = config?.isConfigured != true,
                 )
             }
+
+            // v0.9.0 主动开问：仅在 session 为空 + ASR/TTS/LLM Key 齐备时调 LLM 问候
+            // 已有 turns 的旧会话（断电恢复）直接显示上次 assistantText，不重跑 open()
+            if (session.turns.isNotEmpty()) return@launch
+            val cfg = config
+            if (cfg == null || !cfg.isConfigured) return@launch
+
+            // 进入 OPENING 阶段（v0.9.0）：UI 显示进度条 + "让我先打个招呼…"
+            _state.update { it.copy(stage = InterviewStage.OPENING) }
+
+            val credentials = LlmCredentials(
+                provider = cfg.llmProvider,
+                minimaxApiKey = cfg.minimaxApiKey,
+                qwenApiKey = cfg.qwenLlmApiKey,
+                deepseekApiKey = cfg.deepseekLlmApiKey,
+            )
+            val greeting = runCatching {
+                agent.open(
+                    credentials = credentials,
+                    timeOfDay = currentTimeOfDay(),
+                    recentSummaries = recentSummaries,
+                    elderFacts = elderFacts,
+                )
+            }.getOrElse { SafetyAgent.greetingFallback(currentTimeOfDay()) }
+
+            // TTS 必播第一句（v0.9.0 主动开问核心）；失败沿用 §A.11.4 不重试
+            if (ttsEnabled) {
+                runCatching { tts.speak(cfg.ttsKey(), greeting) }
+            }
+            _state.update {
+                it.copy(stage = InterviewStage.READY, assistantText = greeting)
+            }
+        }
+    }
+
+    /** v0.9.0 当前时段（MORNING 5-11 / NOON 12-17 / EVENING 18-4）。 */
+    private fun currentTimeOfDay(): TimeOfDay {
+        val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+        return when (hour) {
+            in 5..11 -> TimeOfDay.MORNING
+            in 12..17 -> TimeOfDay.NOON
+            else -> TimeOfDay.EVENING
         }
     }
 
     fun startRecording() {
         val snapshot = _state.value
-        if (snapshot.stage != InterviewStage.READY || snapshot.needsConfig) return
+        if (snapshot.stage != InterviewStage.READY || snapshot.needsConfig) return  // OPENING 阶段不接受录音
         val credentials = config ?: return
         work?.cancel()
         _state.update {

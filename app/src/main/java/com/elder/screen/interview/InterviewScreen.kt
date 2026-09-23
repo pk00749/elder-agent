@@ -180,6 +180,7 @@ fun InterviewScreen(
                         onSave = { vm.saveDiary(onDone) },
                         onRevise = vm::revise,
                     )
+                    InterviewStage.OPENING -> OpeningStatusRow(stringResource(R.string.interview_opening_status))
                     InterviewStage.PREPARING, InterviewStage.SAVED -> LoadingState()
                 }
             }
@@ -216,6 +217,7 @@ private fun AssistantCard(
         ) {
             // v0.6.0: ack + probe 双段渲染；ack 在前用次级色，probe 在后用主色
             if (!ackText.isNullOrBlank() || !probeText.isNullOrBlank()) {
+                // v0.9.0: ack 次级色 + · 分隔 + probe 主色 Bold
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (!ackText.isNullOrBlank()) {
                         Text(
@@ -223,21 +225,29 @@ private fun AssistantCard(
                             fontSize = FontSize.body(FontLevel.LARGE),
                             lineHeight = FontSize.TranscriptLineHeightSp.sp,
                             color = BrandColor.TextSecondary,
+                            fontWeight = FontWeight.Normal,
                         )
-                        Spacer(Modifier.width(Spacing.Xs))
+                        Text(
+                            text = " · ",
+                            fontSize = FontSize.body(FontLevel.LARGE),
+                            lineHeight = FontSize.TranscriptLineHeightSp.sp,
+                            color = BrandColor.TextSecondary,
+                        )
                     }
                     Text(
                         text = probeText.orEmpty(),
-                        fontSize = FontSize.body(FontLevel.XLARGE),
-                        lineHeight = FontSize.TranscriptLineHeightSp.sp,
+                        fontSize = FontSize.BodyHugeSp.sp,  // v0.9.0: XLARGE 32 → BodyHugeSp=40
+                        lineHeight = FontSize.TranscriptLineHeightSp.sp,  // v0.9.0: TranscriptLineHeightSp 48 → 56
+                        fontWeight = FontWeight.Bold,  // v0.9.0: 默认 → Bold
                         color = BrandColor.TextPrimary,
                     )
                 }
             } else {
                 Text(
                     text = text,
-                    fontSize = FontSize.body(FontLevel.XLARGE),
-                    lineHeight = FontSize.TranscriptLineHeightSp.sp,
+                    fontSize = FontSize.BodyHugeSp.sp,  // v0.9.0: 32 → 40
+                    lineHeight = FontSize.TranscriptLineHeightSp.sp,  // v0.9.0: TranscriptLineHeightSp 48 → 56
+                    fontWeight = FontWeight.Bold,
                     color = BrandColor.TextPrimary,
                 )
             }
@@ -257,8 +267,9 @@ private fun TranscriptCard(text: String?, modifier: Modifier = Modifier) {
             Text(
                 text = text.orEmpty().ifBlank { stringResource(R.string.interview_transcript_placeholder) },
                 modifier = Modifier.verticalScroll(scroll),
-                fontSize = FontSize.body(FontLevel.LARGE),
-                lineHeight = FontSize.TranscriptLineHeightSp.sp,
+                fontSize = FontSize.BodyHugeSp.sp,  // v0.9.0: LARGE 28 → BodyHugeSp=40（老人最大可读档，1.4 倍行高）
+                lineHeight = FontSize.TranscriptLineHeightSp.sp,  // v0.9.0: TranscriptLineHeightSp 48 → 56
+                fontWeight = FontWeight.Bold,  // v0.9.0: 默认 → Bold（用户自己说出口的话要看清）
                 color = if (text.isNullOrBlank()) BrandColor.TextSecondary else BrandColor.TextPrimary,
             )
         }
@@ -299,6 +310,28 @@ private fun StatusRow(text: String) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = text, fontSize = FontSize.body(FontLevel.LARGE), color = BrandColor.Brand500)
+    }
+}
+
+/**
+ * v0.9.0 OPENING 阶段专用：显示"让我先打个招呼…" + 进度条。
+ * 与 StatusRow 区别：垂直堆叠（文字 + LinearProgressIndicator），符合 §4.10 加载态规范。
+ */
+@Composable
+private fun OpeningStatusRow(text: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(Size.PrimaryButtonHeight),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(text = text, fontSize = FontSize.body(FontLevel.LARGE), color = BrandColor.Brand500)
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(Spacing.Sm))
+        androidx.compose.material3.LinearProgressIndicator(
+            modifier = Modifier.fillMaxWidth().height(Size.ProgressBarHeight),
+            color = BrandColor.Brand500,
+        )
     }
 }
 

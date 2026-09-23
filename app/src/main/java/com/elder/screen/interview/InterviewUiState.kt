@@ -5,6 +5,7 @@ import com.elder.android.data.InterviewSession
 
 enum class InterviewStage {
     PREPARING,
+    OPENING,    // v0.9.0 新增：ChatAgent 正在生成主动问候 + TTS 播报中
     READY,
     RECORDING,
     THINKING,
