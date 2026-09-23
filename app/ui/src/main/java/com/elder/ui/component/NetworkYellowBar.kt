@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.elder.android.ui.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
+import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
@@ -51,7 +52,7 @@ fun NetworkYellowBar(
             Text(
                 text = stringResource(R.string.network_error_text),
                 color = BrandColor.TextPrimary,
-                fontSize = FontSize.BodyDefaultSp.sp,
+                fontSize = FontSize.body(FontLevel.LARGE),  // v0.9.0: BodyDefaultSp 24 → LARGE 28
             )
             Button(
                 onClick = onRetry,
@@ -66,7 +67,7 @@ fun NetworkYellowBar(
             ) {
                 Text(
                     text = stringResource(R.string.network_retry_button),
-                    fontSize = FontSize.BodyDefaultSp.sp,
+                    fontSize = FontSize.body(FontLevel.LARGE),  // v0.9.0: 24 → 28
                 )
             }
         }

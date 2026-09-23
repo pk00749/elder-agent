@@ -306,9 +306,9 @@ private fun TranscriptPaper(
             ) {
                 Text(
                     text = transcript ?: placeholder,
-                    fontSize = FontSize.body(FontLevel.XLARGE),
-                    lineHeight = FontSize.TranscriptLineHeightSp.sp,
-                    fontWeight = if (transcript == null) FontWeight.Normal else FontWeight.Medium,
+                    fontSize = FontSize.BodyHugeSp.sp,  // v0.9.0: XLARGE 32 → BodyHugeSp 40
+                    lineHeight = FontSize.TranscriptLineHeightSp.sp,  // v0.9.0: 48 → 56
+                    fontWeight = if (transcript == null) FontWeight.Normal else FontWeight.Bold,  // v0.9.0: Medium → Bold
                     color = if (transcript == null) BrandColor.TextSecondary else BrandColor.TextPrimary,
                 )
                 Spacer(modifier = Modifier.height(Spacing.Xxl))

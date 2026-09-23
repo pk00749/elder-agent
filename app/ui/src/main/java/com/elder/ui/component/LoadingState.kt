@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.elder.android.design.tokens.BrandColor
+import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
@@ -33,7 +34,7 @@ fun LoadingState() {
         Text(
             text = stringResource(R.string.loading_text),
             color = BrandColor.TextPrimary,
-            fontSize = FontSize.body(),
+            fontSize = FontSize.body(FontLevel.LARGE),  // v0.9.0: body() 24 → LARGE 28
         )
         Box(modifier = Modifier.padding(top = Spacing.Md)) {
             LinearProgressIndicator(
