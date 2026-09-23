@@ -307,8 +307,6 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
                     it.copy(
                         session = updated,
                         assistantText = result.value.assistantText,
-                        ackText = result.value.ackText,        // v0.6.0 A6
-                        probeText = result.value.probeText,    // v0.6.0 A2
                         pendingSaved = false,
                     )
                 }
