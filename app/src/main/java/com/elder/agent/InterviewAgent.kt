@@ -26,7 +26,7 @@ import kotlinx.serialization.json.putJsonObject
  *
  * 保持 v0.5.0 - v0.8.x 的公开 API：
  * - respond() / summarize() / backgroundLearning()
- * - MAX_TURNS / MAX_ACK_CHARS / MAX_PROBE_CHARS / MAX_REPLY_TOTAL_CHARS / MAX_TEXT_CHARS / MAX_SUMMARY_CHARS
+ * - MAX_TURNS / MAX_REPLY_CHARS / MAX_TEXT_CHARS / MAX_SUMMARY_CHARS（v0.9.1 起取消 ack/probe 双段拆段）
  * - TOOL_ASK_CLARIFY / TOOL_SAVE_DIARY / TOOL_MARK_DIMENSION / TOOL_MOVE_ON / TOOL_REMEMBER_FACT / TOOL_SEARCH_MEMORY
  *
  * v0.9.0 新增（仅供 ChatAgent.open() / 测试使用）：
@@ -120,10 +120,15 @@ class InterviewAgent(
 
     companion object {
         // ===== v0.5.0 / v0.6.0 / v0.7.0 / v0.8.x 兼容常量 =====
+        // v0.9.1 起：取消 ack/probe 双段拆段常量（MAX_ACK_CHARS / MAX_PROBE_CHARS / MAX_REPLY_TOTAL_CHARS）。
+        // 保留字段名兼容老测试 / 老 call site 引用，但 v0.9.1+ 不再使用 —— 见 ChatAgent.MAX_REPLY_CHARS。
         const val MAX_TURNS = 8
         const val MAX_REPLY_CHARS = 25
+        @Deprecated("v0.9.1 removed ack/probe split")
         const val MAX_ACK_CHARS = 10
+        @Deprecated("v0.9.1 removed ack/probe split")
         const val MAX_PROBE_CHARS = 25
+        @Deprecated("v0.9.1 removed ack/probe split")
         const val MAX_REPLY_TOTAL_CHARS = 35
         const val MAX_TEXT_CHARS = 100  // D1
         const val MAX_SUMMARY_CHARS = 60  // D2

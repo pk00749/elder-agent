@@ -10,13 +10,15 @@ import com.elder.android.data.db.InterviewSessionDao
 import com.elder.android.data.db.InterviewSessionEntity
 import java.util.UUID
 
+/**
+ * 单轮对话元素。v0.9.1 起取消 v0.6.0 ack + probe 双段字段；
+ * assistantText 单段 ≤25 字（A2），Room 序列化时忽略老字段（ignoreUnknownKeys = true）。
+ */
 @Serializable
 data class InterviewTurn(
     val turnNo: Int,
     val elderText: String,
     val assistantText: String,
-    val ack: String? = null,                  // v0.6.0: A6 共情前置 ≤10 字
-    val probe: String? = null,                // v0.6.0: A2 追问 ≤25 字
     val audioPath: String? = null,
     val durationMs: Int = 0,
     val createdAt: Long,
