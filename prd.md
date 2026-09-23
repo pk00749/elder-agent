@@ -24,6 +24,7 @@
 | v0.7.0 | 2026-09-18 | Codex | **设定 App 0.7.0 目标**：老人端 Settings「AI 服务」从单 Provider（千问）升级为 ASR/TTS 双 Provider 可切换
 | v0.8.0 | 2026-09-19 | Codex | **AI 服务 LLM Provider 可切换**：Settings「AI 服务」新增「大语言模型」入口卡 + LLM 子页，Provider 选项：`千问 qwen-plus`（OpenAI 兼容 dashscope）/ `MiniMax M3`（默认，回滚路径）/ `DeepSeek deepseek-chat`（api.deepseek.com）；新增 `QwenLlmClient` / `DeepSeekLlmClient`（OpenAI 兼容协议），`MiniMaxClient` 不动；`asr_config` Migration 5→6 增加 `llm_provider` / `llm_endpoint` / `llm_model` / `qwen_llm_api_key_enc` / `qwen_llm_last_test_result` / `deepseek_llm_api_key_enc` / `deepseek_llm_last_test_result` 列；§3.1.9 / §5.11 / §A.11.1 / AGENTS.md §A.15 同步修订；不动服务端 / 家属端 / §3.1.4 行为约束 / Hermes 记忆层；按 §16 / §17 与客户端代码同 PR 合并提交（产品评审通过为前置） |：ASR 支持 `bailian`（千问百炼）/`minimax_realtime`（MiniMax Realtime），TTS 支持 `qwen`（千问 `Kiki`）/`minimax`（MiniMax `Cantonese_KindWoman`）；**默认 Provider = MiniMax ASR + MiniMax TTS**，千问作为可选回滚路径保留；MiniMax LLM 不动；不动服务端 / 家属端 / 记忆层 / §3.1.4 行为约束；AGENTS.md 新增 §A.12（MiniMax Realtime ASR）+ §A.13（MiniMax T2A WebSocket）+ §18 「0.7.0 例外」；§3.1.9 / §5.11 / §6.4 / §11.15 / §11.28.2 / §A.11.1 同步修订；`asr_config` 走 Migration 4→5 DROP+CREATE 强制重输 4 份 Key（`api_key_enc` 千问共用 / `minimax_api_key_enc` MiniMax LLM+ASR 共用 / `tts_minimax_api_key_enc` MiniMax TTS 独立）。 |
 | v0.6.0 | 2026-09-17 | Codex | **设定 App 0.6.0 目标**：在 0.5.0 基础上让访谈 Agent 学习窦文涛式访谈手法（先共情命名情绪、再用细节阶梯追问）并加 Hermes 风格纯 Room 记忆层（`elder_facts` 表 + `remember_fact` / `search_memory` 工具 + 仅 `save_diary` 后 background learning + 三块 system prompt 注入 `<elder-facts>` / `<recent-summaries>` / `<memory-policy>`）；AGENTS.md §A.11 范围内，客户端 Kotlin 实现；`prd.md §3.1.4` 修订：A6 共情前置 + A4 澄清 + C1 修订；新增 §3.1.4.E 访谈技巧 E1–E6、§3.1.4.F 记忆层 F1–F7；纯文本边界：不引 embedding / 不引 FTS / 不引 MD 文件 / 不引新 SDK；对照脚本评分验收；走修订记录 + 产品评审门后合入 |
+| v0.9.0 | 2026-09-22 | Codex | **设定 App 0.9.0 目标**：在 0.8.x 基础上做三件事：(1) 老人端 10 屏文字清晰度升级 —— 最小可视字号从 18/20sp 收紧到 22sp；`TitleLargeSp` 38→40 合并 `BodyHugeSp`；转写卡片字号 32→40sp 行高 48→56sp；访谈屏 ack 28sp 次级 + probe 38sp 粗体主色；进度行改 96dp 大圆环；主屏日期 24sp 次级→28sp 主色；时间轴列表行 72→96dp + 相对时间格式；(2) Agent 拆分 1→3 —— 把 `InterviewAgent` 拆为 `ChatAgent`(主循环,3 工具) + `SafetyAgent`(纯本地 object,emergency/money/medical 关键词) + `MemoryAgent`(background learning,Room 走);新增 `SaveAgent` 兼容 `summarize()` 老路径；prompt 文件新增 `chat_v1.txt`(从 `system_v3.txt` 抽,瘦身 30%) + `memory_v1.txt` + `safety_v1.txt`；旧 `system_v1/v2/v3.txt` + `save_v1/v2/v3.txt` 全部保留只读;`LlmCredentials` / `LlmClient` / `LlmClientFactory` 接口锁定不动;(3) ChatAgent 主动开问 —— 新增 `ChatAgent.open()` 入口 + `InterviewStage.OPENING` 阶段;进入访谈屏时调 LLM 生成回扣式问候(注入 `<recent-summaries>` + `<elder-facts>`,E6 跨会话回扣)+ TTS 必播第一句(Cantonese_KindWoman 粤语女声);LLM 失败走 `SafetyAgent.GREETING_FALLBACK` 静态兜底不调 TTS;第一句不计 turn 计数,8 轮上限不缩短。新增 strings.xml 多语言 fallback(`values-en` 英文 + `values-zh-rHK` 粤语口语,**仅**覆盖 v0.9.0 新增 5 个 key;UI 文字保留普通话,粤语仅作用于 LLM 输出)。不动 §5 数据模型字段;不动 §3.1.4 A1–D3 行为约束;不动 §4.2 最小 24sp 起步硬约束(0.9.0 在原表追加列);不动 §3.1.2 录音规格(60s / 16kHz / Mono);不动 Room schema + 既有 migration;不动 §18 锁定列表。详细设计见 `docs/0.9.0-goals.md` + `docs/0.9.0-chat-agent.md` + `docs/0.9.0-chat-agent-opening.md`。 |
 
 
 ---
@@ -63,6 +64,81 @@
 - 正常 Wi-Fi / 5G 网络下，停止录音到 ASR final P95 ≤ 2 秒（百炼 / MiniMax Realtime 同限）。
 - 正常 Wi-Fi / 5G 网络下，TTS 首段音频 P95 ≤ 2 秒（千问 / MiniMax 同限）。
 - 切换 Provider 不引入额外延迟（Provider 选择只在配置阶段生效；录音 / 播放走对应 client）。
+
+### 0.9 0.9.0 版本目标
+
+> **目标**：在 0.8.x 基础上做三件事——**老人端 10 屏文字清晰度升级**（最小可视字号 22sp；`TitleLargeSp = BodyHugeSp = 40`；转写 40sp / 行高 56sp；进度圆环；相对时间）+ **Agent 拆分 1 → 3**（`ChatAgent + SafetyAgent + MemoryAgent`，新增 `SaveAgent` 兼容老路径；prompt `chat_v1.txt` 瘦身 30%；工具集 6 → 3）+ **ChatAgent 主动开问**（`open()` 入口 + `OPENING` 阶段 + TTS 必播第一句 + 回扣 `recent_summaries` / `elder_facts`，LLM 失败走静态兜底）。
+
+**目标链路**
+
+```text
+老人进入访谈屏 (主屏 → §3.1.5)
+  -> 0.9.0 新增:ChatAgent.open() 调 LLM 生成回扣式问候(注入 <recent-summaries> + <elder-facts>)
+     -> 兜底链:SafetyAgent.GREETING_FALLBACK(timeOfDay) 静态中文(MORNING/NOON/EVENING)
+  -> TTS 必播第一句(Cantonese_KindWoman §A.13 / 千问 Kiki §A.1)
+  -> stage = OPENING(展示 "让我先打个招呼…" + 进度条)
+  -> stage = READY(老人可按"点击说话")
+  -> 老人说话 -> ASR(Provider-asr / MiniMax Realtime §A.12 / 百炼 §A.8)
+  -> ChatAgent.respond(轮 1..N,工具集 6→3: ask_clarify / mark_dimension_covered / MOVE_ON)
+     -> 命中 emergency/money/medical -> SafetyAgent.shortcut() 本地判定(**不调 LLM**)
+     -> 命中 save_diary -> 收尾委托 SaveAgent.saveDiary(走 save_v3.txt,D1 text≤100 / D2 summary≤60)
+     -> 落库后 -> MemoryAgent.backgroundLearning(走 memory_v1.txt,抽 facts_to_remember)
+     -> elder_facts Room 表持久化(Kotlin 校验 type/confidence/content)
+  -> TTS 播 ack+probe(Cantonese_KindWoman)
+  -> 收尾 -> §3.1.6 访谈总结屏
+```
+
+**0.9.0 功能目标**
+
+1. **文字清晰度升级**(不动 §4.2 最小 24sp 起步硬约束,只在原表追加 v0.9.0 列;新增 `BodyHugeSp = TitleLargeSp = 40` 合并档;`BodySmallSp` 18→22、`caption()` 20→22;详见 §4.2):
+   - 老人端 10 屏 + 4 系统组件字号 / 行高 / 字重统一提升
+   - 转写卡片 32→40sp / 行高 48→56sp
+   - 访谈屏 ack 28sp 次级 + probe 38sp 粗体主色 + `·` 分隔;转写 38sp 粗体
+   - 进度行 "第 N 轮 / 共 8 轮" → 96dp 大圆环(iOS Health 风格)
+   - 主屏日期 24sp 次级 → 28sp 主色;问候语支持农历日期
+   - 时间轴列表行 72→96dp;时间改"今天 上午 9:30"相对时间
+   - 4 系统组件:ElderToast 24→28sp + 震动 + TTS 同步朗读;NetworkYellowBar 24→28sp + 右上 X 关闭;ElderEmptyState 24→28sp + 64dp 灰色插画占位 + 朗读按钮 96dp;LoadingState 24→28sp + 进度条 8→12dp
+   - WCAG AA 对比:既有 `Brand500 / TextPrimary / TextSecondary / Error500` 全部 ≥ 4.5:1 通过;新增 `TextTertiary #999999` 仅装饰
+2. **Agent 拆分 1 → 3**(不动 §3.1.4 A1–D3 / 不动 §5 Room schema / 不动 `LlmCredentials` 等接口):
+   - `InterviewAgent.kt`(624 行) → `ChatAgent(主循环 + 工具集 6→3)+ SafetyAgent(纯本地 object)+ MemoryAgent(background learning + Room)+ SaveAgent(summarize 兼容)`
+   - 新 prompt:`chat_v1.txt`(从 `system_v3.txt` 抽,≤70 行 / ≤2500 token,瘦 30%)+ `memory_v1.txt`(≤30 行)+ `safety_v1.txt`(≤10 行空模板)
+   - 旧 `system_v1/v2/v3.txt` + `save_v1/v2/v3.txt` 全部保留只读(AGENTS.md §11 版本化要求);运行版本由 `PROMPT_VERSION` 环境变量选
+   - ChatAgent 暴露给 LLM 的工具:`ask_clarify / mark_dimension_covered / MOVE_ON`;`save_diary` 由 ViewModel 显式调 SaveAgent;`remember_fact / search_memory` 由 MemoryAgent 后台
+3. **ChatAgent 主动开问**(新增 `ChatAgent.open()` 入口 + `InterviewStage.OPENING`):
+   - 进入访谈屏时调 LLM 生成第一句问候(≤25 字,不分 ack/probe)
+   - 注入 `<recent-summaries>` + `<elder-facts>` 做 E6 跨会话回扣
+   - 时段敏感:`早上好 / 中午好 / 晚上好` 按本地时间切换(MORNING 5-11 / NOON 12-17 / EVENING 18-4)
+   - 粤语口语(对齐 §A.13 Cantonese_KindWoman)
+   - TTS 必播第一句(走 §A.13 / §A.1)
+   - LLM 失败走 `SafetyAgent.GREETING_FALLBACK(timeOfDay)` 静态兜底(不调 LLM / 不调 TTS)
+   - **第一句不计 turn 计数**,8 轮上限不缩短
+4. **多语言 fallback**(新增 `values-en/strings.xml` 英文 + `values-zh-rHK/strings.xml` 粤语口语):
+   - UI 文字保留普通话(主 strings.xml)
+   - 粤语口语**仅作用于 LLM 输出 `assistant_text`**(已在 system_v3.txt A3 + chat_v1.txt §OPEN 段落)
+   - 文案字符数约束:UI 短文案 ≤ 12 字,长文案 ≤ 30 字;超过则拆分或缩写
+
+**0.9.0 性能目标(沿用 0.8.x)**
+
+- 进入访谈屏到 ChatAgent.open() 返回 + TTS 播完 P95 ≤ 3 秒(LLM 单次调用 + TTS 首段 ~1.5s)
+- OPENING 阶段 UI 不阻塞(显示进度条 + "让我先打个招呼…")
+- LLM 失败兜底路径 < 200ms(本地字符串查表,不调网络)
+- emergency 路径省 1 次 LLM 调用(SafetyAgent 本地判定,原 v0.6.0 emergency 也跑 finalize 调 LLM)
+- 切换 Provider / 模型不引入额外延迟(沿用 0.7.0 / 0.8.0 配置阶段生效)
+
+**0.9.0 不动契约(AGENTS.md §18 红线)**
+
+- **不**修改 prd.md §5 数据模型既有字段定义(只允许新增字段)
+- **不**修改 §3.1.4 Agent 行为约束 A1–D3(硬规则)
+- **不**删除 `services/*/migrations/` 下既有迁移脚本(审计轨迹)
+- **不**改既有字段类型 / 默认值 / 必填
+- **不**同时改 prd.md 既有章节 + 多服务代码(§16 一事一 commit)
+- **不**删 `system_v1/v2/v3.txt` + `save_v1/v2/v3.txt`(只读,版本化要求)
+- **不**改 `LlmCredentials` / `LlmClient` / `LlmClientFactory` 接口(§A.15 锁定)
+- **不**改 Room schema / 既有 migration
+- **不**为客户端引入新的上游 SDK(0.5.0 / 0.7.0 例外条款沿用,直连 MiniMax / 千问 ASR/TTS 与 MiniMax M3 LLM 保持)
+- **不**改 §3.1.2 录音规格(60s 硬限 / 16kHz / 单声道 / 64kbps)
+- **不**缩短 8 轮访谈上限(第一句不计 turn)
+- §4.2 最小 24sp 起步硬约束保留(0.9.0 只在原表追加列,不改约束语义)
 
 ## 1. 背景与目标
 
@@ -747,8 +823,30 @@ pending_diary(
 | 大 | 28sp | 38sp | 38sp |
 | 特大 | 32sp | 44sp | 44sp |
 
+**v0.9.0 字号分档增量**（在原表之上加 5 档，**不**改既有约束语义；`BodyHugeSp = TitleLargeSp = 40` 合并档）：
+
+| 档位 | v0.8.x | v0.9.0 | 用途 |
+|------|--------|--------|------|
+| `BodyHugeSp` | 40 | **40**（不变） | 转写卡片 / 录音时长（老人端最大字号） |
+| `TitleLargeSp` | 38 | **40**（合并到 `BodyHugeSp`） | TopAppBar 标题 |
+| `BodyXLargeSp` | 32 | 32（不变） | 摘要 / 列表主文本 |
+| `BodyLargeSp` | 28 | 28（不变） | 主屏日期 / 副标题 |
+| `BodyDefaultSp` | 24 | 24（不变，默认正文） | 正文 / 按钮 |
+| `BodyInputSp` | 22 | 22（不变） | 输入框文本 |
+| `BodySmallSp` | 18 | **22**（废除 18） | 副文案 / FilterChip |
+| `caption()` | 20 | **22**（合并到 22） | 时间戳 / 红点旁 |
+
+**v0.9.0 字重 / 行高 / 颜色约束增量**：
+- 行高 = 字号 × **1.4**（转写 40sp → 56sp 行高；`TranscriptLineHeightSp` 48 → **56**）
+- 主正文 `FontWeight` 从 `Normal` 改 **`Medium`**（老人反映"Normal 像没力气"）
+- 标题 / 主操作保持 `FontWeight.Bold`
+- 颜色对比(WCAG AA ≥ 4.5:1):`Brand500 / TextPrimary / TextSecondary / Error500` 已合规;新增 `TextTertiary #999999` 仅用于纯装饰(2.85:1,不承载信息)
+- 中文长串:`maxLines = 2` + 展开按钮;`LineBreak.Heading` 中文按字断行;**不**用 `Ellipsis`(老人看不懂 `…`)
+- 转写卡片:字号 40sp / 360dp 屏宽 → 每行 ~8 字;行高 56sp + 段间距 `Spacing.Lg`
+
 约束：
-- 默认正文字号 ≥ 24sp（旧 v2.0 ≥ 20sp，v2.1 收紧到 24sp 配合 §4.5 字号档位）
+- 默认正文字号 ≥ 24sp（旧 v2.0 ≥ 20sp，v2.1 收紧到 24sp 配合 §4.5 字号档位；v0.9.0 进一步收紧最小可视字号为 22sp）
+- **v0.9.0 老人端最小可视字号 = 22sp**(`BodySmallSp` 18→22;`caption()` 20→22;原 18/20 档废除)
 - 按钮文字 ≥ 32sp；最小按钮高度 96dp（§4.4）
 - 老人端可手动切档（§3.1.8 第 1 项「字体大小」三档：默认 / 大 / 特大）
 - 家属端沿用默认档（不放大）
@@ -831,11 +929,11 @@ pending_diary(
 
 | 维度 | 值 |
 |------|----|
-| 字号 | 24sp |
-| 时长 | 1.5 秒 |
+| 字号 | 24sp（v0.9.0：24→**28sp**，与 §4.2 最小可视字号 22sp 联动） |
+| 时长 | 1.5 秒（v0.9.0：1.5→**4s**，给老人阅读时间） |
 | 位置 | 底部，距底 96dp |
 | 颜色 | 白字 / `#C44545` 底 |
-| TTS | 同步播报错误文案一次 |
+| TTS | 同步播报错误文案一次（v0.9.0：增加 `VIBRATE` 短震 100ms 反馈；走 §A.13 Cantonese_KindWoman） |
 
 常见文案：
 - "网络好像断了，再试一次"
@@ -855,7 +953,7 @@ pending_diary(
 
 | 场景 | 表现 |
 |------|------|
-| 全屏加载 | 居中"加载中…" 24sp + 进度条（无菊花） |
+| 全屏加载 | 居中"加载中…" 24sp + 进度条（无菊花）（v0.9.0：24→**28sp**；进度条 8→**12dp**；v0.9.0 新增 `OPENING` 阶段变体"让我先打个招呼…" + 进度条） |
 | 局部加载 | 占位骨架屏（灰块 + 主色淡边） |
 
 **不出现任何 modal loading 遮罩**——会遮挡老人看到的内容。
@@ -1567,6 +1665,70 @@ pending_diary(
 - **60 秒硬限到时无 TTS"时间到"提示**（§3.1.2 录音规格；v2.x 接 Agent 流后补）
 - **无服务端摘要**——MVP 日记就是 ASR 转写原文；老人手动改写（§5.10 `source` 字段）
 - **无推送通道**——MVP 无 TPush 接入，锁屏态仅显示主屏（§3.1.5 边缘情况）
+
+### 12.4 v0.9.0 增量（v0.8.x 之后；客户端体验升级）
+
+> v0.9.0 主题:**让老人端 10 屏文字"看得清" + 把 1 个 Agent 拆成 3 个 + ChatAgent 主动开问**。
+> 不动 §5 数据模型字段、§3.1.4 A1–D3、Room schema、既有 migration、`LlmCredentials / LlmClient / LlmClientFactory` 接口(§A.15 锁定);旧 `system_v1/v2/v3.txt` + `save_v1/v2/v3.txt` 全部保留只读。
+> 详细设计见 `docs/0.9.0-goals.md` + `docs/0.9.0-chat-agent.md` + `docs/0.9.0-chat-agent-opening.md`。
+
+#### 12.4.1 文字清晰度升级（§4.2 + §4.8 / §4.9 / §4.10 + 10 屏 + 4 系统组件）
+
+- `Dimens.FontSize` 调整:`BodySmallSp` 18→**22**;`caption()` 20→**22**;`TitleLargeSp` 38→**40**(与 `BodyHugeSp` 合并);最小可视字号 = **22sp**;`BodyDefaultSp = 24` 仍为默认正文
+- 行高 = 字号 × **1.4**;`TranscriptLineHeightSp` 48→**56**;主正文字重 `Normal`→**`Medium`**
+- 老人端 10 屏字号统一提升:
+  - 主屏:日期 24sp 次级→**28sp 主色**;问候语支持农历日期;ASR 红卡简化为单行动作
+  - 录音屏:信纸字号 32→**40sp `BodyHugeSp`**;时长 `MM:SS`→`MM分SS秒`;行高 48→56sp
+  - 访谈屏:ack 28sp 次级 + probe 38sp 粗体主色 + `·` 分隔;转写 38sp 粗体;**进度行 → 96dp 大圆环**;状态行加打字光标 `|`
+  - 时间轴:列表项 24→28sp;行 72→96dp;时间改"今天 上午 9:30"相对时间;编辑弹窗 160→240dp
+  - 设置:字体 chip 18→24sp;Switch 加"开/关"二字;媒体音量加"X/15"反馈
+  - AI 服务:Provider 入口卡 28sp 统一;placeholder 24→28sp
+- 4 系统组件:`ElderToast`(28sp + 震动 + TTS);`NetworkYellowBar`(28sp + 右上 X 关闭);`ElderEmptyState`(28sp + 64dp 插画占位 + 朗读按钮 96dp);`LoadingState`(28sp + 进度条 12dp + OPENING 变体)
+- 国际化:**仅**对 v0.9.0 新增字符串(`interview_opening_status` / `interview_opening_fallback` / `safety_greeting_*` 三件套)新增 `values-en` 英文 + `values-zh-rHK` 粤语口语。既有字符串(`home_diary_button` / `home_settings_button` 等)粤语化 / 英文化不在 v0.9.0 范围,留待 v1.0.0 独立 PR(避免打破既有 Compose 测试断言)。UI 文字默认普通话;粤语口语仅作用于 LLM 输出 `assistant_text`(经 §A.13 MiniMax Cantonese_KindWoman TTS 承担)
+
+#### 12.4.2 Agent 拆分 1 → 3（§3.1.4 + §A.11）
+
+| 新 Agent | Prompt 文件 | 工具集 | 设计要点 |
+|---------|------------|--------|---------|
+| `ChatAgent`(主循环) | `chat_v1.txt`(新建,≤70 行 / ≤2500 token) | `ask_clarify / mark_dimension_covered / MOVE_ON` (3 个) | 从 `system_v3.txt` 抽 60 行;删 B/D/F 节工具说明;瘦身 30% |
+| `SafetyAgent`(纯本地 object) | `safety_v1.txt`(新建,≤10 行空模板) | `save_diary / ask_clarify` (本地直接调) | **不上 LLM**;emergency / money / medical 关键词命中 → 固定 reply;省 1 次 LLM 调用 |
+| `MemoryAgent`(后台) | `memory_v1.txt`(新建,≤30 行) | `remember_fact / search_memory` (2 个) | 走 Room,**不污染** ChatAgent 对话上下文;`MAX_BACKGROUND_FACTS=5` |
+| `SaveAgent`(新,兼容老路径) | `save_v3.txt`(沿用) | 无工具 | `summarize()` 给 `PendingDiaryBackfill` 用;`saveDiary()` 走 save_v3 产 text≤100 / summary≤60 |
+
+- `InterviewAgent.kt`(624 行) → 拆为 4 个新类;ServiceLocator / ViewModel / PendingDiaryBackfill 切到 ChatAgent / SaveAgent
+- ChatAgent 暴露给 LLM 工具集:**6 → 3**;`save_diary` 收尾由 ViewModel 显式调 SaveAgent;`remember_fact / search_memory` 由 MemoryAgent 后台
+- 既有 prompt 文件**全部保留只读**:`system_v1/v2/v3.txt` + `save_v1/v2/v3.txt`;运行版本由 `PROMPT_VERSION` 环境变量选
+- 测试矩阵:既有 14 个 Agent 测试 + 新增 27 个 = **41 个 Agent 测试**;既有 37 个项目测试保持绿
+- AGENTS.md 新增 §A.16(ChatAgent 拆分细则)+ §A.17(ChatAgent 主动开问);§11 / §18 约束不动
+
+#### 12.4.3 ChatAgent 主动开问（§3.1.4 E1 / E6）
+
+- 新增 `ChatAgent.open(credentials, timeOfDay, recentSummaries, elderFacts): String` 入口
+- 新增 `InterviewStage.OPENING` 阶段(显示 `StatusRow("让我先打个招呼…")` + 进度条)
+- 进入访谈屏时调 LLM 生成第一句问候(≤25 字,不分 ack/probe)
+- 注入 `<recent-summaries>` + `<elder-facts>` 做 **E6 跨会话回扣**:"昨天你说起老张,今天又碰面了?"
+- 时段敏感:`早上好 / 中午好 / 晚上好` 按本地时间切换(MORNING 5-11 / NOON 12-17 / EVENING 18-4)
+- 粤语口语(对齐 §A.13 Cantonese_KindWoman TTS 音色)
+- TTS 必播第一句(走 §A.13 / §A.1);LLM 失败走 `SafetyAgent.GREETING_FALLBACK(timeOfDay)` 静态兜底(**不调 LLM / 不调 TTS**)
+- **第一句不计 turn 计数**;8 轮上限不缩短
+- `chat_v1.txt` 加 §OPEN 模式段;`AgentPrompts` 接口拆为 `ChatPrompts / SafetyPrompts / MemoryPrompts / SavePrompts`
+- 测试:`ChatAgentOpenTest` 5 用例(注入 recent_summaries / elder_facts / 时段 / LLM 失败 / 字数截断)+ `AgentPromptContractTest` 3 用例(prompt 头必含 `// 对应 prd.md §X.Y`)
+- UX 时序:0ms OPENING + 进度条 → 1.5s TTS 播完 → 3.0s 屏显示 38sp 粗体问候 → 5.0s 老人自然接话
+
+#### 12.4.4 v0.9.0 性能与不动契约
+
+- 进入访谈屏到 `ChatAgent.open()` 返回 + TTS 播完 **P95 ≤ 3 秒**(LLM 单次 + TTS 首段 ~1.5s)
+- OPENING 阶段 UI 不阻塞(进度条 + "让我先打个招呼…")
+- LLM 失败兜底路径 < 200ms(本地字符串查表)
+- emergency 路径省 1 次 LLM 调用
+- **不动契约**(AGENTS.md §18):
+  - 不改 §5 数据模型字段;不改 §3.1.4 A1–D3;不改 §3.1.2 录音规格
+  - 不删既有 migration;不改 `LlmCredentials / LlmClient` 接口
+  - 不删 `system_v1/v2/v3.txt` + `save_v1/v2/v3.txt`(只读)
+  - 不为客户端引入新的上游 SDK(0.5.0 / 0.7.0 例外沿用)
+  - 不缩短 8 轮访谈上限(第一句不计 turn)
+  - §4.2 最小 24sp 起步硬约束保留(0.9.0 只追加列,不改约束语义)
+- 交付物:10 屏 UI 调整 + 4 系统组件 + 3 个新 prompt + 4 个新 Agent 类 + 32 个新测试 = **46 个 Agent 测试**(从 14 → 46,翻 3 倍)
 
 ---
 
