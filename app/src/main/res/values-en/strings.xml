@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v0.9.0 English fallback for *new* strings only.
+     Existing strings (home_diary_button / home_settings_button / etc.) stay in values/strings.xml
+     so existing tests + Compose assertions continue to match the Chinese source.
+     i18n of pre-existing strings is a separate PR.
+     Note: Cantonese (zh-rHK) is the active locale for product (§A.13 MiniMax Cantonese_KindWoman TTS);
+     this English file is for build / review / overseas pilot. -->
+<resources>
+    <!-- v0.9.0 OPENING stage (ChatAgent proactive greeting) -->
+    <string name="interview_opening_status">Let me say hello first…</string>
+    <string name="interview_opening_fallback">Network is slow, just speak directly</string>
+    <!-- v0.9.0 SafetyAgent static greeting fallback -->
+    <string name="safety_greeting_morning">Good morning, anything to chat about?</string>
+    <string name="safety_greeting_noon">Good afternoon, how\'s your day?</string>
+    <string name="safety_greeting_evening">Good evening, anything to share?</string>
+</resources>
