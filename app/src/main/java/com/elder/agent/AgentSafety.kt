@@ -1,4 +1,5 @@
 // 对应 PRD §3.1.4 B1-B4 + C3；v0.6.0 弱化：dimensions 字典迁到 LLM 工具调用（mark_dimension_covered）。
+// v0.9.0：新增 isMedical / isMoney 拆分（medical 优先于 money），供 SafetyAgent.check() 优先级判定。
 package com.elder.android.agent
 
 object AgentSafety {
@@ -8,12 +9,20 @@ object AgentSafety {
         "胸闷", "心慌", "晕倒", "昏迷", "中风", "心脏病发作", "脑溢血", "叫救护车",
     )
 
-    /** B1/B4 金钱/医疗：命中即 ask_clarify 换话题 */
-    private val moneyOrMedical = setOf(
-        "钱", "转账", "汇款", "借我", "借点钱", "验证码", "密码", "链接", "网址",
-        "银行卡", "二维码", "扫码支付", "什么病", "什么症状", "什么药", "能不能吃",
+    /** B4 医疗问答关键词（v0.9.0 拆分）：症状 / 诊断 / 用药 / 剂量 / 副作用 */
+    private val medical = setOf(
+        "什么病", "什么症状", "什么药", "能不能吃",
         "要不要吃", "吃多少", "剂量", "副作用", "诊断", "是不是病", "严重吗", "要不要去医院",
     )
+
+    /** B1 金钱 / 转账 / 验证码 / 陌生链接（v0.9.0 拆分） */
+    private val money = setOf(
+        "钱", "转账", "汇款", "借我", "借点钱", "验证码", "密码", "链接", "网址",
+        "银行卡", "二维码", "扫码支付",
+    )
+
+    /** v0.5.0 / v0.6.0 / v0.7.0 / v0.8.x 兼容：medical + money 并集 */
+    private val moneyOrMedical = medical + money
 
     /** C3 老人明确收尾 */
     private val explicitClose = setOf(
@@ -23,8 +32,14 @@ object AgentSafety {
     /** B2 急救关键词判定 */
     fun isEmergency(text: String): Boolean = emergency.any(text::contains)
 
-    /** B1/B4 金钱/医疗判定 */
+    /** B1/B4 金钱/医疗判定（合并判定；保留兼容 0.5.0-0.8.x 测试） */
     fun isMoneyOrMedical(text: String): Boolean = moneyOrMedical.any(text::contains)
+
+    /** B4 医疗问答判定（v0.9.0 新增） */
+    fun isMedical(text: String): Boolean = medical.any(text::contains)
+
+    /** B1 金钱判定（v0.9.0 新增） */
+    fun isMoney(text: String): Boolean = money.any(text::contains)
 
     /** C3 明确收尾判定 */
     fun isExplicitClose(text: String): Boolean = explicitClose.any(text::contains)
