@@ -1733,4 +1733,29 @@ pending_diary(
 
 ---
 
+### 12.5 版本文档索引（v0.10.0 拆分；§12.5 §A.16.1）
+
+> v0.10.0 commit 1 拆分 prd.md 1750 行 → 1726 行,把每个版本的设计/行为约束挪到 `docs/{version}.md`;prd.md §5 / §6 / §7 / §8 / §9 / §10 跨版本仍生效的章节保留。版本 md 文件命名规范:`v{X}.{Y}.{Z}-{slug}.md`。
+
+| 版本 | 文件 | 一句话目的 |
+|------|------|-----------|
+| v2.1 | `docs/v2.1-archive.md` | 服务端版本归档（保留只读;git blame 审计） |
+| v2.1.2 | `docs/v2.1.2-mvp-auth.md` | MVP 匿名设备认证（prd.md §5.1 `family_user.device_token` / §6.1 `/v1/auth/anonymous-device`） |
+| v3.0 | `docs/v3.0-mvp.md` | MVP 范围重定（老人端独立运行;服务端/家属端推迟到 v2.x） |
+| v3.0.1 | `docs/v3.0.1-bailian-asr.md` | 阿里百炼 Qwen-Audio-Realtime Android SDK 集成（§A.1.b / §A.8 整体重写） |
+| v0.5.0 | `docs/v0.5.0-local-agent.md` | 本地 Agent 多轮访谈（§3.1.4 / §3.1.6 / §A.11） |
+| v0.6.0 | `docs/v0.6.0-hermes.md` | Hermes 风格记忆层（§F1–F7;`elder_facts` 表 + Room SQL `LIKE '%query%'`） |
+| v0.7.0 | `docs/v0.7.0-dual-provider.md` | ASR/TTS 双 Provider 可切换（§A.13 / §A.14） |
+| v0.8.0 | `docs/v0.8.0-llm-provider.md` | LLM 三 Provider（§A.15;千问 / MiniMax / DeepSeek） |
+| v0.9.0 | `docs/v0.9.0-display-clarity.md` | 10 屏文字清晰度 + Agent 拆分 1→3 + ChatAgent 主动开问（主索引;详见 `docs/v0.9.0-chat-agent.md` + `docs/v0.9.0-chat-agent-opening.md`） |
+| v0.9.1 | `docs/v0.9.1-single-paragraph.md` | 单段回复（取消 v0.6.0 A6 拆段;ack/probe 合并为 assistantText 单字段） |
+| **v0.10.0** | **`docs/v0.10.0.md`** | **本版本：文档瘦身 + TTS 收尾（1500ms）+ 第一句粤语 + 不限轮数 + 阿里云 OSS 同步** |
+
+- **本版本（v0.10.0）新引入**：迁移到 `docs/{version}.md` 命名规范（§A.16.1）
+- **后续 PR 必做**：每个新版本需先在 `docs/` 下创建对应 `vX.Y.Z-*.md`,并在本表追加一行;不再往 `prd.md §12` 写增量（除跨版本章节 §5/§6/§7/§8/§9/§10）
+- **保留旧文件**:`docs/v0.9.0-chat-agent-opening.md` + `docs/v0.9.0-chat-agent.md` 加 `<!-- superseded by v0.9.0-display-clarity.md -->` 注;git blame 审计可继续走
+- **prd.md 目标行数**：≤ 700 行（当前 1736 → 后续按版本逐步瘦身;不在 v0.10.0 一次性切到 700）
+
+---
+
 > **维护说明**：PRD 是产品需求的唯一真源；AGENT.md 中所有产品规则、数据字段、错误码、行为约束必须能在本 PRD 中找到对应条款。
