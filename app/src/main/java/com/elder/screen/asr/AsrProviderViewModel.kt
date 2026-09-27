@@ -197,6 +197,12 @@ class AsrProviderViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun writeWavHeader(out: java.io.OutputStream, pcmSize: Int, sampleRate: Int, channels: Int) {
+        // 标准 16-bit PCM RIFF/WAVE header（v0.8.2 修复）
+        // fmt chunk 必须严格 16 字节：
+        //   AudioFormat(2) + NumChannels(2) + SampleRate(4) + ByteRate(4) + BlockAlign(2) + BitsPerSample(2)
+        // 之前漏写 NumChannels，sampleRate 直接吃 4 字节，fmt chunk 实际只有 14 字节，
+        // 但头部声称 16 → MiniMax strict wav parser 看到 fmt 与 data chunk 偏移 2 字节 →
+        // HTTP 400 "bad_request_error: invalid params, Invalid data found when processing input (2013)"。
         val byteRate = sampleRate * channels * 2
         val dataSize = pcmSize * 2
         val totalSize = 36 + dataSize
@@ -205,7 +211,8 @@ class AsrProviderViewModel(app: Application) : AndroidViewModel(app) {
         out.write("WAVE".toByteArray())
         out.write("fmt ".toByteArray())
         out.write(intToLe(16))
-        out.write(shortToLe(1))
+        out.write(shortToLe(1))                  // AudioFormat = PCM
+        out.write(shortToLe(channels.toShort())) // NumChannels
         out.write(intToLe(sampleRate))
         out.write(intToLe(byteRate))
         out.write(shortToLe((channels * 2).toShort()))
