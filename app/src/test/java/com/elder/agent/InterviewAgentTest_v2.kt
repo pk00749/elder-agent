@@ -1,5 +1,6 @@
-// 对应 PRD §3.1.4 v0.6.0 行为测试：ack/probe 拆分 + 新工具 + C1 维度跟踪。
-// 旧 InterviewAgentTest 保留测 v0.5.0 行为；本文件专测 v0.6.0 新行为。
+// 对应 PRD §3.1.4 v0.9.1 行为测试：单段回复 ≤25 字（A2）+ 工具集 + C1 维度跟踪。
+// v0.6.0/v0.7.0/v0.8.x/v0.9.0 的 ack/probe 双段拆段测试已删除（见 ChatAgent.MAX_REPLY_CHARS）。
+// 旧 InterviewAgentTest 保留测 v0.5.0 行为；本文件专测 v0.6.0 / v0.9.1 行为。
 package com.elder.android.agent
 
 import com.elder.android.data.InterviewSession
@@ -77,43 +78,29 @@ class InterviewAgentTest_v2 {
     private fun toolCall(name: String, args: String, id: String = "call-1"): LlmToolCall =
         LlmToolCall(id = id, name = name, arguments = args)
 
-    // ===== A6 ack/probe 拆分 =====
+    // ===== v0.9.1 单段回复（替代 v0.6.0 ack/probe 拆段） =====
 
     @Test
-    fun `A6 ack and probe split at first Chinese punctuation`() = runTest {
-        // 输入 "嗯，挺高兴的，后来呢？" → 第一个标点在 index=1（"，"）
-        // 按 splitAckProbe 算法：ack = "嗯，" (substring 0..1+1)，probe = "挺高兴的，后来呢？"
+    fun `v0_9_1 single segment reply preserved up to 25 chars`() = runTest {
+        // LLM 输出 "嗯，挺高兴的，后来呢？" → 单段原样截断至 ≤25 字（A2）
         val fake = FakeLlmClient(listOf(LlmResult("嗯，挺高兴的，后来呢？")))
         val agent = InterviewAgent(factoryFor(fake), prompts)
         val result = agent.respond(LlmCredentials(provider = com.elder.android.data.db.LlmProvider.MINIMAX, minimaxApiKey = "key"), session(), "今天和老伴去公园了")
         assertTrue(result is AgentTurnResult.Reply)
         val reply = (result as AgentTurnResult.Reply).value
-        assertEquals("嗯，", reply.ackText)
-        assertEquals("挺高兴的，后来呢？", reply.probeText)
-        // assistantText = ack + probe（≤35）
+        // assistantText 单段，原样保留 ≤25 字；不再拆 ack/probe
         assertEquals("嗯，挺高兴的，后来呢？", reply.assistantText)
+        assertTrue("assistantText length <= 25", reply.assistantText.length <= 25)
     }
 
     @Test
-    fun `ack length capped at 10 chars`() = runTest {
-        // 中文标点在第 18 字之后；回退到前 10 字作 ack
-        val fake = FakeLlmClient(listOf(LlmResult("今天听你说起一段很长很长的往事，那一年发生了什么？")))
-        val agent = InterviewAgent(factoryFor(fake), prompts)
-        val result = agent.respond(LlmCredentials(provider = com.elder.android.data.db.LlmProvider.MINIMAX, minimaxApiKey = "key"), session(), "我想起一件事")
-        assertTrue(result is AgentTurnResult.Reply)
-        val reply = (result as AgentTurnResult.Reply).value
-        assertTrue("ack length <= 10", reply.ackText.length <= 10)
-        assertTrue("probe length <= 25", reply.probeText.length <= 25)
-        assertTrue("total <= 35", reply.assistantText.length <= 35)
-    }
-
-    @Test
-    fun `total reply length capped at 35 chars per A6`() = runTest {
+    fun `v0_9_1 total reply length capped at 25 chars per A2`() = runTest {
+        // LLM 输出超长串 → 截断到 25 字（A2 单段回复上限）
         val fake = FakeLlmClient(listOf(LlmResult("这是非常非常非常非常非常非常非常非常非常非常长的一段话，但应该被截断")))
         val agent = InterviewAgent(factoryFor(fake), prompts)
         val result = agent.respond(LlmCredentials(provider = com.elder.android.data.db.LlmProvider.MINIMAX, minimaxApiKey = "key"), session(), "今天")
         val reply = (result as AgentTurnResult.Reply).value
-        assertTrue("total <= 35 chars", reply.assistantText.length <= 35)
+        assertTrue("assistantText <= 25 chars (A2)", reply.assistantText.length <= 25)
     }
 
     // ===== F3 remember_fact 工具 =====

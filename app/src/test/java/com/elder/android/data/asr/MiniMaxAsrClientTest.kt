@@ -4,9 +4,12 @@ package com.elder.android.data.asr
 import com.elder.android.error.AppError
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
+import okio.Buffer
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -337,6 +340,168 @@ class MiniMaxAsrClientTest {
         } catch (e: AppError.AsrUpstream) {
             assertEquals(AppError.Code.ASR_UPSTREAM, e.code)
         }
+    }
+
+    @Test fun `openSession uploads well-formed WAV header with real dataSize`() = runBlocking {
+        // 防回归：appendAudio 必须 seek 到 HEADER_SIZE + dataSize，finish 必须回填 header；
+        // 否则 MiniMax strict wav parser 看到 dataSize=0 但后面有 PCM → 2013 invalid params。
+        server.enqueue(
+            sseResponse(
+                listOf(
+                    """{"delta":"hi"}""",
+                    """{"finish":true}""",
+                ),
+            ),
+        )
+
+        val session = client.openSession(apiKey = "sk-minimax-test")
+        val savedWav = File.createTempFile("minimax_asr_header_check_", ".wav")
+        try {
+            // 两段 PCM（3200 + 1600 = 4800 字节）。
+            session.appendAudio(ByteArray(3200) { (it and 0xff).toByte() })
+            session.appendAudio(ByteArray(1600) { (it and 0xff).toByte() })
+            val result = session.finish()
+            assertEquals("hi", result.text)
+
+            // 验证上传的 wav header 数据尺寸真实 —— 而不是 dataSize=0 占位。
+            val request = server.takeRequest()
+            val wavBytes = extractWavFromMultipart(request)
+            assertTrue("uploaded wav must be at least header + pcm", wavBytes.size >= 44 + 4800)
+            // RIFF magic
+            assertEquals('R'.code.toByte(), wavBytes[0])
+            assertEquals('I'.code.toByte(), wavBytes[1])
+            assertEquals('F'.code.toByte(), wavBytes[2])
+            assertEquals('F'.code.toByte(), wavBytes[3])
+            // RIFF chunk size = 36 + 4800 = 4836
+            val riffSize = readIntLe(wavBytes, 4)
+            assertEquals(36 + 4800, riffSize)
+            // WAVE / fmt  / data magic
+            assertEquals("WAVE".toByteArray().toList(), wavBytes.slice(8..11).map { it })
+            assertEquals("fmt ".toByteArray().toList(), wavBytes.slice(12..15).map { it })
+            assertEquals("data".toByteArray().toList(), wavBytes.slice(36..39).map { it })
+            // data chunk size = 4800
+            val dataSize = readIntLe(wavBytes, 40)
+            assertEquals(4800, dataSize)
+            // header 后 PCM 字节数 = 4800
+            assertEquals(4800, (wavBytes.size - 44).toLong())
+        } finally {
+            session.close()
+            savedWav.delete()
+        }
+    }
+
+    @Test fun `openSession finish with no appendAudio still sends well-formed WAV`() = runBlocking {
+        // 空 buffer 也必须输出合法 wav —— header 的 dataSize=0 + 没有 trailing PCM。
+        // 服务端返回纯 finish:true → 客户端应抛 AsrEmptyTranscript，
+        // 证明 header 通过了 parser（否则会先 400 → AsrBadRequest）。
+        server.enqueue(sseResponse(listOf("""{"finish":true}""")))
+
+        val session = client.openSession(apiKey = "sk-minimax-test")
+        try {
+            try {
+                session.finish()
+                fail("expected AppError.AsrEmptyTranscript for empty transcript")
+            } catch (e: AppError.AsrEmptyTranscript) {
+                assertEquals(AppError.Code.ASR_EMPTY_TRANSCRIPT, e.code)
+            } catch (e: AppError.AsrBadRequest) {
+                fail(
+                    "empty session should not produce AsrBadRequest — wav header must be valid. " +
+                        "Server says: ${e.serverErrorMessage}",
+                )
+            }
+            val request = server.takeRequest()
+            val wavBytes = extractWavFromMultipart(request)
+            assertEquals(44, wavBytes.size)
+            // RIFF chunk size = 36 + 0 = 36
+            assertEquals(36, readIntLe(wavBytes, 4))
+            // data chunk size = 0
+            assertEquals(0, readIntLe(wavBytes, 40))
+            assertEquals("WAVE".toByteArray().toList(), wavBytes.slice(8..11).map { it })
+        } finally {
+            session.close()
+        }
+    }
+
+    private fun readIntLe(bytes: ByteArray, offset: Int): Int {
+        return (bytes[offset].toInt() and 0xff) or
+            ((bytes[offset + 1].toInt() and 0xff) shl 8) or
+            ((bytes[offset + 2].toInt() and 0xff) shl 16) or
+            ((bytes[offset + 3].toInt() and 0xff) shl 24)
+    }
+
+    /**
+     * 把 MockWebServer 收到的 multipart/form-data 请求体拆开，取 `name="file"` 的 part
+     * 作为裸 wav 字节返回。手抓 multipart envelope + boundary（用 ByteArray 而非
+     * Buffer API —— 仓库里 [Buffer.indexOf] 重载对 ByteArray 不友好）。
+     */
+    private fun extractWavFromMultipart(request: okhttp3.mockwebserver.RecordedRequest): ByteArray {
+        val contentType = request.getHeader("Content-Type")
+            ?: error("missing Content-Type header on multipart request")
+        val boundary = contentType.substringAfter("boundary=", missingDelimiterValue = "")
+            .trim().trim('"')
+            .let { if (it.isBlank()) error("multipart Content-Type missing boundary") else it }
+        val raw = okio.Buffer()
+        request.body.writeTo(raw.outputStream())
+        val bytes = raw.readByteArray()
+        val markerBytes = ("--" + boundary).toByteArray()
+        val crlfBytes = "\r\n".toByteArray()
+        val crlfCrlfBytes = "\r\n\r\n".toByteArray()
+        val crlfMarkerBytes = ByteArray(crlfBytes.size + markerBytes.size).also { out ->
+            System.arraycopy(crlfBytes, 0, out, 0, crlfBytes.size)
+            System.arraycopy(markerBytes, 0, out, crlfBytes.size, markerBytes.size)
+        }
+        val dashBytes = "--".toByteArray()
+        val crlfMarkerDashBytes = ByteArray(crlfBytes.size + markerBytes.size + dashBytes.size).also { out ->
+            System.arraycopy(crlfBytes, 0, out, 0, crlfBytes.size)
+            System.arraycopy(markerBytes, 0, out, crlfBytes.size, markerBytes.size)
+            System.arraycopy(dashBytes, 0, out, crlfBytes.size + markerBytes.size, dashBytes.size)
+        }
+
+        var cursor = 0
+        while (true) {
+            val partStart = indexOf(bytes, markerBytes, cursor)
+            if (partStart < 0) return error("multipart has no more parts")
+            var headerStart = partStart + markerBytes.size
+            // 跳过 boundary 后的 \r\n
+            if (headerStart + 2 <= bytes.size &&
+                bytes[headerStart] == '\r'.code.toByte() &&
+                bytes[headerStart + 1] == '\n'.code.toByte()
+            ) {
+                headerStart += 2
+            }
+            val sep = indexOf(bytes, crlfCrlfBytes, headerStart)
+            if (sep < 0) return error("multipart part header/body separator not found")
+            val headerStr = String(bytes, headerStart, sep - headerStart, Charsets.UTF_8)
+            val bodyStart = sep + crlfCrlfBytes.size
+            val nextBoundary = indexOf(bytes, crlfMarkerBytes, bodyStart)
+            val bodyEnd = if (nextBoundary < 0) {
+                val closing = indexOf(bytes, crlfMarkerDashBytes, bodyStart)
+                if (closing < 0) return error("multipart has no closing boundary")
+                closing
+            } else {
+                nextBoundary
+            }
+            val bodyLen = bodyEnd - bodyStart
+            if (headerStr.contains("name=\"file\"")) {
+                val out = ByteArray(bodyLen)
+                System.arraycopy(bytes, bodyStart, out, 0, bodyLen)
+                return out
+            }
+            // 进入下一个 part：跳到 \r\n--boundary 之后
+            cursor = nextBoundary + crlfMarkerBytes.size
+            if (cursor >= bytes.size) return error("multipart request has no name=\"file\" part")
+        }
+    }
+
+    private fun indexOf(haystack: ByteArray, needle: ByteArray, fromIndex: Int): Int {
+        if (needle.isEmpty()) return fromIndex
+        outer@ for (i in fromIndex..(haystack.size - needle.size)) {
+            for (j in needle.indices) {
+                if (haystack[i + j] != needle[j]) continue@outer
+            }
+            return i
+        }
+        return -1
     }
 
     @Test fun `providerRaw and model match A12 constants`() {

@@ -30,6 +30,7 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.RandomAccessFile
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -79,9 +80,13 @@ class MiniMaxAsrClient(
         private val restUrl: String,
         private val onPartial: (String) -> Unit,
     ) : RealtimeAsrSession {
+        // §A.12.2：openSession 把 [appendAudio] 累积的 PCM 16kHz/mono/16-bit 写成 wav，
+        // finish 时一次性 POST。WAV header 的 RIFF / data chunk size 必须回填真实 dataSize，
+        // 否则 MiniMax strict wav parser 拒绝 → bad_request_error(2013)。
         private val tempFile: File = File.createTempFile("minimax_asr_", ".wav")
-        private val output = FileOutputStream(tempFile)
+        private val raf = RandomAccessFile(tempFile, "rw")
         private val lock = Any()
+        private var dataSize: Long = 0L
         private var headerWritten = false
         private val finished = AtomicBoolean(false)
         private val closed = AtomicBoolean(false)
@@ -90,10 +95,12 @@ class MiniMaxAsrClient(
             if (audio.isEmpty() || closed.get() || finished.get()) return
             synchronized(lock) {
                 if (!headerWritten) {
-                    writeWavHeader(output, sampleRate = SAMPLE_RATE, channels = 1, dataSize = 0)
+                    writeWavHeader(raf, sampleRate = SAMPLE_RATE, channels = 1, dataSize = 0)
                     headerWritten = true
                 }
-                output.write(audio)
+                raf.seek(HEADER_SIZE + dataSize)
+                raf.write(audio)
+                dataSize += audio.size
             }
         }
 
@@ -103,10 +110,13 @@ class MiniMaxAsrClient(
             }
             synchronized(lock) {
                 if (!headerWritten) {
-                    writeWavHeader(output, sampleRate = SAMPLE_RATE, channels = 1, dataSize = 0)
+                    writeWavHeader(raf, sampleRate = SAMPLE_RATE, channels = 1, dataSize = 0)
                     headerWritten = true
                 }
-                runCatching { output.close() }
+                // 回填 header 的 RIFF / data chunk size — 这是修复 2013 invalid params 的关键步骤。
+                raf.seek(0)
+                writeWavHeader(raf, sampleRate = SAMPLE_RATE, channels = 1, dataSize = dataSize.toInt())
+                runCatching { raf.close() }
             }
             try {
                 uploadAndReadSse(client, restUrl, tempFile, apiKey, onPartial)
@@ -118,7 +128,7 @@ class MiniMaxAsrClient(
         override fun close() {
             if (closed.compareAndSet(false, true)) {
                 synchronized(lock) {
-                    runCatching { output.close() }
+                    runCatching { raf.close() }
                     runCatching { tempFile.delete() }
                 }
             }
@@ -131,6 +141,9 @@ class MiniMaxAsrClient(
         const val REST_URL = "https://api.minimax.cn/v1/speech_to_text"
         const val STREAM_FLAG = "true"
         const val SAMPLE_RATE = 16_000
+
+        /** 标准 16-bit PCM RIFF/WAVE header 字节数；与 writeWavHeader 输出对齐。 */
+        const val HEADER_SIZE: Long = 44L
 
         private val WAV_MEDIA_TYPE = "audio/wav".toMediaType()
         private const val MAX_ERROR_BODY_BYTES = 4L * 1024L
@@ -290,8 +303,10 @@ class MiniMaxAsrClient(
         /**
          * 写入 16-bit PCM RIFF/WAVE 头；RIFF / data chunk size 都用真实 [dataSize] 算对，
          * 不留占位 0（之前留 0 占位假设服务端按文件大小解析，严格 wav parser 会拒）。
+         * 接受 [RandomAccessFile] 而非 [FileOutputStream]，便于在已写入 PCM 之后
+         * 调用方 seek 回 0 重写 header。
          */
-        private fun writeWavHeader(out: FileOutputStream, sampleRate: Int, channels: Int, dataSize: Int) {
+        private fun writeWavHeader(out: RandomAccessFile, sampleRate: Int, channels: Int, dataSize: Int) {
             val byteRate = sampleRate * channels * 2
             val totalRiffSize = 36 + dataSize
             out.write("RIFF".toByteArray())

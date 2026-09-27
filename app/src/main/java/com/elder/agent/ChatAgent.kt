@@ -68,8 +68,7 @@ class ChatAgent(
             SafetyAgent.Verdict.MONEY, SafetyAgent.Verdict.MEDICAL -> return completeReply(
                 session = session,
                 elderText = normalized,
-                ack = "",
-                probe = SafetyAgent.SHORT_REPLY,
+                assistantText = SafetyAgent.SHORT_REPLY,
                 shouldFinalize = false,
             )
             SafetyAgent.Verdict.EXPLICIT_CLOSE -> return finalizeViaSafety(credentials, session, normalized)
@@ -137,15 +136,16 @@ class ChatAgent(
             toolRound += 1
         }
 
-        val (ack, probe) = splitAckProbe(lastResult.content)
+        // v0.9.1：单段回复 ≤25 字（A2）；不再 splitAckProbe，LLM 输出原样截断。
+        val assistantText = lastResult.content.take(MAX_REPLY_CHARS).ifBlank { FALLBACK_REPLY }
         val dimensionReady = coveredDimensions.size >= 2 && Dimension.FEELING in coveredDimensions
         val shouldFinalize = safety.check(normalized) == SafetyAgent.Verdict.EXPLICIT_CLOSE ||
             dimensionReady ||
             session.turns.size + 1 >= maxTurns
         if (!shouldFinalize) {
-            return completeReply(session, normalized, ack, probe, shouldFinalize = false)
+            return completeReply(session, normalized, assistantText, shouldFinalize = false)
         }
-        return finalizeViaSafety(credentials, session, normalized, fallbackAssistant = ack + probe)
+        return finalizeViaSafety(credentials, session, normalized, fallbackAssistant = assistantText)
     }
 
     // ===== 主动开问 open() =====
@@ -222,50 +222,28 @@ class ChatAgent(
     }
 
     /**
-     * A6 ack/probe 拆分：找第一个中文标点（，。！？；…），之前 ≤10 字作为 ack；
-     * 之后 ≤25 字作为 probe；总长 ≤35。
+     * v0.9.1 简化：单参数 assistantText；不再做 ack/probe 拆段。
+     * 截断到 MAX_REPLY_CHARS（25）由调用方保证（见 respond 主循环 + safety 短路）。
      */
-    private fun splitAckProbe(raw: String): Pair<String, String> {
-        val text = raw.trim()
-        if (text.isEmpty()) return "" to FALLBACK_REPLY
-        val boundary = text.indexOfFirst { it in "，。！？；…" }
-        return if (boundary in 1..MAX_ACK_CHARS) {
-            val ack = text.substring(0, boundary + 1).trim().take(MAX_ACK_CHARS)
-            val probe = text.substring(boundary + 1).trim().take(MAX_PROBE_CHARS)
-                .ifBlank { FALLBACK_REPLY }
-            ack to probe
-        } else {
-            val ack = text.take(MAX_ACK_CHARS)
-            val probe = text.drop(MAX_ACK_CHARS).trim().take(MAX_PROBE_CHARS)
-                .ifBlank { FALLBACK_REPLY }
-            ack to probe
-        }
-    }
-
     private fun completeReply(
         session: InterviewSession,
         elderText: String,
-        ack: String,
-        probe: String,
+        assistantText: String,
         shouldFinalize: Boolean,
     ): AgentTurnResult.Reply {
-        val assistantText = (ack + probe).take(MAX_REPLY_TOTAL_CHARS)
+        val capped = assistantText.take(MAX_REPLY_CHARS)
         val updatedSession = session.copy(
             turns = session.turns + InterviewTurn(
                 turnNo = session.turns.size + 1,
                 elderText = elderText,
-                assistantText = assistantText,
-                ack = ack.ifBlank { null },
-                probe = probe.ifBlank { null },
+                assistantText = capped,
                 createdAt = System.currentTimeMillis(),
             ),
         )
         return AgentTurnResult.Reply(
             AgentReply(
                 session = updatedSession,
-                assistantText = assistantText,
-                ackText = ack,
-                probeText = probe,
+                assistantText = capped,
                 shouldFinalize = shouldFinalize,
             ),
         )
@@ -316,17 +294,16 @@ class ChatAgent(
         elderText: String,
         text: String,
         summary: String,
-        ackProbeFromTool: String,
+        replyFromTool: String,
     ): AgentTurnResult.Finalize {
-        val (ack, probe) = if (ackProbeFromTool.isNotBlank()) splitAckProbe(ackProbeFromTool) else "" to FALLBACK_REPLY
-        val assistantText = (ack + probe).take(MAX_REPLY_TOTAL_CHARS)
+        // v0.9.1：single-segment reply；不再 splitAckProbe
+        val assistantText = (if (replyFromTool.isNotBlank()) replyFromTool else FALLBACK_REPLY)
+            .take(MAX_REPLY_CHARS)
         val updatedSession = session.copy(
             turns = session.turns + InterviewTurn(
                 turnNo = session.turns.size + 1,
                 elderText = elderText,
                 assistantText = assistantText,
-                ack = ack.ifBlank { null },
-                probe = probe.ifBlank { null },
                 createdAt = System.currentTimeMillis(),
             ),
             status = InterviewStatus.REVIEWING,
@@ -435,10 +412,8 @@ class ChatAgent(
         const val MAX_OPEN_CHARS = 25  // v0.9.0 新增：open() 第一句 ≤25 字
         const val MAX_TEXT_CHARS = 100  // D1（兼容路径使用）
         const val MAX_SUMMARY_CHARS = 60  // D2（兼容路径使用）
-        const val MAX_REPLY_CHARS = 25  // A2 单条追问
-        const val MAX_ACK_CHARS = 10  // A6 共情前置
-        const val MAX_PROBE_CHARS = 25  // A2 追问
-        const val MAX_REPLY_TOTAL_CHARS = 35  // A6 单轮总长
+        // v0.9.1：A2 单段回复 ≤25 字；取消 ack/probe 双段拆段与总长 ≤35 约束
+        const val MAX_REPLY_CHARS = 25  // A2 单段回复
 
         // v0.9.0 工具集：仅 ChatAgent 暴露给 LLM 的 3 个工具
         const val TOOL_ASK_CLARIFY = "ask_clarify"

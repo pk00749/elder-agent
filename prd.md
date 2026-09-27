@@ -25,6 +25,7 @@
 | v0.8.0 | 2026-09-19 | Codex | **AI 服务 LLM Provider 可切换**：Settings「AI 服务」新增「大语言模型」入口卡 + LLM 子页，Provider 选项：`千问 qwen-plus`（OpenAI 兼容 dashscope）/ `MiniMax M3`（默认，回滚路径）/ `DeepSeek deepseek-chat`（api.deepseek.com）；新增 `QwenLlmClient` / `DeepSeekLlmClient`（OpenAI 兼容协议），`MiniMaxClient` 不动；`asr_config` Migration 5→6 增加 `llm_provider` / `llm_endpoint` / `llm_model` / `qwen_llm_api_key_enc` / `qwen_llm_last_test_result` / `deepseek_llm_api_key_enc` / `deepseek_llm_last_test_result` 列；§3.1.9 / §5.11 / §A.11.1 / AGENTS.md §A.15 同步修订；不动服务端 / 家属端 / §3.1.4 行为约束 / Hermes 记忆层；按 §16 / §17 与客户端代码同 PR 合并提交（产品评审通过为前置） |：ASR 支持 `bailian`（千问百炼）/`minimax_realtime`（MiniMax Realtime），TTS 支持 `qwen`（千问 `Kiki`）/`minimax`（MiniMax `Cantonese_KindWoman`）；**默认 Provider = MiniMax ASR + MiniMax TTS**，千问作为可选回滚路径保留；MiniMax LLM 不动；不动服务端 / 家属端 / 记忆层 / §3.1.4 行为约束；AGENTS.md 新增 §A.12（MiniMax Realtime ASR）+ §A.13（MiniMax T2A WebSocket）+ §18 「0.7.0 例外」；§3.1.9 / §5.11 / §6.4 / §11.15 / §11.28.2 / §A.11.1 同步修订；`asr_config` 走 Migration 4→5 DROP+CREATE 强制重输 4 份 Key（`api_key_enc` 千问共用 / `minimax_api_key_enc` MiniMax LLM+ASR 共用 / `tts_minimax_api_key_enc` MiniMax TTS 独立）。 |
 | v0.6.0 | 2026-09-17 | Codex | **设定 App 0.6.0 目标**：在 0.5.0 基础上让访谈 Agent 学习窦文涛式访谈手法（先共情命名情绪、再用细节阶梯追问）并加 Hermes 风格纯 Room 记忆层（`elder_facts` 表 + `remember_fact` / `search_memory` 工具 + 仅 `save_diary` 后 background learning + 三块 system prompt 注入 `<elder-facts>` / `<recent-summaries>` / `<memory-policy>`）；AGENTS.md §A.11 范围内，客户端 Kotlin 实现；`prd.md §3.1.4` 修订：A6 共情前置 + A4 澄清 + C1 修订；新增 §3.1.4.E 访谈技巧 E1–E6、§3.1.4.F 记忆层 F1–F7；纯文本边界：不引 embedding / 不引 FTS / 不引 MD 文件 / 不引新 SDK；对照脚本评分验收；走修订记录 + 产品评审门后合入 |
 | v0.9.0 | 2026-09-22 | Codex | **设定 App 0.9.0 目标**：在 0.8.x 基础上做三件事：(1) 老人端 10 屏文字清晰度升级 —— 最小可视字号从 18/20sp 收紧到 22sp；`TitleLargeSp` 38→40 合并 `BodyHugeSp`；转写卡片字号 32→40sp 行高 48→56sp；访谈屏 ack 28sp 次级 + probe 38sp 粗体主色；进度行改 96dp 大圆环；主屏日期 24sp 次级→28sp 主色；时间轴列表行 72→96dp + 相对时间格式；(2) Agent 拆分 1→3 —— 把 `InterviewAgent` 拆为 `ChatAgent`(主循环,3 工具) + `SafetyAgent`(纯本地 object,emergency/money/medical 关键词) + `MemoryAgent`(background learning,Room 走);新增 `SaveAgent` 兼容 `summarize()` 老路径；prompt 文件新增 `chat_v1.txt`(从 `system_v3.txt` 抽,瘦身 30%) + `memory_v1.txt` + `safety_v1.txt`；旧 `system_v1/v2/v3.txt` + `save_v1/v2/v3.txt` 全部保留只读;`LlmCredentials` / `LlmClient` / `LlmClientFactory` 接口锁定不动;(3) ChatAgent 主动开问 —— 新增 `ChatAgent.open()` 入口 + `InterviewStage.OPENING` 阶段;进入访谈屏时调 LLM 生成回扣式问候(注入 `<recent-summaries>` + `<elder-facts>`,E6 跨会话回扣)+ TTS 必播第一句(Cantonese_KindWoman 粤语女声);LLM 失败走 `SafetyAgent.GREETING_FALLBACK` 静态兜底不调 TTS;第一句不计 turn 计数,8 轮上限不缩短。新增 strings.xml 多语言 fallback(`values-en` 英文 + `values-zh-rHK` 粤语口语,**仅**覆盖 v0.9.0 新增 5 个 key;UI 文字保留普通话,粤语仅作用于 LLM 输出)。不动 §5 数据模型字段;不动 §3.1.4 A1–D3 行为约束;不动 §4.2 最小 24sp 起步硬约束(0.9.0 在原表追加列);不动 §3.1.2 录音规格(60s / 16kHz / Mono);不动 Room schema + 既有 migration;不动 §18 锁定列表。详细设计见 `docs/0.9.0-goals.md` + `docs/0.9.0-chat-agent.md` + `docs/0.9.0-chat-agent-opening.md`。 |
+| v0.9.1 | 2026-09-23 | Codex | **访谈屏 LLM 回复统一单段 28sp 次级**：§3.1.4.A 删除 A6 共情前置拆段（≤10 字 ack + ≤25 字 probe + 总长 ≤35 字）；A1/A2/B/C/D/E/F 硬规则保留；E1 引用 A6 处同步删除「(A6 已授权)」并改为可选前置（软指令）；§12.4.1 访谈屏字号规范修订：「ack 28sp 次级 + probe 38sp 粗体主色 + `·` 分隔」→「LLM 回复 28sp 次级单段（不分双段、不分隔符）」；OPENING 阶段（v0.9.0 新增的 ChatAgent.open()）走同一规格；§12.4.2 ChatAgent 工具集保留 3 个（不动）；客户端 Kotlin 同步重构 `ChatAgent.splitAckProbe()` + `MAX_ACK_CHARS/MAX_PROBE_CHARS/MAX_REPLY_TOTAL_CHARS` 删除；`AgentReply.ackText/probeText` 字段合并为 `assistantText` 单字段；`AssistantCard` 渲染改单 Text（28sp + TextSecondary + Normal）；prompts（chat_v1.txt / system_v3.txt）删 A6 指引；测试 `InterviewAgentTest_v2.kt` 中 3 个 ack/probe 拆段测试改为「单段 ≤25 字」断言；docs/0.9.0-chat-agent.md §2.1 职责表 + §2.2 类签名常量 + §2.4 安全短路 + §3.2 常量迁移表同步修订；**不动**：§5 数据模型字段；§3.1.4 A1/A2/A3/A4/A5/B/C/D/E2-E6/F；§3.1.2 录音规格；§4.2 最小 24sp 起步硬约束；既有 migration；既有 prompt 文件（system_v1/v2/v3.txt + save_v1/v2/v3.txt + chat_v1.txt + memory_v1.txt + safety_v1.txt 全部保留只读）。按 AGENTS.md §18 走 prd.md 修订记录 + 产品评审门后合入（用户决策 = 评审通过），按 §16 与客户端代码同 PR 合并提交。设计对应 docs/0.9.0-chat-agent.md v0.9.1 修订段。 |
 
 
 ---
@@ -322,7 +323,7 @@ MVP 老人端录音 → 日记 全流程在客户端独立完成，**不依赖�
 - A3. 使用口语化中文，避免书面语；可用常见感叹词（「嗯」「挺好的」「然后呢？」）
 - A4. 不得完整复述或总结老人**当前会话**说过的话；允许在共情前置中用 ≤3 个汉字轻量回扣前文细节（如「那老张…」「刚才那个…」）；不得用「1.2.3.4.」分点。**F 节注入的 `<elder-facts>` / `<recent-summaries>` 不算被 LLM 复述的对象**，但 LLM 不得在输出中原样复制记忆文本
 - A5. 方言容忍：ASR 转写后保留口语化文本，不要因方言用法判定为无效输入
-- **A6.（v0.6.0 新增）共情前置**：单轮回复允许先用 ≤10 个汉字做情绪命名或轻量认可（例：`听起来挺高兴`、`有点意外吧`、`这事挺闹心的`），紧接其后用一个 ≤25 个汉字的追问；**单轮总长 ≤35 个汉字**，问句部分仍受 A2 ≤25 字限制。A1（一次只问一件事）不变——情绪命名算"前置识别"不算"问一件事"。Kotlin 端 `InterviewAgent.respond()` 在产出 assistantText 后拆段：前 ≤10 字作为 `ack`，剩余 ≤25 字作为 `probe`，总长超 35 字截断至 35。
+- ~~A6.（v0.6.0 新增）共情前置~~（**v0.9.1 删除**：取消 ack/probe 双段拆段与总长 ≤35 字硬约束；Kotlin 端 `InterviewAgent.respond()` / `ChatAgent.respond()` 不再做 splitAckProbe；单段回复 ≤25 字仍受 A2 约束；OPENING 阶段同样单段输出；详见 §12.4.1）
 
 **B. 安全约束**
 - B1. 老人提及金钱、转账、验证码、陌生链接时，立即调用 ask_clarify 工具跳过该话题并转向日常闲聊
@@ -344,9 +345,9 @@ MVP 老人端录音 → 日记 全流程在客户端独立完成，**不依赖�
 
 **E. 访谈技巧（v0.6.0 新增；参考窦文涛《锵锵三人行》手法）**
 
-访谈技巧是 **软指令**——通过 `system_v2.txt` 提示词 + few-shot 范例引导 LLM 采用；硬约束仍是 A1–A6 / B / C / D。技术细节由 `system_v2.txt` 文件承载（AGENTS.md §A.11.2 prompt 版本化），本节规定要点：
+访谈技巧是 **软指令**——通过 `system_v2.txt` 提示词 + few-shot 范例引导 LLM 采用；硬约束仍是 A1–A5 / B / C / D（v0.9.1 起；A6 删除）。技术细节由 `system_v2.txt` 文件承载（AGENTS.md §A.11.2 prompt 版本化），本节规定要点：
 
-- E1 **命名情绪再探细节**：单轮先 ≤10 字情绪命名（A6 已授权），再 ≤25 字追问；不要冷启动追问
+- E1 **命名情绪再探细节**（v0.9.1 软指令化，不再硬约束 ≤10 字前置）：可先用 ≤10 字情绪命名（情绪命名示例：`听起来挺高兴` / `有点意外吧` / `这事挺闹心的`，可选），再 ≤25 字追问；情绪命名与追问总和 ≤25 字受 A2 约束；不要冷启动追问
 - E2 **细节阶梯**：按 `who → what → how-felt → small-detail` 顺序推进；后一阶是前一阶的具体化，不另起话题；C1 要求至少走到 `how-felt` 阶段
 - E3 **开放探针句式**：优先用 `那…呢？` / `怎么…的？` / `当时…？` / `后来呢？`；避免 `是不是 / 对不对 / 几岁` 等闭式问句（闭式问句易让老人陷入"是 / 不是"短答）
 - E4 **节奏控制**：连续两轮追问同一维度触发 `MOVE_ON` 工具，进入下一维度或收尾；防止"审问感"
@@ -1679,7 +1680,7 @@ pending_diary(
 - 老人端 10 屏字号统一提升:
   - 主屏:日期 24sp 次级→**28sp 主色**;问候语支持农历日期;ASR 红卡简化为单行动作
   - 录音屏:信纸字号 32→**40sp `BodyHugeSp`**;时长 `MM:SS`→`MM分SS秒`;行高 48→56sp
-  - 访谈屏:ack 28sp 次级 + probe 38sp 粗体主色 + `·` 分隔;转写 38sp 粗体;**进度行 → 96dp 大圆环**;状态行加打字光标 `|`
+  - 访谈屏:**LLM 回复 28sp 次级单段（`TextSecondary` + `Normal`）** —— v0.9.1 修订（取消 v0.9.0 双段拆段 + 38sp 粗体主色 + `·` 分隔）；OPENING 阶段（`ChatAgent.open()` 主动开问）走同一规格；转写 38sp 粗体;**进度行 → 96dp 大圆环**;状态行加打字光标 `|`
   - 时间轴:列表项 24→28sp;行 72→96dp;时间改"今天 上午 9:30"相对时间;编辑弹窗 160→240dp
   - 设置:字体 chip 18→24sp;Switch 加"开/关"二字;媒体音量加"X/15"反馈
   - AI 服务:Provider 入口卡 28sp 统一;placeholder 24→28sp
