@@ -16,6 +16,7 @@ import com.elder.android.screen.elder.ElderDiaryRecordScreen
 import com.elder.android.screen.elder.ElderHomeScreen
 import com.elder.android.screen.elder.ElderSettingsScreen
 import com.elder.android.screen.interview.InterviewScreen
+import com.elder.android.screen.oss.OssConfigScreen
 
 @Composable
 fun AppNavGraph() {
@@ -57,6 +58,7 @@ fun AppNavGraph() {
             ElderSettingsScreen(
                 onBack = { nav.popBackStack() },
                 onOpenAsr = { nav.navigate(Route.ElderAsrConfig.path) },
+                onOpenOss = { nav.navigate(Route.ElderOssConfig.path) },  // v0.10.0 §6
                 onLoggedOut = {
                     nav.navigate(Route.ElderHome.path) {
                         popUpTo(Route.ElderHome.path) { inclusive = true }
@@ -80,6 +82,9 @@ fun AppNavGraph() {
         }
         composable(Route.ElderTtsProvider.path) {
             TtsProviderScreen(onBack = { nav.popBackStack() })
+        }
+        composable(Route.ElderOssConfig.path) {  // v0.10.0 §6
+            OssConfigScreen(onBack = { nav.popBackStack() })
         }
     }
 }

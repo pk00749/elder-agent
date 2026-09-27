@@ -105,6 +105,9 @@ dependencies {
     // Keystore-wrapped EncryptedSharedPreferences
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
+    // v0.10.0 §6.6: WorkManager(UNMETERED 触发 OSS 后台上传)
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+
     // v3.0 MVP 移除：CameraX / ZXing / Retrofit / Moshi / ExoPlayer
 
     // ---- 单元测试（Robolectric + Compose UI test，JVM 上跑，无需 emulator）----

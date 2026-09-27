@@ -13,4 +13,5 @@ sealed class Route(val path: String) {
     data object ElderAsrProvider : Route("elder/settings/asr/provider")    // v0.7.0
     data object ElderTtsProvider : Route("elder/settings/tts/provider")    // v0.7.0
     data object ElderLlmProvider : Route("elder/settings/llm/provider")    // v0.8.0
+    data object ElderOssConfig : Route("elder/settings/oss")               // v0.10.0 §6
 }

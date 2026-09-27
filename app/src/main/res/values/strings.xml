@@ -251,4 +251,26 @@
     <string name="toast_save_error">保存失败，再试一次</string>
     <string name="toast_server_busy">服务器忙，过会儿再试</string>
     <string name="toast_unbound_no_diary">未绑定家人，写好的日记会丢失</string>
+
+    <!-- v0.10.0 §6 OSS 同步入口卡 -->
+    <string name="oss_sync_card">同步到云</string>
+    <string name="oss_sync_subtitle_unconfigured">未配置</string>
+    <string name="oss_sync_subtitle_configured">已配置 (Bucket: %1$s)</string>
+    <string name="oss_sync_title">同步到云设置</string>
+    <string name="oss_sync_summary">把日记同步到阿里云 OSS,本地永远保留一份。需要 Endpoint、Bucket、Region、AccessKey。</string>
+    <string name="oss_endpoint">Endpoint</string>
+    <string name="oss_bucket">Bucket</string>
+    <string name="oss_region">Region</string>
+    <string name="oss_access_key_id">AccessKey ID</string>
+    <string name="oss_access_key_secret">AccessKey Secret</string>
+    <string name="oss_sts_token">STS Token</string>
+    <string name="oss_prefix">对象前缀</string>
+    <string name="oss_test_button">测试一下</string>
+    <string name="oss_test_ok">连通成功</string>
+    <string name="oss_test_fail">连通失败,检查凭据</string>
+    <string name="oss_save_ok">已保存</string>
+    <string name="oss_sync_now">立即同步</string>
+    <string name="oss_sync_triggered">后台已触发,Wi-Fi 下会跑</string>
+    <string name="oss_last_sync">最近同步:%1$s</string>
+    <string name="oss_synced_badge">已同步</string>
 </resources>

@@ -4,6 +4,7 @@
 // v0.6.0 §3.1.4 F2 / F6 + AGENTS.md §A.11.3：version 3→4，新增 elder_facts 表（用 CREATE TABLE + 索引；不 drop 现有表）。
 // v0.7.0 §3.1.9 / §A.14：version 4→5，asr_config 走 DROP+CREATE（16 列 schema），强制老人重输 4 份 Key。
 // v0.8.0 §3.1.9 / §A.15：version 5→6，asr_config 走 ALTER TABLE 新增 7 列（llm_provider / llm_endpoint / llm_model / qwen_llm_api_key_enc / qwen_llm_last_test_result / deepseek_llm_api_key_enc / deepseek_llm_last_test_result），不 drop 既有数据。
+// v0.10.0 §6：version 6→7，oss_config 表 CREATE TABLE（单行）+ diary_entry_local ALTER 增量 5 列（oss_object_key/oss_sync_status/oss_synced_at/oss_last_error/oss_attempts）。
 package com.elder.android.data.db
 
 import android.content.Context
@@ -21,8 +22,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         InterviewSessionEntity::class,
         PendingDiaryEntity::class,
         ElderFactEntity::class, // v0.6.0 新增：长期事实表
+        OssConfigEntity::class,  // v0.10.0 §6.2 新增：OSS 配置(单行表 id=1)
     ],
-    version = 6, // v0.8.0: 5→6 asr_config ALTER TABLE 新增 7 列 LLM Provider 字段；不 drop 既有数据
+    version = 7, // v0.10.0: 6→7 新增 oss_config 表 + diary_entry_local ALTER 5 列
     exportSchema = false,
 )
 abstract class ElderDatabase : RoomDatabase() {
@@ -32,6 +34,7 @@ abstract class ElderDatabase : RoomDatabase() {
     abstract fun interviewSessionDao(): InterviewSessionDao
     abstract fun pendingDiaryDao(): PendingDiaryDao
     abstract fun elderFactDao(): ElderFactDao // v0.6.0 新增
+    abstract fun ossConfigDao(): OssConfigDao // v0.10.0 §6.2 新增
 
     companion object {
         @Volatile private var instance: ElderDatabase? = null
@@ -181,13 +184,50 @@ abstract class ElderDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * v0.10.0 Migration 6→7：oss_config 表 CREATE TABLE + diary_entry_local ALTER 5 列（§6.2 / §6.4）。
+         * oss_config 不在 §18 锁定列表,允许 CREATE TABLE。
+         * diary_entry_local §5.10 在锁定列表,仅 ALTER 追加;既有 17 列字段不动。
+         * oss_sync_status NOT NULL DEFAULT 'pending' 让既有行满足 NOT NULL 约束。
+         */
+        internal val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE diary_entry_local ADD COLUMN oss_object_key TEXT")
+                db.execSQL("ALTER TABLE diary_entry_local ADD COLUMN oss_sync_status TEXT NOT NULL DEFAULT 'pending'")
+                db.execSQL("ALTER TABLE diary_entry_local ADD COLUMN oss_synced_at INTEGER")
+                db.execSQL("ALTER TABLE diary_entry_local ADD COLUMN oss_last_error TEXT")
+                db.execSQL("ALTER TABLE diary_entry_local ADD COLUMN oss_attempts INTEGER NOT NULL DEFAULT 0")
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS oss_config (
+                        id INTEGER NOT NULL PRIMARY KEY,
+                        endpoint TEXT NOT NULL,
+                        bucket TEXT NOT NULL,
+                        region TEXT NOT NULL,
+                        prefix TEXT NOT NULL,
+                        sync_on_wifi_only INTEGER NOT NULL DEFAULT 1,
+                        access_key_id_enc TEXT NOT NULL,
+                        access_key_secret_enc TEXT NOT NULL,
+                        sts_token_enc TEXT,
+                        last_sync_at INTEGER,
+                        last_sync_result TEXT,
+                        updated_at INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_oss_config_updated_at ON oss_config(updated_at)"
+                )
+            }
+        }
+
         fun get(context: Context): ElderDatabase = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext,
                 ElderDatabase::class.java,
                 "elder_v3.db",
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .build()
                 .also { instance = it }
         }

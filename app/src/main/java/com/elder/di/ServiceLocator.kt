@@ -28,6 +28,10 @@ import com.elder.android.data.llm.MiniMaxClient
 import com.elder.android.data.tts.MiniMaxTtsClient
 import com.elder.android.data.tts.QwenTtsClient
 import com.elder.android.data.tts.TtsClient
+import com.elder.android.data.crypto.OssKeyCipher
+import com.elder.android.data.oss.AliyunOssSyncClient
+import com.elder.android.data.oss.OssSyncClient
+import com.elder.android.data.oss.OssSyncRepository
 import com.elder.android.data.tts.TtsProviderCatalog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -74,6 +78,14 @@ object ServiceLocator {
     lateinit var llmClientFactory: LlmClientFactory
         private set
 
+    // ===== v0.10.0 §6 OSS 同步 =====
+    lateinit var ossKeyCipher: OssKeyCipher
+        private set
+    lateinit var ossSyncClient: OssSyncClient
+        private set
+    lateinit var ossSyncRepo: OssSyncRepository
+        private set
+
     fun init(context: Context) {
         if (inited) return
         synchronized(this) {
@@ -94,6 +106,14 @@ object ServiceLocator {
             minimaxApi = MiniMaxClient()
             // v0.8.0 §A.15：注入 LLM 客户端工厂；InterviewAgent 通过工厂按 cfg.llmProvider 路由
             llmClientFactory = LlmClientFactory()
+            // v0.10.0 §6: OSS 同步依赖(独立 cipher + 独立 repo + WorkManager UNMETERED 触发见 OssSyncWorker)
+            ossKeyCipher = OssKeyCipher(app)
+            ossSyncClient = AliyunOssSyncClient()
+            ossSyncRepo = OssSyncRepository(
+                appContext = app,
+                client = ossSyncClient,
+                keyStore = ossKeyCipher,
+            )
             interviewAgent = InterviewAgent(                    // v0.6.0 加 elderFactRepo；v0.8.0 改 llm → llmFactory
                 llmFactory = llmClientFactory,
                 prompts = AgentPrompts(app),
