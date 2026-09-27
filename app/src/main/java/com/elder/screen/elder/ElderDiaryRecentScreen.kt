@@ -47,6 +47,7 @@ import com.elder.android.R
 import com.elder.android.data.db.DiaryEntryEntity
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
+import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
@@ -189,7 +190,8 @@ private fun DiaryRow(
             )
             Text(
                 text = entry.text,
-                fontSize = FontSize.body(),
+                fontSize = FontSize.body(FontLevel.LARGE),  // v0.9.0: body() 24 → LARGE 28
+                fontWeight = FontWeight.Medium,  // v0.9.0: 默认 → Medium
                 color = BrandColor.TextPrimary,
             )
             OutlinedButton(

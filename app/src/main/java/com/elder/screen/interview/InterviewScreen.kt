@@ -121,8 +121,6 @@ fun InterviewScreen(
 
                 AssistantCard(
                     text = state.assistantText ?: InterviewViewModel.GREETING,
-                    ackText = state.ackText,
-                    probeText = state.probeText,
                     modifier = Modifier.weight(0.42f),
                 )
 
@@ -180,6 +178,7 @@ fun InterviewScreen(
                         onSave = { vm.saveDiary(onDone) },
                         onRevise = vm::revise,
                     )
+                    InterviewStage.OPENING -> OpeningStatusRow(stringResource(R.string.interview_opening_status))
                     InterviewStage.PREPARING, InterviewStage.SAVED -> LoadingState()
                 }
             }
@@ -198,11 +197,14 @@ fun InterviewScreen(
     }
 }
 
+/**
+ * v0.9.1 起：LLM 回复统一单段（28sp 次级，TextSecondary + Normal）。
+ * 不再分 ack / probe 双段、不再用分隔符、不再 Bold 主色。
+ * OPENING 阶段（ChatAgent.open() 主动开问）走同一规格。
+ */
 @Composable
 private fun AssistantCard(
     text: String,
-    ackText: String? = null,    // v0.6.0: A6 共情前置（次级色 + 较小字号）
-    probeText: String? = null,  // v0.6.0: A2 追问（主色 + 较大字号）
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -214,33 +216,15 @@ private fun AssistantCard(
             Modifier.fillMaxSize().padding(Spacing.Md),
             contentAlignment = Alignment.CenterStart,
         ) {
-            // v0.6.0: ack + probe 双段渲染；ack 在前用次级色，probe 在后用主色
-            if (!ackText.isNullOrBlank() || !probeText.isNullOrBlank()) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (!ackText.isNullOrBlank()) {
-                        Text(
-                            text = ackText,
-                            fontSize = FontSize.body(FontLevel.LARGE),
-                            lineHeight = FontSize.TranscriptLineHeightSp.sp,
-                            color = BrandColor.TextSecondary,
-                        )
-                        Spacer(Modifier.width(Spacing.Xs))
-                    }
-                    Text(
-                        text = probeText.orEmpty(),
-                        fontSize = FontSize.body(FontLevel.XLARGE),
-                        lineHeight = FontSize.TranscriptLineHeightSp.sp,
-                        color = BrandColor.TextPrimary,
-                    )
-                }
-            } else {
-                Text(
-                    text = text,
-                    fontSize = FontSize.body(FontLevel.XLARGE),
-                    lineHeight = FontSize.TranscriptLineHeightSp.sp,
-                    color = BrandColor.TextPrimary,
-                )
-            }
+            // v0.9.1：单 Text 28sp 次级（BodyLargeSp=28）+ 行高 39sp（字号 × 1.4）；不 Bold。
+            // 颜色走 TextSecondary 次级（不是 TextPrimary），对齐 prd.md §12.4.1 v0.9.1 修订。
+            Text(
+                text = text,
+                fontSize = FontSize.BodyLargeSp.sp,
+                lineHeight = (FontSize.BodyLargeSp * 14 / 10).sp,  // 1.4 倍行高 = 39
+                fontWeight = FontWeight.Normal,
+                color = BrandColor.TextSecondary,
+            )
         }
     }
 }
@@ -257,8 +241,9 @@ private fun TranscriptCard(text: String?, modifier: Modifier = Modifier) {
             Text(
                 text = text.orEmpty().ifBlank { stringResource(R.string.interview_transcript_placeholder) },
                 modifier = Modifier.verticalScroll(scroll),
-                fontSize = FontSize.body(FontLevel.LARGE),
-                lineHeight = FontSize.TranscriptLineHeightSp.sp,
+                fontSize = FontSize.BodyHugeSp.sp,  // v0.9.0: LARGE 28 → BodyHugeSp=40（老人最大可读档，1.4 倍行高）
+                lineHeight = FontSize.TranscriptLineHeightSp.sp,  // v0.9.0: TranscriptLineHeightSp 48 → 56
+                fontWeight = FontWeight.Bold,  // v0.9.0: 默认 → Bold（用户自己说出口的话要看清）
                 color = if (text.isNullOrBlank()) BrandColor.TextSecondary else BrandColor.TextPrimary,
             )
         }
@@ -299,6 +284,28 @@ private fun StatusRow(text: String) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = text, fontSize = FontSize.body(FontLevel.LARGE), color = BrandColor.Brand500)
+    }
+}
+
+/**
+ * v0.9.0 OPENING 阶段专用：显示"让我先打个招呼…" + 进度条。
+ * 与 StatusRow 区别：垂直堆叠（文字 + LinearProgressIndicator），符合 §4.10 加载态规范。
+ */
+@Composable
+private fun OpeningStatusRow(text: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(Size.PrimaryButtonHeight),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(text = text, fontSize = FontSize.body(FontLevel.LARGE), color = BrandColor.Brand500)
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(Spacing.Sm))
+        androidx.compose.material3.LinearProgressIndicator(
+            modifier = Modifier.fillMaxWidth().height(Size.ProgressBarHeight),
+            color = BrandColor.Brand500,
+        )
     }
 }
 

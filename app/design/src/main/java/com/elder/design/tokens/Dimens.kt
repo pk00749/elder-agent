@@ -28,11 +28,11 @@ object FontSize {
     val BodyDefaultSp = 24
     val BodyLargeSp = 28
     val BodyXLargeSp = 32
-    val BodySmallSp = 18
+    val BodySmallSp = 22  // v0.9.0: 18 → 22；废除 18 档（最小可视字号 = 22sp）
     val BodyInputSp = 22
     val BodyHugeSp = 40
     val TitleDefaultSp = 32
-    val TitleLargeSp = 38
+    val TitleLargeSp = 40  // v0.9.0: 38 → 40；与 BodyHugeSp 合并
     val TitleXLargeSp = 44
     val ButtonDefaultSp = 32
     val ButtonLargeSp = 38
@@ -41,7 +41,7 @@ object FontSize {
     val BodyDefaultLineHeightSp = 34
     val BodyInputLineHeightSp = 30
     val LabelLineHeightSp = 30
-    val TranscriptLineHeightSp = 48
+    val TranscriptLineHeightSp = 56  // v0.9.0: 48 → 56；与 BodyHugeSp=40 行高 1.4 倍
 
     fun body(level: FontLevel = FontLevel.DEFAULT) = when (level) {
         FontLevel.DEFAULT -> BodyDefaultSp.sp
@@ -59,7 +59,7 @@ object FontSize {
         FontLevel.XLARGE -> ButtonXLargeSp.sp
     }
 
-    fun caption() = 20.sp
+    fun caption() = 22.sp  // v0.9.0: 20 → 22；最小可视字号 = 22sp
 }
 
 enum class FontLevel { DEFAULT, LARGE, XLARGE }
@@ -104,7 +104,7 @@ object Size {
     // ASR 未配置提示红点（§3.1.5）
     val WarningDotSize = 12.dp
     // 进度条（§4.10）
-    val ProgressBarHeight = 8.dp
+    val ProgressBarHeight = 12.dp  // v0.9.0: 8 → 12；老人看细线吃力
     // Toast 距底（§4.8）
     val ToastBottomMargin = 96.dp
     // 主操作按钮（§3.2.3「保存」96dp / §3.1.8 第 6 项设置行 72dp）

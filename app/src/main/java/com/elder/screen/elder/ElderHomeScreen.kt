@@ -51,6 +51,7 @@ import com.elder.android.R
 import com.elder.android.ui.component.ElderToast
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
+import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
@@ -96,8 +97,9 @@ fun ElderHomeScreen(
                     Spacer(modifier = Modifier.height(Spacing.Sm))
                     Text(
                         text = uiState.dateLine,
-                        fontSize = FontSize.body(),
-                        color = BrandColor.TextSecondary,
+                        fontSize = FontSize.body(FontLevel.LARGE),  // v0.9.0: body() 24 → LARGE 28
+                        fontWeight = FontWeight.Medium,  // v0.9.0: 默认 → Medium
+                        color = BrandColor.TextPrimary,  // v0.9.0: TextSecondary → TextPrimary
                     )
                 }
                 // PR #5：ASR 未配置提示从内联红字升级为独立红卡片

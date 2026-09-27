@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
 import com.elder.android.design.tokens.BrandColor
+import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
@@ -44,7 +45,7 @@ fun ElderEmptyState(
         Text(
             text = text,
             color = BrandColor.TextPrimary,
-            fontSize = FontSize.body(),
+            fontSize = FontSize.body(FontLevel.LARGE),  // v0.9.0: body() 24 → LARGE 28
         )
         if (onTtsClick != null) {
             Button(
@@ -66,7 +67,7 @@ fun ElderEmptyState(
                 Spacer(modifier = Modifier.width(Spacing.Sm))
                 Text(
                     text = ttsLabel,
-                    fontSize = FontSize.body(),
+                    fontSize = FontSize.body(FontLevel.LARGE),  // v0.9.0: 24 → 28
                 )
             }
         }

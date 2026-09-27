@@ -121,6 +121,14 @@
     <string name="interview_start">点击说话</string>
     <string name="interview_stop">点击停止</string>
     <string name="interview_thinking">让我想一想…</string>
+    <!-- v0.9.0 新增：OPENING 阶段状态文案（ChatAgent 主动开问中） -->
+    <string name="interview_opening_status">让我先打个招呼…</string>
+    <!-- v0.9.0 新增：SafetyAgent.greetingFallback(timeOfDay) 静态兜底（LLM 失败时） -->
+    <string name="safety_greeting_morning">早上好，今天想聊什么？</string>
+    <string name="safety_greeting_noon">中午好，今天过得怎样？</string>
+    <string name="safety_greeting_evening">晚上好，今天有什么想说的？</string>
+    <!-- v0.9.0 新增：OPENING 阶段老人端兜底提示 -->
+    <string name="interview_opening_fallback">网络不太好，直接说话吧</string>
     <string name="interview_speaking">正在说给您听…</string>
     <string name="interview_transcript_placeholder">您说的话会显示在这里…</string>
     <string name="interview_pending_saved">已保存录音，联网后会帮您整理</string>

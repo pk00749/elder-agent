@@ -13,6 +13,7 @@
 | v2.1 | 2026-08-27 | Codex | 新增 §A.1-§A.10 增量：设计 token（色彩 / 字号 / 间距圆角 / 动效）、TTS 千问 + 粤语男声 + 系统铃声兜底、两条 TPush 推送通道、§4.6 权限 / §4.8 Toast / §4.9 黄条规范、剂量枚举收紧为 [PILL\|HALF\|SPOON]、advance_remind_min 30/60/120 默认 60 + channel_priority mid\|high、bind/confirm + bind/pending + diary/flush-pending 三端点服务端事务、ASR 粤语主识别 + 普通话兜底、声明数据模型不变（v2.0 保留） |
 | v2.2 | 2026-09-14 | Codex | 新增 §A.11 Android 0.5.0 本地 Agent 规范：用户 BYOK 直连千问 ASR/TTS 与 MiniMax M3；APK 内版本化 Prompt；MiniMax tools + Kotlin 本地校验；Room v3 访谈 / 待补做 / 摘要；TTS 失败文字兜底；Kotlin 行为测试 |
 | v2.3 | 2026-09-18 | Codex | 新增 §A.12 MiniMax Realtime ASR（客户端 WebSocket）+ §A.13 MiniMax T2A WebSocket（Cantonese_KindWoman）+ §18 「0.7.0 例外」条款；千问 / MiniMax 双 Provider 可切换；`asr_config` Migration 4→5 DROP+CREATE；MiniMax ASR 与 LLM 共用 Key、MiniMax TTS 独立 Key；`scripts/check_no_hardcoded_tokens.py` 仍绿 |
+| v2.4 | 2026-09-24 | Codex | 新增 §18 PCM sink 收口反向条款：`AndroidPcmSink.drain()/release()` 必须调 `drainBuffer()` 等 `playbackHeadPosition` 追平 `bytesWritten/2` 再 `track.stop()`，避免 AudioTrack 内部 buffer 未播放 PCM 被砍导致 TTS 尾音丢失；配套 `AndroidPcmSinkDrainTest` 4 条回归测试 |
 
 ---
 
@@ -237,6 +238,7 @@ elder-agent/
 - **不要写 mock 数据反向测试**（mock 某个被删除逻辑的负向 case）。理由：v2.1 §A.4 紧致 `MedicationDosage.type` 枚举后，`type=custom` 测试已无意义——保留会过期；正向测试覆盖即可。
 - **不要为静态定义值加测试**（常量、`UPPER_SNAKE_CASE` 配置）。理由：和 OpenAI Codex 样例的反模式一致——静态定义不会跑偏，加测试是 noise。
 - **不要在客户端用 `if elder_id == current_user.elder_id`** 形式做越权校验——必须在仓储层做（§10）。理由：路由层 / 业务层越权校验易漏，仓储层是唯一真源。
+- **不要在 `AndroidPcmSink.drain()` / `release()` 里直接调 `track.stop()`**——必须先调 `drainBuffer()` 等 `playbackHeadPosition` 追平 `bytesWritten / 2` 再 stop。理由：v0.x 已知 bug 复现路径；`AudioTrack.stop()` 会丢弃内部 buffer 中未播放 PCM（24kHz/mono buffer ≈ 500ms），导致 TTS 尾音丢失。详见 `app/src/main/java/com/elder/data/tts/PcmSink.kt:drainBuffer()`。
 
 ### 日志 / 隐私
 

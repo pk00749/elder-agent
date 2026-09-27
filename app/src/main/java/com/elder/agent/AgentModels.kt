@@ -3,14 +3,15 @@ package com.elder.android.agent
 import com.elder.android.data.InterviewSession
 
 /**
- * 单轮 Agent 回复；v0.6.0 加 ack（≤10 字共情前置）+ probe（≤25 字追问）拆分。
- * `assistantText` = ack + probe 拼接（≤35 字），用于 TTS 播报；UI 渲染按 ackText / probeText 分别着色。
+ * 单轮 Agent 回复；v0.9.1 起统一单段（取消 v0.6.0 ack + probe 双段拆段）。
+ * `assistantText` ≤25 字（A2），用于 TTS 播报 + UI 单段渲染（28sp 次级）。
+ *
+ * v0.6.0 / v0.7.0 / v0.8.x / v0.9.0 拆分字段（ackText / probeText）已在 v0.9.1 删除；
+ * 旧 call site（InterviewAgentTest_v2.kt 的 3 个 ack/probe 拆段测试）改为「单段 ≤25 字」断言。
  */
 data class AgentReply(
     val session: InterviewSession,
-    val assistantText: String,   // ack + probe 拼接
-    val ackText: String,         // ≤10 字共情前置；空串表示无 ack
-    val probeText: String,       // ≤25 字追问；空串表示仅 ack
+    val assistantText: String,   // ≤25 字单段回复（A2）
     val shouldFinalize: Boolean,
 )
 

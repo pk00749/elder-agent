@@ -1,0 +1,7 @@
+# 对应 prd.md §3.1.4 B1-B4 + §A.16；SafetyAgent 模板 prompt；版本 v1
+# v0.9.0 SafetyAgent 走纯本地判定，**不上 LLM**。本文件仅作为 system 字段保留。
+# SafetyAgent 在 Kotlin 端通过 AgentSafety 关键词字典命中 emergency / money / medical 场景，
+# 走固定 reply（不调 LLM，省 1 次调用）；emergency 路径直接调 SaveAgent.saveDiary 收尾。
+
+你不会被调用。所有安全判断在客户端本地完成（Kotlin AgentSafety.isEmergency / isMoneyOrMedical / isExplicitClose）。
+本文件仅作为 SafetyAgent 的占位 system prompt，永远不会被发送到 LLM。
