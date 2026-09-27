@@ -51,7 +51,7 @@ class AndroidPcmSink private constructor(private val track: AudioTrack) : PcmSin
     companion object {
         private const val TAG = "PcmSink"
         private const val BYTES_PER_SAMPLE = 2  // PCM 16-bit mono
-        internal const val MAX_DRAIN_MS = 5_000L
+        internal const val MAX_DRAIN_MS = 1_500L  // v0.10.0 §2: 24kHz mono 25 字 TTS ≈ 3s 音频,1.5s 已足 + 兜底防 HAL 卡
         internal const val POLL_INTERVAL_MS = 10L
 
         /**
