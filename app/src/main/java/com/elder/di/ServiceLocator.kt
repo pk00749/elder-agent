@@ -74,18 +74,6 @@ object ServiceLocator {
     lateinit var llmClientFactory: LlmClientFactory
         private set
 
-    /**
-     * v0.7.0 一次性 Toast 信号：Migration 4→5 升级后由 ServiceLocator.init 触发，
-     * ElderHomeViewModel 监听后弹「0.7.0 升级：请到 AI 服务 重新配置 ASR 与 TTS」。
-     * emit 一次后置 null。
-     */
-    private val _upgradeToast = MutableStateFlow<String?>(null)
-    val upgradeToast: StateFlow<String?> = _upgradeToast.asStateFlow()
-
-    fun consumeUpgradeToast() {
-        _upgradeToast.value = null
-    }
-
     fun init(context: Context) {
         if (inited) return
         synchronized(this) {
@@ -118,18 +106,7 @@ object ServiceLocator {
                 asr = asrApi,
                 agent = interviewAgent,
             )
-            // v0.7.0：检测到 schema version 4→5 升级路径时弹一次性 Toast。
-            detectUpgradeToast(app)
             inited = true
-        }
-    }
-
-    private fun detectUpgradeToast(context: Context) {
-        val prefs = context.getSharedPreferences("elder_v3_upgrade", Context.MODE_PRIVATE)
-        val currentVersion = prefs.getInt("db_version_seen", 0)
-        if (currentVersion < 5) {
-            prefs.edit().putInt("db_version_seen", 5).apply()
-            _upgradeToast.value = "0.7.0 升级：请到 AI 服务 重新配置 ASR 与 TTS"
         }
     }
 

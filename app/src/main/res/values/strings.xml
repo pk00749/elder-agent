@@ -237,8 +237,6 @@
     <!-- v0.8.1 新增：含 LLM 的完整摘要 -->
     <string name="settings_asr_summary_v2">ASR: %1$s · TTS: %2$s · LLM: %3$s</string>
 
-    <!-- §3.1.5 主屏升级提示（v0.7.0） -->
-    <string name="home_upgrade_0_7_0">0.7.0 升级：请到 AI 服务 重新配置 ASR 与 TTS</string>
 
     <!-- 空态 / 加载 / 网络 -->
     <string name="empty_no_reminders">还没有提醒，点上面的 + 加一个</string>
