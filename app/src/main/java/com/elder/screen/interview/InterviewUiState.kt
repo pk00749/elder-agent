@@ -2,6 +2,7 @@ package com.elder.android.screen.interview
 
 import com.elder.android.agent.InterviewAgent
 import com.elder.android.data.InterviewSession
+import com.elder.android.data.InterviewStatus  // v0.10.0 §5: canRevise 用
 
 enum class InterviewStage {
     PREPARING,
@@ -28,6 +29,8 @@ data class InterviewUiState(
     val topError: String? = null,
 ) {
     val turnNo: Int get() = (session?.turns?.size ?: 0) + 1
-    val maxTurns: Int get() = InterviewAgent.MAX_TURNS
-    val canRevise: Boolean get() = (session?.turns?.size ?: 0) < maxTurns
+    // v0.10.0 §5: maxTurns 改为软上限提示(参考值 SOFT_TURN_HINT = 20),不再参与最终化判定
+    val maxTurns: Int get() = InterviewAgent.SOFT_TURN_HINT
+    // canRevise 不再受 maxTurns 限制;改由 session.status + 老人主动触发决定
+    val canRevise: Boolean get() = session?.status?.let { it == InterviewStatus.SAVED } == true
 }

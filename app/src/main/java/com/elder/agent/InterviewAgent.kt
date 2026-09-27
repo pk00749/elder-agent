@@ -26,7 +26,8 @@ import kotlinx.serialization.json.putJsonObject
  *
  * 保持 v0.5.0 - v0.8.x 的公开 API：
  * - respond() / summarize() / backgroundLearning()
- * - MAX_TURNS / MAX_REPLY_CHARS / MAX_TEXT_CHARS / MAX_SUMMARY_CHARS（v0.9.1 起取消 ack/probe 双段拆段）
+ * - v0.10.0 §5: 删除 MAX_TURNS 硬上限;轮数软上限 20 由 chat_v2.txt §C 软指令引导
+ * - 保留 MAX_REPLY_CHARS / MAX_TEXT_CHARS / MAX_SUMMARY_CHARS（v0.9.1 起取消 ack/probe 双段拆段）
  * - TOOL_ASK_CLARIFY / TOOL_SAVE_DIARY / TOOL_MARK_DIMENSION / TOOL_MOVE_ON / TOOL_REMEMBER_FACT / TOOL_SEARCH_MEMORY
  *
  * v0.9.0 新增（仅供 ChatAgent.open() / 测试使用）：
@@ -37,7 +38,7 @@ class InterviewAgent(
     /** v0.6.0 PromptProvider：v0.9.0 内部适配为 ChatPrompts（仅取 system + save + memory 字段）。 */
     private val prompts: PromptProvider,
     private val elderFactRepo: ElderFactRepository? = null,
-    private val maxTurns: Int = MAX_TURNS,
+    // v0.10.0 §5: 删除 maxTurns 硬上限
     private val retryCount: Int = MAX_RETRIES,
 ) {
     private val json = Json { ignoreUnknownKeys = true }
@@ -61,8 +62,7 @@ class InterviewAgent(
             safety = SafetyAgent,
             memory = memoryAgent,
             save = saveAgent,
-            maxTurns = maxTurns,
-            retryCount = retryCount,
+            retryCount = retryCount,  // v0.10.0 §5: 删除 maxTurns 参数
         )
     }
 
@@ -122,7 +122,9 @@ class InterviewAgent(
         // ===== v0.5.0 / v0.6.0 / v0.7.0 / v0.8.x 兼容常量 =====
         // v0.9.1 起：取消 ack/probe 双段拆段常量（MAX_ACK_CHARS / MAX_PROBE_CHARS / MAX_REPLY_TOTAL_CHARS）。
         // 保留字段名兼容老测试 / 老 call site 引用，但 v0.9.1+ 不再使用 —— 见 ChatAgent.MAX_REPLY_CHARS。
-        const val MAX_TURNS = 8
+        // v0.10.0 §5: 删除 MAX_TURNS = 8 硬上限;轮数软上限 20 由 chat_v2.txt §C 软指令引导
+        // 仅供 UI 显示(进度提示)与 revise 时软参考;不参与最终化判定
+        const val SOFT_TURN_HINT = 20
         const val MAX_REPLY_CHARS = 25
         @Deprecated("v0.9.1 removed ack/probe split")
         const val MAX_ACK_CHARS = 10

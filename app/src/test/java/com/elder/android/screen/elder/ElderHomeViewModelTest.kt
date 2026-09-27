@@ -26,8 +26,9 @@ class ElderHomeViewModelTest {
             .filter { !it.startsWith("$") && !it.startsWith("<") }
             .toSet()
         assertEquals(
-            "ElderHomeUiState 必须只剩 greeting / dateLine / todayRecorded / showAsrHint / upgradeToast 五个字段",
-            setOf("greeting", "dateLine", "todayRecorded", "showAsrHint", "upgradeToast"),
+            // v0.10.0 §3: 删除 upgradeToast 字段 → ElderHomeUiState 只剩 4 个业务字段
+            "ElderHomeUiState 必须只剩 greeting / dateLine / todayRecorded / showAsrHint 四个字段",
+            setOf("greeting", "dateLine", "todayRecorded", "showAsrHint"),
             fields,
         )
     }

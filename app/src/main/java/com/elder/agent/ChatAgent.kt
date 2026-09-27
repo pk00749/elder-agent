@@ -42,7 +42,7 @@ class ChatAgent(
     private val safety: SafetyAgent = SafetyAgent,
     private val memory: MemoryAgent? = null,
     private val save: SaveAgent? = null,
-    private val maxTurns: Int = MAX_TURNS,
+    // v0.10.0 §5: 删除 maxTurns 硬上限;收尾改由 EXPLICIT_CLOSE / mark_dimension_covered ≥2 含 feeling 触发
     private val retryCount: Int = MAX_RETRIES,
 ) {
     private val json = Json { ignoreUnknownKeys = true }
@@ -73,10 +73,6 @@ class ChatAgent(
             )
             SafetyAgent.Verdict.EXPLICIT_CLOSE -> return finalizeViaSafety(credentials, session, normalized)
             SafetyAgent.Verdict.SAFE -> { /* 走主 LLM 循环 */ }
-        }
-
-        if (session.turns.size >= maxTurns) {
-            return finalizeViaSafety(credentials, session, "", fallbackAssistant = FALLBACK_REPLY)
         }
 
         var messages = buildMessages(session, normalized, recentSummaries, elderFacts)
@@ -140,8 +136,8 @@ class ChatAgent(
         val assistantText = lastResult.content.take(MAX_REPLY_CHARS).ifBlank { FALLBACK_REPLY }
         val dimensionReady = coveredDimensions.size >= 2 && Dimension.FEELING in coveredDimensions
         val shouldFinalize = safety.check(normalized) == SafetyAgent.Verdict.EXPLICIT_CLOSE ||
-            dimensionReady ||
-            session.turns.size + 1 >= maxTurns
+            dimensionReady
+        // v0.10.0 §5: 删除 session.turns.size + 1 >= maxTurns 硬截断;软上限 20 轮由 chat_v2.txt §C 软指令引导
         if (!shouldFinalize) {
             return completeReply(session, normalized, assistantText, shouldFinalize = false)
         }
@@ -250,7 +246,7 @@ class ChatAgent(
     }
 
     /**
-     * v0.9.0 收尾：safety 命中 EMERGENCY / EXPLICIT_CLOSE / maxTurns / dimensionReady 时调。
+     * v0.9.0 收尾:v0.10.0 §5 删除 maxTurns 分支;触发条件 = EMERGENCY / EXPLICIT_CLOSE / dimensionReady(≥2 含 feeling)。
      * 委托 SaveAgent.saveDiary() 走 save_v3.txt；SaveAgent 未注入则走本地解析（保持兼容）。
      */
     private suspend fun finalizeViaSafety(
@@ -408,7 +404,7 @@ class ChatAgent(
     }
 
     companion object {
-        const val MAX_TURNS = 8
+        // v0.10.0 §5: 删除 MAX_TURNS = 8 硬上限;轮数软上限 20 由 chat_v2.txt §C 软指令引导
         const val MAX_OPEN_CHARS = 25  // v0.9.0 新增：open() 第一句 ≤25 字
         const val MAX_TEXT_CHARS = 100  // D1（兼容路径使用）
         const val MAX_SUMMARY_CHARS = 60  // D2（兼容路径使用）

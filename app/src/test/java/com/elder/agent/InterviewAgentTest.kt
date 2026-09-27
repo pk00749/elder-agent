@@ -151,10 +151,13 @@ class InterviewAgentTest {
         assertEquals(InterviewStatus.REVIEWING, (result as AgentTurnResult.Finalize).value.session.status)
     }
 
+    // v0.10.0 §5: 删除 MAX_TURNS=8 硬上限;改写测试覆盖新行为
+    //   - 12 轮不 finalize:session 已含 12 轮时,respond() 仍走主循环(LLM 调用),不因轮数硬截断
+    //   - explicit_close 仍 finalize:见既有 \`explicit close triggers deterministic finalization\`(行 138)
     @Test
-    fun `hard turn cap never creates a ninth turn`() = runTest {
-        val full = session().copy(
-            turns = (1..InterviewAgent.MAX_TURNS).map {
+    fun `no hard turn cap beyond 8 rounds runs main LLM loop`() = runTest {
+        val twelve = session().copy(
+            turns = (1..12).map {
                 InterviewTurn(
                     turnNo = it,
                     elderText = "第 $it 轮",
@@ -163,15 +166,30 @@ class InterviewAgentTest {
                 )
             },
         )
+        // LLM 返回纯文本,无工具调用 → 走 \`completeReply\`(非 Finalize),turn 数 + 1
         val fake = FakeLlmClient(
-            listOf(LlmResult("""{"text":"八轮内容","summary":"八轮"}""")),
+            listOf(LlmResult("梗系咁,讲多啲啦?")),
         )
         val agent = InterviewAgent(factoryFor(fake), prompts)
 
-        val result = agent.respond(LlmCredentials(provider = com.elder.android.data.db.LlmProvider.MINIMAX, minimaxApiKey = "key"), full, "还想再说")
+        val result = agent.respond(LlmCredentials(provider = com.elder.android.data.db.LlmProvider.MINIMAX, minimaxApiKey = "key"), twelve, "第 13 轮想说嘅嘢")
 
-        assertTrue(result is AgentTurnResult.Finalize)
-        assertEquals(InterviewAgent.MAX_TURNS, (result as AgentTurnResult.Finalize).value.session.turns.size)
+        // v0.10.0 §5: 不再硬截断 → 应返回 Reply(主循环) 而非 Finalize
+        assertTrue(
+            "12 轮后 respond() 不应触发硬截断,result=$result",
+            result is AgentTurnResult.Reply,
+        )
+        val reply = result as AgentTurnResult.Reply
+        assertEquals(
+            "12 + 1 = 13 turn(s) after respond",
+            13,
+            reply.value.session.turns.size,
+        )
+        assertEquals(
+            "LLM 输出应原样保留(<=25 字由 ChatAgent 截断)",
+            "梗系咁,讲多啲啦?",
+            reply.value.assistantText,
+        )
     }
 
     private fun session() = InterviewSession(
