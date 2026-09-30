@@ -56,7 +56,6 @@ import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.ui.component.ElderToast
-import com.elder.android.ui.component.LoadingState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -186,7 +185,7 @@ fun InterviewScreen(
                         onRevise = vm::revise,
                     )
                     InterviewStage.OPENING -> OpeningStatusRow(stringResource(R.string.interview_opening_status))
-                    InterviewStage.PREPARING, InterviewStage.SAVED -> LoadingState()
+                    InterviewStage.PREPARING, InterviewStage.SAVED -> SavingStatusRow(stringResource(R.string.interview_saving_status))
                 }
             }
         }
@@ -328,6 +327,37 @@ private fun StatusRow(text: String) {
  */
 @Composable
 private fun OpeningStatusRow(text: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(Size.PrimaryButtonHeight),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(text = text, fontSize = FontSize.body(FontLevel.LARGE), color = BrandColor.Brand500)
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(Spacing.Sm))
+        androidx.compose.material3.LinearProgressIndicator(
+            modifier = Modifier.fillMaxWidth().height(Size.ProgressBarHeight),
+            color = BrandColor.Brand500,
+        )
+    }
+}
+
+
+/**
+ * v0.11.x bugfix: PREPARING / SAVED 阶段专用 —— 文字 "保存中…" + 进度条,
+ * 固定 PrimaryButtonHeight 行高。
+ *
+ * 修复根因:
+ *   原 `LoadingState()` 内部 `.fillMaxSize()`,在父 Column (Arrangement.spacedBy) 末尾会抢占
+ *   `TranscriptCard(weight 1f)` 的全部高度,导致老人看到整屏 "加载中…" + 进度条,
+ *   看不到 transcript 上下文,主观"卡在加载"。
+ *
+ *   改成与 `OpeningStatusRow` 同款固定行高的 Column 后,TranscriptCard 仍可 weight(1f)
+ *   撑满剩余空间,老人看到 "顶部 transcript + 中间一行保存中 + 进度条",清楚知道系统在保存。
+ */
+@Composable
+private fun SavingStatusRow(text: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()

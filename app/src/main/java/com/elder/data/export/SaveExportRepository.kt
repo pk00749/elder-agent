@@ -22,6 +22,7 @@ import com.elder.android.data.oss.OssError
 import com.elder.android.data.oss.OssSyncRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -44,6 +45,28 @@ class SaveExportRepository(
         audioFile: File,
         mode: SaveMode,
     ): ExportOutcome = withContext(Dispatchers.IO) {
+        // v0.11.x bugfix §3.2:整段(LOCAL + CLOUD)加 EXPORT_TIMEOUT_MS 兜底;
+        // 超时返回 Failed("EXPORT_TIMEOUT", ...) 而不是抛 TimeoutCancellationException,
+        // 不污染调用方(saveDiary 已 try-catch 包住),也不让 "保存中" LoadingState 持续可见。
+        val timedOut = withTimeoutOrNull(EXPORT_TIMEOUT_MS) {
+            runExport(diary, audioFile, mode)
+        }
+        timedOut ?: ExportOutcome.Failed(
+            code = "EXPORT_TIMEOUT",
+            message = "保存超时(${EXPORT_TIMEOUT_MS}ms)",
+        )
+    }
+
+    /**
+     * v0.11.x bugfix 拆出:exportIfNeeded 内部实际执行逻辑(LOCAL + CLOUD)。
+     * 单独抽出来便于 withTimeoutOrNull 包住整段 + 单测注入假数据。
+     * suspend 是必要的 —— writeLocal / syncDiary 都是 suspend,只能在协程里串行 await。
+     */
+    private suspend fun runExport(
+        diary: DiaryEntryEntity,
+        audioFile: File,
+        mode: SaveMode,
+    ): ExportOutcome {
         // 1) LOCAL 路径
         val localOutcome: ExportOutcome? = if (mode == SaveMode.LOCAL || mode == SaveMode.BOTH) {
             try {
@@ -82,8 +105,7 @@ class SaveExportRepository(
         } else null
 
 
-        composeOutcome(localOutcome, cloudOutcome, mode)
-
+        return composeOutcome(localOutcome, cloudOutcome, mode)
     }
 
     /** 仅本地写入;给测试与一次性场景用。 */
@@ -188,6 +210,14 @@ class SaveExportRepository(
 
     companion object {
         private const val TAG = "SaveExportRepository"
+        /**
+         * v0.11.x bugfix:导出(LOCAL + CLOUD)整体超时上限。
+         * LOCAL 写 .md + 复制音频通常 < 500ms;但 Android 10+ scoped storage 写入失败或
+         * CLOUD 走 OSS 上传可能挂死(syncDiary 网络无超时)。3s 上限 + 失败静默返回,
+         * 不让 export 卡住 saveDiary → onDone 链路(防止老人看到 "保存中" LoadingState 持续)。
+         * 对应 docs/v0.11.x-bugfix.md §3.2。
+         */
+        const val EXPORT_TIMEOUT_MS: Long = 3_000L
         const val LOCAL_DIR_NAME = "老友日记"
         private const val SUMMARY_HEAD_LEN = 30
 

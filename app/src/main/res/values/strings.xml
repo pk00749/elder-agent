@@ -148,6 +148,8 @@
     <string name="interview_speaking">正在说给您听…</string>
     <string name="interview_transcript_placeholder">您说的话会显示在这里…</string>
     <string name="interview_pending_saved">已保存录音，联网后会帮您整理</string>
+    <!-- v0.11.x bugfix: PREPARING/SAVED 阶段状态行文案 -->
+    <string name="interview_saving_status">正在保存…</string>
     <string name="interview_need_config">请先配置千问和 MiniMax Key</string>
     <string name="interview_open_settings">去设置</string>
 

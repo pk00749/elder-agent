@@ -1,9 +1,11 @@
-// v0.11.0 行数说明：本文档 v0.11.0 加 LLMReplyToast 控制器 + voice-end-hint 控制器 + 
-// save-export 注入到 saveDiary 后超出 AGENTS.md §18 500 行上限 50 行。
+// v0.11.0 + v0.11.x bugfix 行数说明：本文档 v0.11.0 加 LLMReplyToast 控制器 + voice-end-hint 控制器 +
+// save-export 注入到 saveDiary;v0.11.x bugfix 又给 saveDiary 加 try-catch/timeout 兜底 +
+// onEnter 拆 onEnterInternal + try-catch,共超出 AGENTS.md §18 500 行上限 123 行。
 // 不拆出 InterviewToastController 子类的理由:showLlmReplyToast / dismissVoiceEndHint / saveDiary
 // 都需要直接写 _state(MutableStateFlow),私有；抽出需把 _state 提到 outer 层破坏封装。
-// 后续若再加职责(v0.12.0+),触发 §18 拆分点:把 Toast 控制 / voice hint 控制迁出,本文档降回 480 行以内。
-// 对应 docs/v0.11.0.md §6(§18 例外)。
+// 后续若再加职责(v0.12.0+),触发 §18 拆分点:把 Toast 控制 / voice hint 控制 / save 兜底 / onEnter 初始
+// 迁出,本文档降回 480 行以内。
+// 对应 docs/v0.11.0.md §6(§18 例外) + docs/v0.11.x-bugfix.md(本 PR 增量)。
 
 
 package com.elder.android.screen.interview
@@ -89,74 +91,98 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onEnter() {
         work?.cancel()
+        // v0.11.x bugfix:整段 launch 包 try-catch —— 任意 Repo / ServiceLocator 抛异常时,
+        // 强制翻 state 到 READY + topError = "初始化失败,请返回重试",不再让 PREPARING
+        // 阶段霸屏(配合 InterviewScreen SavingStatusRow 修复,LoadingState 也不再有
+        // 全屏抢占 TranscriptCard 的问题)。详见 docs/v0.11.x-bugfix.md。
         work = viewModelScope.launch {
-            config = configRepo.current()
-            // Bug fix：按 config.ttsProvider 解析 TTS 客户端（不再 stale hardcode QwenTtsClient）
-            tts = ServiceLocator.ttsClient()
-            ttsEnabled = metaRepo.ensureInitialized().ttsEnabled
-            // v0.6.0：进入访谈屏时并发加载 memory context（recent_summaries + elder_facts）
-            // PR2.4 会把这两个字段传入 agent.respond(apiKey, session, text, recentSummaries, elderFacts)
-            val today = LocalDate.today()
-            recentSummaries = ServiceLocator.recentSummaryLoader.loadRecentSummaries(today)
-            elderFacts = ServiceLocator.elderFactRepo.loadAllForInjection()
-            val existing = interviewRepo.active()
-            val session = existing ?: interviewRepo.create()
-            if (existing?.status == InterviewStatus.REVIEWING) {
+            try {
+                onEnterInternal()
+            } catch (t: CancellationException) {
+                throw t
+            } catch (t: Throwable) {
+                Log.e(METRICS_TAG, "onEnter failed: ${t.message}", t)
                 _state.update {
                     it.copy(
-                        stage = InterviewStage.REVIEW,
-                        session = existing,
-                        draftText = existing.draftText,
-                        draftSummary = existing.draftSummary,
-                        needsConfig = config?.isConfigured != true,
+                        stage = InterviewStage.READY,
+                        topError = "初始化失败，请返回重试",
                     )
                 }
-                return@launch
             }
-            val assistantHint = if (session.turns.isEmpty()) GREETING else session.turns.last().assistantText
-            // v0.11.0 §3.4: 语音退出黄条显示条件 = prefs 未关闭 + 当前进入 READY
-            val showVoiceHint = !saveModeRepo.isVoiceEndHintDismissed()
+        }
+    }
+
+    /**
+     * v0.11.x bugfix 拆出:onEnter 的实际工作。onEnter 外层只包 try-catch,
+     * 这样如果初始化失败,不影响 cancel 语义(CoroutineExceptionHandler 容易误吞 cancel)。
+     */
+    private suspend fun onEnterInternal() {
+        config = configRepo.current()
+        // Bug fix：按 config.ttsProvider 解析 TTS 客户端（不再 stale hardcode QwenTtsClient）
+        tts = ServiceLocator.ttsClient()
+        ttsEnabled = metaRepo.ensureInitialized().ttsEnabled
+        // v0.6.0：进入访谈屏时并发加载 memory context（recent_summaries + elder_facts）
+        // PR2.4 会把这两个字段传入 agent.respond(apiKey, session, text, recentSummaries, elderFacts)
+        val today = LocalDate.today()
+        recentSummaries = ServiceLocator.recentSummaryLoader.loadRecentSummaries(today)
+        elderFacts = ServiceLocator.elderFactRepo.loadAllForInjection()
+        val existing = interviewRepo.active()
+        val session = existing ?: interviewRepo.create()
+        if (existing?.status == InterviewStatus.REVIEWING) {
             _state.update {
                 it.copy(
-                    stage = InterviewStage.READY,
-                    session = session,
-                    assistantText = assistantHint,
+                    stage = InterviewStage.REVIEW,
+                    session = existing,
+                    draftText = existing.draftText,
+                    draftSummary = existing.draftSummary,
                     needsConfig = config?.isConfigured != true,
-                    showVoiceEndHint = showVoiceHint,
                 )
             }
-
-            // v0.9.0 主动开问：仅在 session 为空 + ASR/TTS/LLM Key 齐备时调 LLM 问候
-            // 已有 turns 的旧会话（断电恢复）直接显示上次 assistantText，不重跑 open()
-            if (session.turns.isNotEmpty()) return@launch
-            val cfg = config
-            if (cfg == null || !cfg.isConfigured) return@launch
-
-            // 进入 OPENING 阶段（v0.9.0）：UI 显示进度条 + "让我先打个招呼…"
-            _state.update { it.copy(stage = InterviewStage.OPENING) }
-
-            val credentials = LlmCredentials(
-                provider = cfg.llmProvider,
-                minimaxApiKey = cfg.minimaxApiKey,
-                qwenApiKey = cfg.qwenLlmApiKey,
-                deepseekApiKey = cfg.deepseekLlmApiKey,
+            return
+        }
+        val assistantHint = if (session.turns.isEmpty()) GREETING else session.turns.last().assistantText
+        // v0.11.0 §3.4: 语音退出黄条显示条件 = prefs 未关闭 + 当前进入 READY
+        val showVoiceHint = !saveModeRepo.isVoiceEndHintDismissed()
+        _state.update {
+            it.copy(
+                stage = InterviewStage.READY,
+                session = session,
+                assistantText = assistantHint,
+                needsConfig = config?.isConfigured != true,
+                showVoiceEndHint = showVoiceHint,
             )
-            val greeting = runCatching {
-                agent.open(
-                    credentials = credentials,
-                    timeOfDay = currentTimeOfDay(),
-                    recentSummaries = recentSummaries,
-                    elderFacts = elderFacts,
-                )
-            }.getOrElse { SafetyAgent.greetingFallback(currentTimeOfDay()) }
+        }
 
-            // TTS 必播第一句（v0.9.0 主动开问核心）；失败沿用 §A.11.4 不重试
-            if (ttsEnabled) {
-                runCatching { tts.speak(cfg.ttsKey(), greeting) }
-            }
-            _state.update {
-                it.copy(stage = InterviewStage.READY, assistantText = greeting)
-            }
+        // v0.9.0 主动开问：仅在 session 为空 + ASR/TTS/LLM Key 齐备时调 LLM 问候
+        // 已有 turns 的旧会话（断电恢复）直接显示上次 assistantText，不重跑 open()
+        if (session.turns.isNotEmpty()) return
+        val cfg = config
+        if (cfg == null || !cfg.isConfigured) return
+
+        // 进入 OPENING 阶段（v0.9.0）：UI 显示进度条 + "让我先打个招呼…"
+        _state.update { it.copy(stage = InterviewStage.OPENING) }
+
+        val credentials = LlmCredentials(
+            provider = cfg.llmProvider,
+            minimaxApiKey = cfg.minimaxApiKey,
+            qwenApiKey = cfg.qwenLlmApiKey,
+            deepseekApiKey = cfg.deepseekLlmApiKey,
+        )
+        val greeting = runCatching {
+            agent.open(
+                credentials = credentials,
+                timeOfDay = currentTimeOfDay(),
+                recentSummaries = recentSummaries,
+                elderFacts = elderFacts,
+            )
+        }.getOrElse { SafetyAgent.greetingFallback(currentTimeOfDay()) }
+
+        // TTS 必播第一句（v0.9.0 主动开问核心）；失败沿用 §A.11.4 不重试
+        if (ttsEnabled) {
+            runCatching { tts.speak(cfg.ttsKey(), greeting) }
+        }
+        _state.update {
+            it.copy(stage = InterviewStage.READY, assistantText = greeting)
         }
     }
 
@@ -496,13 +522,37 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
             interviewRepo.save(
                 session.copy(status = InterviewStatus.SAVED, updatedAt = now)
             )
-            // v0.11.0 §3.2: 按 SaveMode 触发本地 / 云导出;不阻塞 onDone() 回调
+            // v0.11.x bugfix §3.2: 导出改成后台 fire-and-forget —— 用 sibling viewModelScope.launch,
+            // 不阻塞 onDone() / 不让 SAVED 阶段持续可见。原始注释"不阻塞 onDone()"是误导,
+            // 实际 saveExportRepo.exportIfNeeded 是 suspend,同 coroutine 同步 await。
+            //
+            // 兜底:整段 launch 抛异常时(理论上 exportIfNeeded 内部全 try-catch 兜底)不让 state
+            // 停在 SAVED;通过 invokeOnCompletion 还原 REVIEW + 顶部错误,避免静音/复盘卡 UI。
+            // 对应 docs/v0.11.x-bugfix.md。
             val exportMode = saveModeRepo.current()
             val audioFile = if (audioPath.isNotBlank()) java.io.File(audioPath) else java.io.File("/dev/null")
-            val outcome = saveExportRepo.exportIfNeeded(saved, audioFile, exportMode)
-            Log.i(METRICS_TAG, "save export mode=$exportMode outcome=$outcome")
             _state.update { it.copy(stage = InterviewStage.SAVED, session = session.copy(status = InterviewStatus.SAVED)) }
             onDone()
+            // sibling launch:不影响 onDone;VM cleared 时会和 outer launch 一起取消
+            // (LOCAL 写 Downloads 期间 VM clear → 文件可能未落盘;可接受,Room 已是最权威源)
+            launch {
+                runCatching {
+                    val outcome = saveExportRepo.exportIfNeeded(saved, audioFile, exportMode)
+                    Log.i(METRICS_TAG, "save export mode=$exportMode outcome=$outcome")
+                }.onFailure { e ->
+                    Log.w(METRICS_TAG, "save export failed for diary=${saved.id}: ${e.message}", e)
+                }
+            }
+        }.invokeOnCompletion { t ->
+            if (t != null && t !is CancellationException) {
+                Log.e(METRICS_TAG, "saveDiary failed: ${t.message}", t)
+                _state.update {
+                    it.copy(
+                        stage = InterviewStage.REVIEW,
+                        topError = "保存失败，请重试",
+                    )
+                }
+            }
         }
     }
 
