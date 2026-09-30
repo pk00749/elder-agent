@@ -15,8 +15,8 @@ android {
         applicationId = "com.elder.android"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "0.9.1"
+        versionCode = 8  // v0.11.0: 跳号补齐 v0.10.0 / v0.11.0 两个版本(原=5;Android Play Console 强制递增)
+        versionName = "0.11.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
