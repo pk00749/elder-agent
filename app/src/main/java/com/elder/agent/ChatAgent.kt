@@ -72,6 +72,8 @@ class ChatAgent(
                 shouldFinalize = false,
             )
             SafetyAgent.Verdict.EXPLICIT_CLOSE -> return finalizeViaSafety(credentials, session, normalized)
+            // v0.11.0 §3.4：老人主动结束（粤语关键词）→ 礼貌落幕 TTS + 落库
+            SafetyAgent.Verdict.ELDER_EXPLICIT_END -> return finalizeViaExplicitEnd(credentials, session, normalized)
             SafetyAgent.Verdict.SAFE -> { /* 走主 LLM 循环 */ }
         }
 
@@ -277,6 +279,48 @@ class ChatAgent(
                 session = updatedSession,
                 text = text,
                 summary = summary,
+            ),
+        )
+    }
+
+    /**
+     * v0.11.0 §3.4：老人主动结束对话（粤语关键词命中）专用 finalize 路径。
+     *
+     * 与 finalizeViaSafety 的差异:
+     * - 同:走 SaveAgent.saveDiary 出 text / summary 草稿 → Review 阶段让老人保存
+     * - 异:设置 farewellText = "好的，今天先聊到这。",ViewModel 用作 TTS 落幕语
+     *
+     * THINKING/SPEAKING 阶段调用此方法:ViewModel 不打断当前 LLM/TTS 流,
+     * 等到主循环自然完成后再 speakOrShow(ELDER_END_GOODBYE) → 触发落幕 TTS。
+     */
+    private suspend fun finalizeViaExplicitEnd(
+        credentials: LlmCredentials,
+        session: InterviewSession,
+        elderText: String,
+    ): AgentTurnResult.Finalize {
+        val updatedSession = session.copy(
+            turns = if (elderText.isBlank()) session.turns else session.turns + InterviewTurn(
+                turnNo = session.turns.size + 1,
+                elderText = elderText,
+                assistantText = SafetyAgent.ELDER_END_GOODBYE,
+                createdAt = System.currentTimeMillis(),
+            ),
+            status = InterviewStatus.REVIEWING,
+        )
+
+        val (text, summary) = if (save != null) {
+            val s = save.saveDiary(credentials, updatedSession)
+            s.text to s.summary
+        } else {
+            "" to ""
+        }
+
+        return AgentTurnResult.Finalize(
+            AgentFinalDraft(
+                session = updatedSession,
+                text = text,
+                summary = summary,
+                farewellText = SafetyAgent.ELDER_END_GOODBYE,
             ),
         )
     }

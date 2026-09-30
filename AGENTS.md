@@ -15,6 +15,8 @@
 | v2.3 | 2026-09-18 | Codex | 新增 §A.12 MiniMax Realtime ASR（客户端 WebSocket）+ §A.13 MiniMax T2A WebSocket（Cantonese_KindWoman）+ §18 「0.7.0 例外」条款；千问 / MiniMax 双 Provider 可切换；`asr_config` Migration 4→5 DROP+CREATE；MiniMax ASR 与 LLM 共用 Key、MiniMax TTS 独立 Key；`scripts/check_no_hardcoded_tokens.py` 仍绿 |
 | v2.4 | 2026-09-24 | Codex | 新增 §18 PCM sink 收口反向条款：`AndroidPcmSink.drain()/release()` 必须调 `drainBuffer()` 等 `playbackHeadPosition` 追平 `bytesWritten/2` 再 `track.stop()`，避免 AudioTrack 内部 buffer 未播放 PCM 被砍导致 TTS 尾音丢失；配套 `AndroidPcmSinkDrainTest` 4 条回归测试 |
 | v2.5 | 2026-09-27 | Codex | **新增 §A.16 v0.10.0 增量**：(1) §A.16.1 文档拆分规范 — `docs/{version}.md` 命名 + `prd.md §12.5` 索引表;旧 `docs/prd-v2.1-*` / `docs/0.9.0-*` 改名 + `superseded` 注。(2) §A.16.2 PcmSink 收尾 — `MAX_DRAIN_MS` 默认 `1_500L`;新增第 5 条 `AndroidPcmSinkDrainTest.drainBuffer default cap is 1500ms` 锁定数值。(3) §A.16.3 OSS 同步 — Room `oss_config` 单行表(Migration 6→7)+ `diary_entry_local` 5 列 `ALTER` 增量(`oss_object_key / oss_sync_status / oss_synced_at / oss_last_error / oss_attempts`,§5.10 锁定列表 → 仅追加);`OssKeyCipher`(独立 prefs file `elder_oss_keys`)+ `OssSyncClient` 接口 + `AliyunOssSyncClient`(反射 lazy init `com.aliyun.oss:aliyun-sdk-oss`,prod SDK 缺失时抛 `OSS_AUTH_FAILED`)+ `OssSyncRepository`(syncDiary / retryPending(limit=20) / enqueueDebounced 60s 节流)+ `OssSyncWorker`(CoroutineWorker + `UNMETERED` Constraints + 指数 backoff 1h/8h/24h);**唯一新上游 SDK**:`aliyun-sdk-oss:3.17.4+`(本节记录;不通过 §A.x 通用封装,0.10.0 直接依赖);WorkManager dep `androidx.work:work-runtime-ktx:2.9.1`。(4) §A.16.4 第一句粤语 — `SafetyAgent.greetingFallback()` 改粤语静态兜底(早晨,今日想去边度? / 中午,食咗饭未呀? / 今晚,今日过得点呀?);`chat_v2.txt` 软指令 OPEN 段首句必含 ≥3 个粤语词 + 鼓励引导老人讲今天;RESPOND 段允许铺垫 1 句场景,总和 ≤25 字仍受 A2 硬约束;`chat_v1.txt` 保留只读。(5) §A.16.5 不限轮数 — 删 `MAX_TURNS = 8` 硬上限;`ChatAgent` / `InterviewAgent` 删 `maxTurns` 字段 + 早退分支 + `shouldFinalize` 硬截断分支;新增 `SOFT_TURN_HINT = 20`(仅供 UI 进度提示,不参与最终化判定);`MAX_TOOL_ROUNDS = 3` 保留防工具 loop;§3.1.4 A1/A2/B/D 硬约束保留(单段 ≤25 字 / 急救 save_diary / 长度截断等同);`§18` 反向条款不变。配套:`InterviewAgentTest` 改写 `hard turn cap never creates a ninth turn` → `no hard turn cap beyond 8 rounds runs main LLM loop`(12 轮后仍走主循环);`SafetyAgentTest` +3 粤语断言;`ChatAgentOpenTest` 3 处 assertEquals 期望更新到粤语。**不动**:§5 数据模型既有字段定义 / §3.1.4 A/B/D 硬约束 / §3.1.2 录音规格 / §4.2 最小 24sp 起步硬约束 / 既有 migration / 既有 prompt 文件(`system_v1/v2/v3.txt` + `save_v1/v2/v3.txt` + `chat_v1.txt` + `memory_v1.txt` + `safety_v1.txt` 全部保留只读,新增 `chat_v2.txt` + `system_v4.txt`)/ §18 反向条款。详细设计见 [`docs/v0.10.0.md`](docs/v0.10.0.md)。 |
+| v2.8 | 2026-10-01 | Codex | **新增 §A.18 App 0.11.x bugfix 增量(保存后 LoadingState 全屏霸屏修复)**:(1) `InterviewScreen` 删 `LoadingState()` 在 `PREPARING` / `SAVED` 阶段的引用,新增 `private fun SavingStatusRow(text)` —— 与 `OpeningStatusRow` 同款 `Size.PrimaryButtonHeight` 固定行高 Column;不让 `fillMaxSize()` 抢占 `TranscriptCard(weight 1f)` 空间。(2) `InterviewViewModel.saveDiary` 调整顺序 —— DB 写入 → `_state.update { stage = SAVED }` → `onDone()` → 后台 sibling `launch { runCatching { saveExportRepo.exportIfNeeded(...) } }`;外层加 `.invokeOnCompletion { t -> if (t != null && t !is CancellationException) { Log.e + _state.update { stage = REVIEW, topError = "保存失败，请重试" } } }` 兜底(不让 state 停在 SAVED)。(3) `SaveExportRepository.exportIfNeeded` 拆 `private suspend fun runExport(...)` + 套 `withTimeoutOrNull(EXPORT_TIMEOUT_MS)`;`EXPORT_TIMEOUT_MS = 3_000L`(LOCAL 写 Downloads < 500ms × 3 安全系数);超时返回 `ExportOutcome.Failed("EXPORT_TIMEOUT", "保存超时(3000ms)")` 而不是抛 `TimeoutCancellationException`。(4) `onEnter` 拆 `private suspend fun onEnterInternal()` + 外层 try-catch —— 抛异常时强制翻 `stage = READY` + `topError = "初始化失败，请返回重试"`,不再让 PREPARING 阶段霸屏。**测试**:`InterviewScreenLayoutTest`(2)+ `InterviewSaveFlowStructuralTest`(3)+ `SaveExportRepositoryStructuralTest`(2)+ `SaveExportRepositoryTest` +1 timeout 行为测试,共 8 条新增/扩展,全绿;`AndroidManifest.xml` 不动 / `§5` 数据模型既有字段不动 / `§3.1.4 A1–D3 / B既有行为约束不动 / §18 既有 lock 全部不动`;`InterviewViewModel` 超出 500 行 123 行,文件头注释更新触发 §18 拆分点的 v0.12.0 触发条件(把 Toast 控制 / voice hint 控制 / save 兜底 / onEnter 初始 迁出)。详细设计见 [`docs/v0.11.x-bugfix.md`](docs/v0.11.x-bugfix.md) §1–§7。 |
+| v2.7 | 2026-10-01 | Codex | **新增 §A.17 App 0.11.0 增量(语音退出 + 本地导出 + 顶栏 Toast)**:(1) `ElderSaveModeRepository`(独立 prefs file `elder_save_mode`)+ `enum SaveMode { LOCAL, CLOUD, BOTH }` 默认 LOCAL;`ElderSettingsScreen` 加 `SettingRowSaveMode` 卡 + `SaveModeDialog` 三选一 AlertDialog;`strings.xml` +9 条 `settings_save_mode_*`。(2) `SaveExportRepository` 新文件 + `OssSyncActions` 接口(`OssSyncRepository` 实现):本地路径 = `Downloads/老友日记/`;文件名 `diary_yyyyMMdd_HHmmss_xxxx.{md|m4a}`(4 位 hex 随机后缀);`.md` schema 5 字段(`# {date}` / `> {summary}` / `{text}` / `时长:{N} 秒` / `录音:{audio_filename}`);`AndroidManifest.xml` 加 `WRITE_EXTERNAL_STORAGE` `maxSdkVersion="28"`。(3) `InterviewScreen` 删 `AssistantCard`(~30 行)+ 新增 `LLMReplyToast(text)`(`AnimatedVisibility` fadeIn 200ms + fadeOut 500ms);`TranscriptCard` 改 `Modifier.weight(1f)` 撑满剩余空间;`InterviewUiState` 加 `llmReplyToastText: String?` / `farewellText: String?` / `showVoiceEndHint: Boolean = true`;`InterviewViewModel.speakOrShow()` 加 `showLlmReplyToast: Boolean = true` 参数;`llmToastShowMs = 2_500L` 自动 dismiss;相同 text 幂等不重复 show。(4) `AgentSafety.elderEnd` set 4 词粤语 end 词(结束 / 够了 / 拜拜 / 不聊了)+ `isElderEnd()`;`SafetyAgent.Verdict.ELDER_EXPLICIT_END` 新增(优先级高于 EXPLICIT_CLOSE);`SafetyAgent.ELDER_END_GOODBYE = "好的，今天先聊到这。"`;`ChatAgent.finalizeViaExplicitEnd()` 新方法 + `AgentFinalDraft.farewellText: String? = null` 新字段;访谈屏 `READY` 阶段顶部黄条教学(`BrandColor.NetYellow` token),首次关闭后写 `elder_save_mode.voice_end_hint_seen=true`,后续不再弹。**§18 例外**:本次新增 §3.1.4 B 关键词 4 词粤语 end 词(由 docs/v0.11.0.md §3.4 锁定),不动 A1–A3 / B1–B3 / C / D 既有行为约束。**不动**:§5 数据模型既有字段 / §3.1.4 A/B/D 硬约束 / §3.1.2 录音规格 / 既有 migration / 既有 prompt 文件 / §18 既有 lock;`InterviewViewModel` 超 500 行 50 行,文件头记录理由(私有 `_state` 锁死,需后续触发拆分)。详细设计见 [`docs/v0.11.0.md`](docs/v0.11.0.md) §1–§8。 |
 | v2.6 | 2026-09-30 | Codex | **新增 §A.16.6 日志详情 DiaryDetailScreen(浅色 / 暗色 token 联动)**:`DiaryColorScheme` 数据类(14 字段,含 surfaceShadowAlpha / textMaskEnd / iconStroke 3 处翻牌关键字段)+ `DiaryColor.Light / Dark`;`ElderTheme.forceDarkMode` 跟随系统;`LocalIsDarkMode` compositionLocalOf;`DiaryDetailScreen` + `DiaryDetailComponents` + `DiaryDetailViewModel`(单文件 ≤400 行 AGENTS.md §3);`ElderOssConfig` 同级 `ElderDiaryDetail("elder/diary/detail/{diaryId}")` 路由;`ElderDiaryRecentScreen` 列表项 `clickable` 进详情 + `onOpenDiary: (Long) -> Unit` 回调;`DiaryRepository.findById` 暴露;`strings.xml` +15 `diary_detail_*`。4 处翻牌关键(对照 1-4):次要色 onSurfaceVariant 浅于正文 / 图标描边 strokeWidth=1.8 不准半透明灰 / 遮罩终点跟卡片底色走 / 阴影 0.05f 封顶。**不动**:间距 / 字号 / 圆角 / 组件树 全部不动;`BrandColor` 13 字段全部保留原值;既有页面未迁暗色;§5 / §3.1.4 / §18 不动。详细设计见 [`docs/v0.10.0.md`](docs/v0.10.0.md) §7。 |
 
 ---
@@ -1005,3 +1007,197 @@ companion object {
 - **交互**:MediaPlayer 播放 existing audio + 200ms ticker;录音 / 展开收起 / 底部 5 图标走 Toast「功能开发中」(避免 UI 假动作)
 - **不动**:`BrandColor` 既有 13 字段全部保留原值;既有所有页面未迁暗色;§5 数据模型既有字段定义 / §3.1.4 Agent 行为约束 / 既有 migration / 既有 prompt 文件 / §18 反向条款 不动
 
+
+### §A.17 App 0.11.0 增量（v2.7 / 2026-10-01）
+
+> 对应 PRD §0 / [`docs/v0.11.0.md`](docs/v0.11.0.md) §1–§8。本节定义 0.11.0 阶段新增的代码约束,产品决策回 prd.md / docs/v0.11.0.md。
+
+**§A.17.1 保存方式偏好（独立 prefs file）**
+
+- 文件:`elder_save_mode`(沿用 §A.16.3 `elder_oss_keys` 同款独立文件策略;**不**与 API Key / OSS 凭据共享)
+- `enum SaveMode { LOCAL("local"), CLOUD("cloud"), BOTH("both") }`,默认 `LOCAL`
+- `ElderSaveModeRepository.current() / setMode() / isVoiceEndHintDismissed() / markVoiceEndHintDismissed()`
+- `markVoiceEndHintDismissed()` 用 `prefs.edit().putBoolean(...).commit()`(commit,不是 apply)— hint dismiss 是低频操作,保证测试可立即读到 + ViewModel state 翻 false 后下一次 onEnter 不再弹
+- **不动** Room schema;`elder_save_mode` 不在 §5 锁定列表外
+- UI:`ElderSettingsScreen` 新增 `SettingRowSaveMode(current, onClick)` 卡(仿 `SettingRow2FontScale` 风格)+ `SaveModeDialog` 三选一 `AlertDialog`(`RadioButton` + 标题/说明 4 个 `SaveMode.entries.forEach` 渲染);`ElderSettingsViewModel` 加 `saveMode: SaveMode` / `showSaveModeDialog: Boolean` state + `setSaveMode()` / `showSaveModeDialog()` / `dismissSaveModeDialog()`
+
+**§A.17.2 本地导出 `SaveExportRepository`**
+
+- 新文件 `app/src/main/java/com/elder/data/export/SaveExportRepository.kt`(200 行内)
+- 公开 API:
+  ```kotlin
+  suspend fun exportIfNeeded(diary: DiaryEntryEntity, audioFile: File, mode: SaveMode): ExportOutcome
+  suspend fun writeLocal(diary: DiaryEntryEntity, audioFile: File): String  // 仅本地;测试与一次性场景
+  ```
+- `ExportOutcome` sealed class 6 子类:`LocalWritten(path)` / `CloudSuccess(objectKey)` / `Both(localPath, cloudObjectKey)` / `Failed(code, message)` / `CloudThrottled` / `Skipped(reason)`
+- 文件名:`diary_yyyyMMdd_HHmmss_xxxx.{md|m4a}`;时区 = `ZoneId.systemDefault()`(设备本地;与 §3.1.7 `LocalDate.today()` 一致)
+- 4 位 hex 随机后缀由 `Random.nextInt() and 0xFFFF + "%04x"` 生成;`SaveExportRepositoryTest.randomHex4 suffix is unique across calls` 锁定熵(100 次至少 2 个不同值)
+- 路径:`Environment.getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS) + "/老友日记/"`;`ensureDir()` 内 `mkdirs()` 兜底;`SaveExportRepositoryTest.ensureDir creates Downloads subdirectory` 锁定
+- `.md` schema 5 字段(`SaveExportRepositoryTest.renderMarkdown includes 5 fields` 锁定):
+  - `# {yyyy-MM-dd HH:mm:ss}` 标题(设备本地时区)
+  - `> {summary}` 引用块
+  - `{text}` 正文
+  - `时长：{durationMs/1000} 秒`
+  - `录音：{audioBaseName}.m4a`
+  - MD 转义:`escapeMd()` 仅处理 `\` / `#` / `` ` `` 三种字符;老人日记正文含这些字符的概率极低
+- 云路径:复用 v0.10.0 §6.5 `OssSyncRepository.enqueueDebounced() + syncDiary(id)`;**抽出 `OssSyncActions` 接口**便于测试桩替换(避免反射 OssSync 私有依赖):
+  ```kotlin
+  interface OssSyncActions {
+      fun enqueueDebounced(now: Long = System.currentTimeMillis()): Boolean
+      suspend fun syncDiary(diaryId: Long): OssSyncRepository.SyncOutcome
+  }
+  ```
+  - `OssSyncRepository` 实现:`override fun enqueueDebounced(now: Long)`(override 不能加 default value)+ `override suspend fun syncDiary(diaryId: Long)`
+- **未配置 OSS**:`syncDiary()` 返回 `Skipped("oss_config 未配置")` → SaveExportRepository 映射为 `CloudThrottled` + 静默;不阻塞 onDone()(留给 v0.11.0.x PR 加 ElderToast「云未配置,已保存到本地」)
+- 失败:`Log.w` 记录错误码 + 消息(≤ 200 字符)但不重试;用户重保存时手动触发
+
+**§A.17.3 LLM 回复改顶栏 Toast**
+
+- `InterviewScreen.kt` 删 `AssistantCard` composable(~30 行)及其调用
+- `TranscriptCard` 改 `Modifier.weight(1f)` 撑满屏剩余空间(原 0.58f → 1f)
+- 新增 `LLMReplyToast(text: String?)` composable:
+  - `AnimatedVisibility(visible = text != null, enter = fadeIn(tween(200)), exit = fadeOut(tween(500)))`
+  - 位置:`TopAppBar` 与正文 `Column` 之间
+  - 字号 `FontSize.body()`,颜色 `BrandColor.TextSecondary`,背景 `BrandColor.CardWhite`,圆角 `Corner.Card`,padding `Spacing.Md`
+- `InterviewUiState` 新增字段:
+  - `llmReplyToastText: String?` — 当前显示的 LLM 回复文字;`null` = 不显示
+  - `farewellText: String?` — 落幕语(走 `finalizeViaExplicitEnd` 时设置;ViewModel 用来 TTS 播报而非 summary)
+  - `showVoiceEndHint: Boolean = true` — 黄条是否显示;`dismissVoiceEndHint()` 写 prefs 后翻 false
+- `InterviewViewModel.speakOrShow()` 末尾:
+  - 增加 `showLlmReplyToast: Boolean = true` 参数
+  - `private fun showLlmReplyToast(text)`:`llmRejectedIfAlreadyShown` 早退(幂等)+ 取消上一次 `llmToastDismissJob` 重置 2.5s
+  - `llmToastShowMs = 2_500L` 常量(`llmToastDismissJob: Job? = null` 跟踪)
+- `Finalize` 分支:`val ttsSpoken = result.value.farewellText ?: result.value.summary`(落幕语优先)
+- **`InterviewViewModel` 行数说明**:本文档 v0.11.0 加 LLMReplyToast 控制器 + voice-end-hint 控制器 + save-export 注入后超 500 行 50 行;**§18 例外**:不拆出 `InterviewToastController` 子类的理由是 `showLlmReplyToast` / `dismissVoiceEndHint` / `saveDiary` 都需要直接写私有 `_state`,拆出需把 state 提到 outer 层破坏封装;后续若再加职责触发 §18 拆分点(把 Toast 控制 / voice hint 控制迁出)
+
+**§A.17.4 老人语音提前结束（粤语 4 词）**
+
+- ⚠ **§18 例外**:本次新增 §3.1.4 B 关键词 4 词粤语 end 词(由 docs/v0.11.0.md §3.4 锁定);不动 A1–A3 / B1–B3 / C / D 既有行为约束
+- `AgentSafety.elderEnd` set 4 词:`结束` / `够了` / `拜拜` / `不聊了`(全部粤语口语,带 `// 对应 docs/v0.11.0.md §3.4` 注释)
+- `AgentSafety.isElderEnd(text)` 用 `elderEnd.any(text::contains)` 判定
+- `SafetyAgent.check()` 优先级:`emergency > medical > money > elderEnd > explicitClose > safe`(elderEnd 高于 explicitClose 避免歧义)
+- `SafetyAgent.Verdict.ELDER_EXPLICIT_END` 新增 enum 成员(与 `EMERGENCY` / `EXPLICIT_CLOSE` 并列)
+- `SafetyAgent.ELDER_END_GOODBYE = "好的，今天先聊到这。"` 常量
+- `ChatAgent.respond()` switch 新分支:`Verdict.ELDER_EXPLICIT_END -> return finalizeViaExplicitEnd(credentials, session, normalized)`
+- `ChatAgent.finalizeViaExplicitEnd()` 新方法:
+  - 复用 `SaveAgent.saveDiary(credentials, updatedSession)` 出 text / summary(委托 SaveAgent 已有路径)
+  - 设 `AgentFinalDraft.farewellText = SafetyAgent.ELDER_END_GOODBYE`
+  - 不打断 THINKING / SPEAKING 当前 LLM / TTS 流;等当前流自然完成 → `respond()` 返回 → ViewModel speakOrShow 走 `farewellText` 落幕 TTS → SaveAgent.saveDiary → Review 阶段 → 老人确认 → onDone
+- `AgentFinalDraft.farewellText: String? = null` 字段新增(默认 null,既有 v0.8.x 测试兼容)
+- **既有 `explicitClose` 测试改动**:`SafetyAgentTest.explicit close returns EXPLICIT_CLOSE verdict` 词表收缩为 `["就到这", "就这样吧"]`(「结束吧」/「够了」/「不聊了」移入 elderEnd);新增 `elder end keywords return ELDER_EXPLICIT_END verdict`(覆盖 5 词:结束 / 结束吧 / 够了 / 拜拜 / 不聊了)+ `elder end takes priority over EXPLICIT_CLOSE`(长文本含 end 词 → elderEnd)+ `elder end goodbye contains Cantonese politeness`(落幕语礼貌断言)
+- **黄条教学**(`BrandColor.NetYellow` token,24sp 文字,关闭按钮):
+  - `VoiceEndHintBar(onDismiss)` composable;仅在 `stage == READY && showVoiceEndHint` 时显示
+  - 文案:`interview_voice_end_hint` + `interview_voice_end_hint_close`(zh + zh-rHK + en 三语)
+  - 关闭后:`dismissVoiceEndHint()` → `saveModeRepo.markVoiceEndHintDismissed()` + state 翻 false
+  - **不动**:`chat_v2.txt` / `system_v4.txt` / 既有 prompt 文件;ChatAgent 主循环不变;`§18` 既有 lock 不变
+
+**§A.17.5 测试映射（v0.11.0 新增 28 条 + 3 条改写）**
+
+| 测试 | 文件 | 覆盖 |
+|------|------|------|
+| `SaveExportRepositoryTest` (11) | `app/src/test/java/com/elder/data/export/` | 文件名 / md schema / 3 mode 行为 / 缺音频容错 / enum 容错 |
+| `ElderSaveModeRepositoryTest` (7) | 同上 | 默认值 / 持久化 / 独立 prefs / hint 状态 / enum round-trip |
+| `SafetyAgentTest` (+2 改写) | `app/src/test/java/com/elder/agent/` | elderEnd 优先级 + 落幕语 |
+| `InterviewVoiceEndHintTest` (3) | `app/src/test/java/com/elder/screen/interview/` | UiState 默认 + dismiss 翻 state + 幂等 |
+| `ElderSettingsViewModelTest` 内 `ElderSettingsSaveModeTest` (+3) | `app/src/test/java/com/elder/android/screen/elder/` | 默认值 / dialog 可见性 / setSaveMode 持久化 + 关 dialog |
+
+- 既有测试不动:`InterviewAgentTest`(v0.10.0 §5 不限轮数)/ `AndroidPcmSinkDrainTest`(§A.16.2)/ `OssSyncRepositoryTest`(§A.16.3)/ `DiaryDetailComponentsTest`(§A.16.6)保持原状
+
+**§A.17.6 strings / manifest / build 增量**
+
+- `app/src/main/res/values/strings.xml`:+9 条 `settings_save_mode_*`(title / 3 个 mode tag / 3 个 summary / dialog_title / dialog_intro)+ 2 条 `interview_voice_end_hint*`(hint 文案 + 关闭按钮文案)
+- `app/src/main/res/values-zh-rHK/strings.xml`:+2 条粤语版 `interview_voice_end_hint*`(粤语口语版)
+- `app/src/main/res/values-en/strings.xml`:+2 条英文版(English fallback)
+- `app/src/main/AndroidManifest.xml`:新增 `<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />`(API 29+ 走 scoped storage 不需要)
+- **不动**:`app/build.gradle.kts` 依赖(`AGENTS.md §A.16.3 0.10.0 唯一新上游 SDK = aliyun-sdk-oss:3.17.4+` 仍生效,v0.11.0 不引新上游)
+
+### §A.18 App 0.11.x bugfix 增量（v2.8 / 2026-10-01）
+
+> 对应 PRD §0 / [`docs/v0.11.x-bugfix.md`](docs/v0.11.x-bugfix.md) §1–§7。本节定义 v0.11.x bugfix 新增的代码约束,产品决策回 prd.md / docs/v0.11.x-bugfix.md。
+>
+> 主题:**修复 v0.11.0 终点存在的「保存后 LoadingState 全屏霸屏」根因** —— `LoadingState().fillMaxSize()` 在父 Column 末尾抢占 `TranscriptCard(weight 1f)` 空间,叠加 `saveDiary` 导出无超时无兜底 + `onEnter` 无 try-catch,造成老人在 PREPARING / SAVED 阶段看到整屏"加载中…" + 进度条,且无任何 transcript 上下文。
+
+**§A.18.1 布局修复:`SavingStatusRow` 替换 `LoadingState()`**
+
+- 文件:`app/src/main/java/com/elder/screen/interview/InterviewScreen.kt`
+- `InterviewStage.PREPARING, InterviewStage.SAVED -> SavingStatusRow(stringResource(R.string.interview_saving_status))` —— 与 `OpeningStatusRow` 同款 `Size.PrimaryButtonHeight` 固定行高 Column
+- `SavingStatusRow` 是 InterviewScreen **private composable**(不动 LoadingState 公共组件,符合 §A.3 组件不可绕过 §4 规范"自创新规范")
+- `LoadingState` 公共组件**不动**(`ElderDiaryRecordScreen.isProcessing` 等仍需全屏填充语义)
+- 行为约束测试:`interviewScreen_doesNotUseLoadingStateForPreparingOrSaved` 锁定源码扫描 —— 任何 `PRIVATE PREPARING/SAVED -> LoadingState()` 的回滚会在 CI 失败
+
+**§A.18.2 状态机修复:`saveDiary` 加 sibling launch + invokeOnCompletion 兜底**
+
+- 文件:`app/src/main/java/com/elder/screen/interview/InterviewViewModel.kt`
+- 调整顺序:
+  ```kotlin
+  // 修复前(DB → state → export → onDone,export 单点无超时无 catch):
+  diaryRepo.insert(...); interviewRepo.save(...)
+  _state.update { stage = SAVED }
+  onDone()
+
+  // 修复后(DB → state → onDone → 后台 sibling launch 跑 export + invokeOnCompletion 兜底):
+  diaryRepo.insert(...); interviewRepo.save(...)
+  val exportMode = saveModeRepo.current()
+  val audioFile = ...
+  _state.update { stage = SAVED }
+  onDone()                                                                       // 先导航,后导出
+  launch { runCatching { saveExportRepo.exportIfNeeded(saved, audioFile, exportMode) } }  // sibling,不阻塞 onDone
+  }.invokeOnCompletion { t ->
+      if (t != null && t !is CancellationException) {
+          Log.e(...); _state.update { stage = REVIEW, topError = "保存失败，请重试" }
+      }
+  }
+  ```
+- 行为约束:`saveDiary_hasInvokeOnCompletionFallback` 锁定 `.invokeOnCompletion` + `InterviewStage.REVIEW` + `topError = "保存失败..."`;`saveDiary_runsExportInSiblingLaunch` 锁定 `runCatching { ... saveExportRepo.exportIfNeeded ... }` 结构
+- 不动:`viewModelScope.launch` 仍在主 dispatcher;`_state.update` 仍是同步调用
+
+**§A.18.3 超时保护:`SaveExportRepository.exportIfNeeded` 套 `withTimeoutOrNull`**
+
+- 文件:`app/src/main/java/com/elder/data/export/SaveExportRepository.kt`
+- `companion object` 新增常量 `EXPORT_TIMEOUT_MS: Long = 3_000L`(对应 LOCAL 写 Downloads < 500ms × 3 安全系数;**不**得缩放)
+- 拆出 `private suspend fun runExport(diary, audioFile, mode): ExportOutcome` 容纳原 exportIfNeeded 全部逻辑
+- `exportIfNeeded` 改为:
+  ```kotlin
+  suspend fun exportIfNeeded(diary, audioFile, mode): ExportOutcome = withContext(Dispatchers.IO) {
+      val timedOut = withTimeoutOrNull(EXPORT_TIMEOUT_MS) { runExport(diary, audioFile, mode) }
+      timedOut ?: ExportOutcome.Failed("EXPORT_TIMEOUT", "保存超时(${EXPORT_TIMEOUT_MS}ms)")
+  }
+  ```
+- **关键**:`withTimeoutOrNull` 不是 `withTimeout` —— 超时不抛 `TimeoutCancellationException`,直接返回 null,直接对调用方不污染
+- 行为约束测试:`exportIfNeeded_usesWithTimeoutOrNull` 锁定源码 + `exportTimeoutMs_is3Seconds` 锁定常量值
+- 行为测试:`export timeout returns Failed EXPORT_TIMEOUT when sync hangs` —— 注入 hang 5s 的 stub 桩,断言 `Failed("EXPORT_TIMEOUT", ...)` + 总耗时 ≤ 5s
+- 不动:§5 数据模型;OssSyncActions 接口签名
+
+**§A.18.4 `onEnter` 加 try-catch + 拆 `onEnterInternal`**
+
+- 文件:`app/src/main/java/com/elder/screen/interview/InterviewViewModel.kt`
+- 拆出 `private suspend fun onEnterInternal()` 容纳原 launch 全部逻辑;外层 `onEnter` 只做:
+  ```kotlin
+  work = viewModelScope.launch {
+      try { onEnterInternal() }
+      catch (t: CancellationException) { throw t }       // 不吞 cancel
+      catch (t: Throwable) {
+          Log.e(METRICS_TAG, "onEnter failed: ${t.message}", t)
+          _state.update { it.copy(stage = InterviewStage.READY, topError = "初始化失败，请返回重试") }
+      }
+  }
+  ```
+- 行为约束:`onEnter_hasTryCatchRecoveredIntoReady` 锁定 `fun onEnterInternal()` + `"初始化失败"` 文案
+- 不动:`onEnter` 公开签名(仍是 `fun onEnter()`,无参数无返回值);`work?.cancel()` 仍在最前
+
+**§A.18.5 §18 反向条款遵守**
+
+- ✅ 不改 §5 既有字段(DiaryEntryEntity / oss_config / save_mode 全部不动)
+- ✅ 不硬编码颜色 / 字号 / 间距 / 圆角(SavingStatusRow 沿用 `Size.PrimaryButtonHeight` / `Size.ProgressBarHeight` / `FontSize.body(FontLevel.LARGE)` / `Spacing.Sm` / `BrandColor.Brand500`)
+- ✅ 不引新上游 SDK(仅用 `kotlinx.coroutines.withTimeoutOrNull`,AGENTS.md §1 通用依赖已包含)
+- ✅ 不写客户端 500 行模块上限:`InterviewViewModel` 超 500 行 123 行,文件头注释记录触发 §18 拆分点的 v0.12.0 触发条件(把 Toast 控制 / voice hint 控制 / save 兜底 / onEnter 初始 迁出);`InterviewScreen` 增加 32 行到 411 行仍 < 500
+- ✅ 不改 §18 既有 lock:`MAX_DRAIN_MS=1500L` / TTS `drainBuffer()` / 仓库越权校验 / 日志 `sanitize()` / `elder_save_mode` prefs file 全部不动
+- ✅ 不在客户端做 `elder_id == ...` 越权校验:v0.11.x 不涉及 elder 越权路径
+- ✅ 既有 4 词粤语 end 词(`docs/v0.11.0.md §3.4` 锁定)不动;§3.1.4 A1–D3 / B1–B3 / C / D 既有约束不动
+- ✅ `scripts/check_no_hardcoded_tokens.py` 仍绿(本 PR 全用既有 token;新增 `interview_saving_status` 是 strings.xml 资源,不是硬编码)
+
+**§A.18.6 strings / manifest / build 增量**
+
+- `app/src/main/res/values/strings.xml`:+1 条 `interview_saving_status`(默认 zh="正在保存…")
+- `app/src/main/AndroidManifest.xml`:**不动**(v0.11.0 `WRITE_EXTERNAL_STORAGE maxSdkVersion=28` 仍生效)
+- `app/build.gradle.kts`:**不动**(v0.10.0 §A.16.3 `aliyun-sdk-oss:3.17.4+` 仍生效;v0.11.x 不引新上游)

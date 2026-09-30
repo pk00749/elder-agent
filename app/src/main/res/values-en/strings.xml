@@ -13,4 +13,7 @@
     <string name="safety_greeting_morning">Good morning, anything to chat about?</string>
     <string name="safety_greeting_noon">Good afternoon, how\'s your day?</string>
     <string name="safety_greeting_evening">Good evening, anything to share?</string>
+    <!-- v0.11.0 §3.4 Interview voice-end hint -->
+    <string name="interview_voice_end_hint">Want to end early? Say "done", "enough", or "bye"</string>
+    <string name="interview_voice_end_hint_close">Got it</string>
 </resources>

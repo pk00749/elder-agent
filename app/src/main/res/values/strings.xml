@@ -148,6 +148,8 @@
     <string name="interview_speaking">正在说给您听…</string>
     <string name="interview_transcript_placeholder">您说的话会显示在这里…</string>
     <string name="interview_pending_saved">已保存录音，联网后会帮您整理</string>
+    <!-- v0.11.x bugfix: PREPARING/SAVED 阶段状态行文案 -->
+    <string name="interview_saving_status">正在保存…</string>
     <string name="interview_need_config">请先配置千问和 MiniMax Key</string>
     <string name="interview_open_settings">去设置</string>
 
@@ -191,7 +193,7 @@
 
     <!-- §3.1.9 ASR 配置（v0.7.0 §A.14：双 Provider 可切换） -->
     <string name="asr_config_title">AI 服务</string>
-    <string name="asr_config_header">填入千问和 MiniMax API Key。配置只加密保存在这台手机，不上传自建服务器。</string>
+    <string name="asr_config_header">填入 API Key,只在本机加密保存。</string>
     <string name="asr_config_card_asr_title">语音识别（ASR）</string>
     <string name="asr_config_card_asr_subtitle">当前：%1$s</string>
     <string name="asr_config_card_tts_title">语音播报（TTS）</string>
@@ -269,11 +271,11 @@
     <string name="toast_unbound_no_diary">未绑定家人，写好的日记会丢失</string>
 
     <!-- v0.10.0 §6 OSS 同步入口卡 -->
-    <string name="oss_sync_card">同步到云</string>
-    <string name="oss_sync_subtitle_unconfigured">未配置</string>
+    <string name="oss_sync_card">同步到云端</string>
+    <string name="oss_sync_subtitle_unconfigured">未配置（可选）</string>
     <string name="oss_sync_subtitle_configured">已配置 (Bucket: %1$s)</string>
-    <string name="oss_sync_title">同步到云设置</string>
-    <string name="oss_sync_summary">把日记同步到阿里云 OSS,本地永远保留一份。需要 Endpoint、Bucket、Region、AccessKey。</string>
+    <string name="oss_sync_title">同步到云端设置</string>
+    <string name="oss_sync_summary">把日记同步到阿里云 OSS,本地永远保留一份;不配也不影响本地使用。需要 Endpoint、Bucket、Region、AccessKey。</string>
     <string name="oss_endpoint">Endpoint</string>
     <string name="oss_bucket">Bucket</string>
     <string name="oss_region">Region</string>
@@ -289,4 +291,19 @@
     <string name="oss_sync_triggered">后台已触发,Wi-Fi 下会跑</string>
     <string name="oss_last_sync">最近同步:%1$s</string>
     <string name="oss_synced_badge">已同步</string>
+
+    <!-- v0.11.0 §3.1 设置 → 保存方式 -->
+    <string name="settings_save_mode">保存方式</string>
+    <string name="settings_save_mode_local">仅本地</string>
+    <string name="settings_save_mode_cloud">仅云端</string>
+    <string name="settings_save_mode_both">云+本地</string>
+    <string name="settings_save_mode_summary_local">只保存到本机的"下载/老友日记"文件夹</string>
+    <string name="settings_save_mode_summary_cloud">只保存到阿里云 OSS（需要先在"同步到云端"配置）</string>
+    <string name="settings_save_mode_summary_both">同时保存到本地文件夹和阿里云 OSS</string>
+    <string name="settings_save_mode_dialog_title">选择保存方式</string>
+    <string name="settings_save_mode_dialog_intro">选择一条记录要保存到哪里。可以随时回来改。</string>
+
+    <!-- v0.11.0 §3.4 访谈屏 → 语音退出黄条 -->
+    <string name="interview_voice_end_hint">想提前结束?可以讲"结束"、"够了"、"拜拜"</string>
+    <string name="interview_voice_end_hint_close">知道了</string>
 </resources>

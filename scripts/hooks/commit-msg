@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# 对应 AGENTS.md §A.16.1 (文档拆分规范) + prd.md §12.5 (版本文档索引)。
+# 检测 commit subject 中的 vX.Y.Z[-slug] 模式,若 docs/vX.Y.Z[-slug].md 不存在
+# 则按 §A.16.1 模板自动写入。auto-create + warn(不 block commit)。
+# 已存在的 docs 文件不会被覆盖(避免破坏人工内容)。
+
+set -euo pipefail
+
+# 兼容两种调用:
+#   git commit                 -> $1 = commit message temp file path
+#   bash commit-msg <msg-file>  -> $1 = commit message temp file path (本地测试用)
+COMMIT_MSG_FILE="${1:?commit-msg hook: missing commit message file path}"
+
+# 解析仓库根目录;git hook 上下文一定可达,本地测试时若有 GIT_DIR 环境变量也兼容
+if REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+    : # ok
+elif [[ -n "${GIT_DIR:-}" ]]; then
+    REPO_ROOT="$(cd "${GIT_DIR}/.." && pwd)"
+else
+    echo "[commit-msg hook] 无法解析 git 仓库根目录,退出" >&2
+    exit 1
+fi
+
+DOCS_DIR="${REPO_ROOT}/docs"
+SUBJECT="$(head -1 "${COMMIT_MSG_FILE}")"
+
+# 版本正则(ERE;bash 不支持 (?:...) 非捕获组,用普通捕获组 + 跳位引用):
+#   [1] major  [2] minor  [3] .Z 含点  [4] Z  [5] -slug 含横线  [6] slug
+# 匹配 subject 任意位置(commit subject 经常带 scope 前缀:`feat: v0.11.0 ...` /
+# `(v0.11.0) feat: ...` / `[v0.11.0] feat: ...`),所以不强制 ^ 开头;
+# 用 [[:space:]]| 锚定在版本段后,避免误匹配 v0.11.0_BAD 中的 v0.11.0 段。
+VERSION_RE='v([0-9]+)\.([0-9]+)(\.([0-9]+))?(-([a-z0-9][a-z0-9-]*))?([[:space:]]|]|\)|:)'
+
+# 拒收:仅 vX / 含大写 slug / slug 以 - 开头 / slug 含 _
+if [[ ! "${SUBJECT}" =~ ${VERSION_RE} ]]; then
+    # commit subject 没带版本标记 -> 不动(常规 bug 修复 / 重构 不应被 hook 干预)
+    exit 0
+fi
+
+MAJOR="${BASH_REMATCH[1]}"
+MINOR="${BASH_REMATCH[2]}"
+PATCH="${BASH_REMATCH[4]:-}"
+SLUG="${BASH_REMATCH[6]:-}"
+
+if [[ -z "${PATCH}" ]]; then
+    VERSION="${MAJOR}.${MINOR}"
+else
+    VERSION="${MAJOR}.${MINOR}.${PATCH}"
+fi
+
+if [[ -n "${SLUG}" ]]; then
+    FILENAME="v${VERSION}-${SLUG}.md"
+else
+    FILENAME="v${VERSION}.md"
+fi
+
+TARGET="${DOCS_DIR}/${FILENAME}"
+
+mkdir -p "${DOCS_DIR}"
+
+if [[ -f "${TARGET}" ]]; then
+    echo "[commit-msg hook] docs/${FILENAME} 已存在,跳过写入(对应 AGENTS.md §A.16.1)" >&2
+    exit 0
+fi
+
+# 检查同名文件是否已被 git 跟踪但工作区删除(避免覆盖未提交内容)
+if git -C "${REPO_ROOT}" ls-files --error-unmatch "docs/${FILENAME}" >/dev/null 2>&1; then
+    echo "[commit-msg hook] docs/${FILENAME} 已被 git 跟踪但工作区缺失,请先 'git restore' 后再 commit" >&2
+    exit 1
+fi
+
+cat > "${TARGET}" <<EOF
+<!-- 对应 prd.md 修订记录 v${VERSION} 行;详细设计见本文件 -->
+# v${VERSION} 目标定义
+
+> 对应 AGENTS.md §A.16.1 (文档拆分规范) + prd.md §12.5 (版本文档索引)。
+> 本版本主题:**(请填写一句话主题)**。
+> 本文件**只**定义产品 / 工程目标,具体代码约束在 AGENTS.md / prd.md。
+
+---
+
+## 0. 现状盘点 (${VERSION} 起点)
+
+| 维度 | 现状 |
+|------|------|
+| 版本 | v${VERSION}(上一版本:请填) |
+| docs/ 既有 | (请列已存在的 vX.Y.* 文件) |
+| prd.md 行数 | (当前) |
+| AGENTS.md 行数 | (当前) |
+
+---
+
+## 1. 目标 1:(请填章节标题)
+
+### 1.1 (请填子节标题)
+
+---
+
+## 2. 目标 2:(可选,按需复制 §1 结构)
+
+---
+
+## N. 不动契约
+
+- (请列哪些 §/接口/prompt 文件保留只读)
+
+---
+
+> **维护说明**:本文件由 \`scripts/hooks/commit-msg\` 首次自动创建,内容由开发者补充完整。
+> 命名约束:AGENTS.md §A.16.1 = \`v{X}.{Y}.{Z}-{slug}.md\`(无 Z 时 \`v{X}.{Y}-{slug}.md\`)。
+> 与 prd.md §12.5 版本文档索引表 + 修订记录表同步(三个写入点必须同步完成)。
+EOF
+
+# 把文件加入 git 索引(用户没显式 git add 也能进 commit);不 commit 也不 amend
+git -C "${REPO_ROOT}" add "docs/${FILENAME}"
+
+echo "[commit-msg hook] 已写入 docs/${FILENAME} 并 git add(对应 AGENTS.md §A.16.1)" >&2
+echo "[commit-msg hook] 提交后请:补全 §1-§N 内容 + 在 prd.md §12.5 / 修订记录 追加两行" >&2
+exit 0

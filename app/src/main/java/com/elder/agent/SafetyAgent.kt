@@ -15,7 +15,7 @@ package com.elder.android.agent
  */
 object SafetyAgent {
 
-    enum class Verdict { EMERGENCY, MONEY, MEDICAL, EXPLICIT_CLOSE, SAFE }
+    enum class Verdict { EMERGENCY, MONEY, MEDICAL, EXPLICIT_CLOSE, ELDER_EXPLICIT_END, SAFE }
 
     /** v0.10.0 §4 修订：open() LLM 失败兜底返回粵語静态口語（不调 LLM / 不调 TTS）。
      *  每条必须包含 ≥1 个粵語词(早晨/食咗/点/边度/啦/嘅 等);不再出现"早上好/今天想聊什么"普通话短语。
@@ -37,6 +37,9 @@ object SafetyAgent {
         // medical 优先于 money（医疗关键词更具体；金钱关键词范围更广）
         if (AgentSafety.isMedical(normalized)) return Verdict.MEDICAL
         if (AgentSafety.isMoney(normalized)) return Verdict.MONEY
+        // v0.11.0 §3.4: 老人主动结束（粤语关键词）优先级高于 EXPLICIT_CLOSE
+        // — 同样落幕，但走 finalizeViaExplicitEnd 走礼貌落幕 TTS
+        if (AgentSafety.isElderEnd(normalized)) return Verdict.ELDER_EXPLICIT_END
         if (AgentSafety.isExplicitClose(normalized)) return Verdict.EXPLICIT_CLOSE
         return Verdict.SAFE
     }
@@ -44,4 +47,7 @@ object SafetyAgent {
     /** v0.9.0 公开固定 reply 常量（原 InterviewAgent.MONEY_MEDICAL_REPLY 上移） */
     const val SHORT_REPLY = "嗯，咱们聊点别的吧。"
     const val EMERGENCY_NOTE = "好的，咱们先把今天说的记下来。"
+
+    /** v0.11.0 §3.4：老人主动结束的礼貌落幕语。 */
+    const val ELDER_END_GOODBYE = "好的，今天先聊到这。"
 }

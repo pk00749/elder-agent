@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# 对应 AGENTS.md §A.16.1 + prd.md §12.5。
+# 扫描 staged diff 检测版本号线索(修订记录新行 / §12.5 索引新行 / gradle.properties),
+# 把 [vX.Y.Z] 前缀注入 commit message 模板,让 commit-msg hook 能正确触发。
+# 不会修改 prd.md / docs/ 任何文件。
+
+set -euo pipefail
+
+COMMIT_MSG_FILE="${1:?prepare-commit-msg hook: missing commit message file path}"
+COMMIT_SOURCE="${2:-}"   # message | template | squash | commit
+
+if [[ "${COMMIT_SOURCE}" == "message" ]]; then
+    # 用户已经在 -m / -F 给了完整 message,不再追加模板
+    exit 0
+fi
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# 1. 扫描 prd.md 修订记录:找新增的 `| vX.Y.Z | 日期 | ...` 行
+REVISION_LINE="$(git -C "${REPO_ROOT}" diff --cached --unified=0 -- prd.md \
+    | grep -E '^\+[[:space:]]*\|[ ]*v[0-9]+\.[0-9]+(\.[0-9]+)?[ ]*\|' \
+    | head -1 || true)"
+
+# 2. 扫描 prd.md §12.5 索引:找新增的 `| `docs/vX.Y.Z.md` |` 行
+INDEX_LINE="$(git -C "${REPO_ROOT}" diff --cached --unified=0 -- prd.md \
+    | grep -E '^\+[[:space:]]*\|[ ]*`docs/v[0-9]+\.[0-9]+(\.[0-9]+)?[^`]*\.md`' \
+    | head -1 || true)"
+
+# 3. 扫描 gradle.properties:找 version 字段变更
+GRADLE_LINE="$(git -C "${REPO_ROOT}" diff --cached --unified=0 -- gradle.properties \
+    | grep -E '^\+[[:space:]]*version[ ]*=' \
+    | head -1 || true)"
+
+# 抽取版本号(优先修订记录,其次索引,最后 gradle.properties)
+VERSION=""
+for src in "${REVISION_LINE}" "${INDEX_LINE}" "${GRADLE_LINE}"; do
+    [[ -z "${src}" ]] && continue
+    if [[ "${src}" =~ v([0-9]+\.[0-9]+(\.[0-9]+)?) ]]; then
+        VERSION="${BASH_REMATCH[1]}"
+        break
+    fi
+done
+
+# 没找到版本线索 -> 不动(让用户自由写 commit message)
+if [[ -z "${VERSION}" ]]; then
+    exit 0
+fi
+
+# 当前 commit message 模板已有 [v...] / (v...) 前缀 -> 不重复加
+CURRENT_SUBJECT="$(head -1 "${COMMIT_MSG_FILE}")"
+if [[ "${CURRENT_SUBJECT}" =~ [\(\[]v[0-9]+\.[0-9]+(\.[0-9]+)?[\]\)] ]]; then
+    exit 0
+fi
+
+# 当前第一行已经是 comments(以 # 开头)或空行 -> 找第一个真实行插入前缀
+TMP="$(mktemp)"
+LINE_NO=0
+PREFIX_INSERTED=0
+while IFS= read -r line || [[ -n "${line}" ]]; do
+    LINE_NO=$((LINE_NO + 1))
+    if [[ ${PREFIX_INSERTED} -eq 0 && -z "${line// /}" && ${LINE_NO} -eq 1 ]]; then
+        # 文件开头就空行 -> 直接写前缀
+        echo "[v${VERSION}] " > "${TMP}"
+        PREFIX_INSERTED=1
+    elif [[ ${PREFIX_INSERTED} -eq 0 && "${line}" =~ ^# ]]; then
+        # 注释行(模板默认有注释) -> 跳过
+        echo "${line}" >> "${TMP}"
+    elif [[ ${PREFIX_INSERTED} -eq 0 ]]; then
+        echo "[v${VERSION}] ${line}" >> "${TMP}"
+        PREFIX_INSERTED=1
+    else
+        echo "${line}" >> "${TMP}"
+    fi
+done < "${COMMIT_MSG_FILE}"
+
+if [[ ${PREFIX_INSERTED} -eq 0 ]]; then
+    # 全空 / 全注释 -> 直接追加 [v...] 占位
+    echo "[v${VERSION}] " >> "${TMP}"
+fi
+
+mv "${TMP}" "${COMMIT_MSG_FILE}"
+
+echo "[prepare-commit-msg hook] 已注入 [v${VERSION}] 前缀(对应 AGENTS.md §A.16.1)" >&2
+exit 0

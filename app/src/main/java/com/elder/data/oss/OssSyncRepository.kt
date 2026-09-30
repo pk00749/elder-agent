@@ -11,6 +11,7 @@ import android.util.Log
 import com.elder.android.data.db.ElderDatabase
 import com.elder.android.data.db.OssConfigEntity
 import com.elder.android.data.crypto.OssKeyCipher
+import com.elder.android.data.oss.OssSyncActions
 import java.io.File
 
 private const val TAG = "OssSyncRepository"
@@ -20,7 +21,7 @@ class OssSyncRepository(
     private val client: OssSyncClient,
     private val keyStore: OssKeyCipher,
     private val db: ElderDatabase = ElderDatabase.get(appContext),
-) {
+) : OssSyncActions {
     private val dao = db.diaryDao()
     private val ossDao = db.ossConfigDao()
     @Volatile private var lastEnqueueMs: Long = 0L
@@ -29,7 +30,7 @@ class OssSyncRepository(
      * 同步单条 diary:上传音频 + 文本 → 写回 oss_sync_status='synced'。
      * 失败:写回 oss_last_error + oss_attempts+1;>=3 → status='failed'。
      */
-    suspend fun syncDiary(diaryId: Long): SyncOutcome {
+    override suspend fun syncDiary(diaryId: Long): SyncOutcome {
         val cfg = ossDao.get() ?: return SyncOutcome.Skipped("oss_config 未配置")
         val diary = dao.findById(diaryId) ?: return SyncOutcome.Skipped("diary $diaryId 不存在")
         if (diary.ossSyncStatus == "synced") return SyncOutcome.Skipped("已同步")
@@ -100,7 +101,7 @@ class OssSyncRepository(
      * 1 次/分钟节流;短时多次 save_diary 触发不重复 enqueue。
      * 首次调用(lastEnqueueMs == 0L)永远返回 true,后续 60s 内返回 false。
      */
-    fun enqueueDebounced(now: Long = System.currentTimeMillis()): Boolean {
+    override fun enqueueDebounced(now: Long): Boolean {
         synchronized(this) {
             if (lastEnqueueMs != 0L && now - lastEnqueueMs < DEBOUNCE_MS) return false
             lastEnqueueMs = now

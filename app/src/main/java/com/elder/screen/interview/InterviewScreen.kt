@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -53,7 +56,6 @@ import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.ui.component.ElderToast
-import com.elder.android.ui.component.LoadingState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,6 +104,9 @@ fun InterviewScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
             )
 
+            // v0.11.0 §3.3: 顶栏瞬态 Toast(fadeIn 200ms + 2.5s 显示 + fadeOut 500ms)
+            LLMReplyToast(text = state.llmReplyToastText)
+
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -119,14 +124,15 @@ fun InterviewScreen(
                     ConfigCard(onOpenSettings)
                 }
 
-                AssistantCard(
-                    text = state.assistantText ?: InterviewViewModel.GREETING,
-                    modifier = Modifier.weight(0.42f),
-                )
+                // v0.11.0 §3.3: 取消 AssistantCard 固定卡;LLM 回复改顶栏 Toast
+                // v0.11.0 §3.4: 语音退出黄条仅在 READY 阶段可见
+                if (state.stage == InterviewStage.READY && state.showVoiceEndHint) {
+                    VoiceEndHintBar(onDismiss = vm::dismissVoiceEndHint)
+                }
 
                 TranscriptCard(
                     text = state.transcript,
-                    modifier = Modifier.weight(0.58f),
+                    modifier = Modifier.weight(1f),
                 )
 
                 when (state.stage) {
@@ -156,7 +162,7 @@ fun InterviewScreen(
                     }
 
                     InterviewStage.RECORDING -> Button(
-                        onClick = vm::stopAndProcess,
+                        onClick = { vm.stopAndProcess(onDone) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(Size.PrimaryButtonHeight),
@@ -179,7 +185,7 @@ fun InterviewScreen(
                         onRevise = vm::revise,
                     )
                     InterviewStage.OPENING -> OpeningStatusRow(stringResource(R.string.interview_opening_status))
-                    InterviewStage.PREPARING, InterviewStage.SAVED -> LoadingState()
+                    InterviewStage.PREPARING, InterviewStage.SAVED -> SavingStatusRow(stringResource(R.string.interview_saving_status))
                 }
             }
         }
@@ -198,33 +204,61 @@ fun InterviewScreen(
 }
 
 /**
- * v0.9.1 起：LLM 回复统一单段（28sp 次级，TextSecondary + Normal）。
- * 不再分 ack / probe 双段、不再用分隔符、不再 Bold 主色。
- * OPENING 阶段（ChatAgent.open() 主动开问）走同一规格。
+ * v0.11.0 §3.3: 顶栏瞬态 Toast — LLM 回复文字短暂显示后淡出。
+ * AnimatedVisibility 控制 fadeIn/fadeOut;text = null 时不渲染;200ms fade-in + 500ms fade-out。
  */
 @Composable
-private fun AssistantCard(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
+private fun LLMReplyToast(text: String?) {
+    AnimatedVisibility(
+        visible = text != null,
+        enter = fadeIn(animationSpec = androidx.compose.animation.core.tween(200)),
+        exit = fadeOut(animationSpec = androidx.compose.animation.core.tween(500)),
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = BrandColor.CardWhite,
+            shape = RoundedCornerShape(Corner.Card),
+        ) {
+            Box(Modifier.padding(Spacing.Md)) {
+                Text(
+                    text = text.orEmpty(),
+                    fontSize = FontSize.body(),
+                    fontWeight = FontWeight.Normal,
+                    color = BrandColor.TextSecondary,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * v0.11.0 §3.4: 语音退出黄条 — 老人首次进入访谈屏 READY 时顶部黄色提示一次,
+ * 老人关闭后写入 prefs,后续不再弹。可关闭、不阻塞交互。
+ */
+@Composable
+private fun VoiceEndHintBar(onDismiss: () -> Unit) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = BrandColor.CardWhite,
+        modifier = Modifier.fillMaxWidth(),
+        color = BrandColor.NetYellow,
         shape = RoundedCornerShape(Corner.Card),
     ) {
-        Box(
-            Modifier.fillMaxSize().padding(Spacing.Md),
-            contentAlignment = Alignment.CenterStart,
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(Spacing.Md),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            // v0.9.1：单 Text 28sp 次级（BodyLargeSp=28）+ 行高 39sp（字号 × 1.4）；不 Bold。
-            // 颜色走 TextSecondary 次级（不是 TextPrimary），对齐 prd.md §12.4.1 v0.9.1 修订。
             Text(
-                text = text,
-                fontSize = FontSize.BodyLargeSp.sp,
-                lineHeight = (FontSize.BodyLargeSp * 14 / 10).sp,  // 1.4 倍行高 = 39
-                fontWeight = FontWeight.Normal,
-                color = BrandColor.TextSecondary,
+                text = stringResource(R.string.interview_voice_end_hint),
+                fontSize = FontSize.body(),
+                color = BrandColor.TextPrimary,
+                modifier = Modifier.weight(1f),
             )
+            TextButton(onClick = onDismiss) {
+                Text(
+                    stringResource(R.string.interview_voice_end_hint_close),
+                    color = BrandColor.Brand500,
+                    fontSize = FontSize.body(),
+                )
+            }
         }
     }
 }
@@ -293,6 +327,37 @@ private fun StatusRow(text: String) {
  */
 @Composable
 private fun OpeningStatusRow(text: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(Size.PrimaryButtonHeight),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(text = text, fontSize = FontSize.body(FontLevel.LARGE), color = BrandColor.Brand500)
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(Spacing.Sm))
+        androidx.compose.material3.LinearProgressIndicator(
+            modifier = Modifier.fillMaxWidth().height(Size.ProgressBarHeight),
+            color = BrandColor.Brand500,
+        )
+    }
+}
+
+
+/**
+ * v0.11.x bugfix: PREPARING / SAVED 阶段专用 —— 文字 "保存中…" + 进度条,
+ * 固定 PrimaryButtonHeight 行高。
+ *
+ * 修复根因:
+ *   原 `LoadingState()` 内部 `.fillMaxSize()`,在父 Column (Arrangement.spacedBy) 末尾会抢占
+ *   `TranscriptCard(weight 1f)` 的全部高度,导致老人看到整屏 "加载中…" + 进度条,
+ *   看不到 transcript 上下文,主观"卡在加载"。
+ *
+ *   改成与 `OpeningStatusRow` 同款固定行高的 Column 后,TranscriptCard 仍可 weight(1f)
+ *   撑满剩余空间,老人看到 "顶部 transcript + 中间一行保存中 + 进度条",清楚知道系统在保存。
+ */
+@Composable
+private fun SavingStatusRow(text: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()

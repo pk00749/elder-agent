@@ -29,6 +29,8 @@ import com.elder.android.data.tts.MiniMaxTtsClient
 import com.elder.android.data.tts.QwenTtsClient
 import com.elder.android.data.tts.TtsClient
 import com.elder.android.data.crypto.OssKeyCipher
+import com.elder.android.data.export.ElderSaveModeRepository
+import com.elder.android.data.export.SaveExportRepository
 import com.elder.android.data.oss.AliyunOssSyncClient
 import com.elder.android.data.oss.OssSyncClient
 import com.elder.android.data.oss.OssSyncRepository
@@ -86,6 +88,12 @@ object ServiceLocator {
     lateinit var ossSyncRepo: OssSyncRepository
         private set
 
+    // ===== v0.11.0 §3.1 / §3.2 保存方式 + 本地导出 =====
+    lateinit var saveModeRepo: ElderSaveModeRepository
+        private set
+    lateinit var saveExportRepo: SaveExportRepository
+        private set
+
     fun init(context: Context) {
         if (inited) return
         synchronized(this) {
@@ -114,6 +122,10 @@ object ServiceLocator {
                 client = ossSyncClient,
                 keyStore = ossKeyCipher,
             )
+            // v0.11.0 §3.1: 保存方式 prefs(独立文件;与 elder_oss_keys 同款)
+            saveModeRepo = ElderSaveModeRepository(app)
+            // v0.11.0 §3.2: 本地 / 云双路径导出;复用 v0.10.0 §6.5 OssSyncRepository
+            saveExportRepo = SaveExportRepository(app, ossSyncRepo)
             interviewAgent = InterviewAgent(                    // v0.6.0 加 elderFactRepo；v0.8.0 改 llm → llmFactory
                 llmFactory = llmClientFactory,
                 prompts = AgentPrompts(app),

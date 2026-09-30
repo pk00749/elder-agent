@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -56,9 +57,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elder.android.R
 import com.elder.android.data.db.FontScale
+import com.elder.android.data.export.SaveMode
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
+import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 
@@ -109,6 +112,12 @@ fun ElderSettingsScreen(
                     onClick = onOpenOss,
                 )
                 Divider()
+                // v0.11.0 §3.1: 保存方式选择卡(点击弹 dialog;默认 LOCAL)
+                SettingRowSaveMode(
+                    current = state.saveMode,
+                    onClick = vm::showSaveModeDialog,
+                )
+                Divider()
                 SettingRow2FontScale(current = state.fontScale, onPick = vm::setFontScale)
                 Divider()
                 SettingRow3Tts(enabled = state.ttsEnabled, onChange = vm::setTtsEnabled)
@@ -136,6 +145,14 @@ fun ElderSettingsScreen(
     // v0.8.1 整改：退出登录失败等异常通过 ElderToast 兜底（之前会被吞掉）
     if (!state.topError.isNullOrBlank()) {
         ElderToast(message = state.topError, onDismiss = vm::dismissError)
+    }
+
+    if (state.showSaveModeDialog) {
+        SaveModeDialog(
+            current = state.saveMode,
+            onPick = vm::setSaveMode,
+            onDismiss = vm::dismissSaveModeDialog,
+        )
     }
 
     if (state.showLogoutConfirm) {
@@ -186,6 +203,122 @@ private fun SettingRow1Asr(
             if (!configured) RedDot()
         },
     )
+}
+
+/**
+ * v0.11.0 §3.1: 保存方式入口卡 — 显示当前模式 + 一行说明;点击弹 dialog。
+ */
+@Composable
+private fun SettingRowSaveMode(current: SaveMode, onClick: () -> Unit) {
+    val (titleRes, summaryRes) = when (current) {
+        SaveMode.LOCAL -> R.string.settings_save_mode to R.string.settings_save_mode_summary_local
+        SaveMode.CLOUD -> R.string.settings_save_mode to R.string.settings_save_mode_summary_cloud
+        SaveMode.BOTH -> R.string.settings_save_mode to R.string.settings_save_mode_summary_both
+    }
+    SettingRow(
+        title = stringResource(titleRes),
+        subtitle = stringResource(summaryRes),
+        onClick = onClick,
+        trailing = {
+            // 当前模式文字标签(local / cloud / both)
+            val tagRes = when (current) {
+                SaveMode.LOCAL -> R.string.settings_save_mode_local
+                SaveMode.CLOUD -> R.string.settings_save_mode_cloud
+                SaveMode.BOTH -> R.string.settings_save_mode_both
+            }
+            Text(
+                text = stringResource(tagRes),
+                fontSize = FontSize.body(),
+                color = BrandColor.Brand500,
+            )
+        },
+    )
+}
+
+/**
+ * v0.11.0 §3.1: 保存方式 dialog — 三选一单选。
+ */
+@Composable
+private fun SaveModeDialog(
+    current: SaveMode,
+    onPick: (SaveMode) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                stringResource(R.string.settings_save_mode_dialog_title),
+                fontSize = FontSize.body(FontLevel.LARGE),
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    stringResource(R.string.settings_save_mode_dialog_intro),
+                    fontSize = FontSize.body(),
+                    color = BrandColor.TextPrimary,
+                )
+                Spacer(modifier = Modifier.height(Spacing.Md))
+                SaveMode.entries.forEach { mode ->
+                    SaveModeRadio(
+                        mode = mode,
+                        selected = mode == current,
+                        onClick = { onPick(mode) },
+                    )
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_cancel), color = BrandColor.TextSecondary, fontSize = FontSize.body())
+            }
+        },
+    )
+}
+
+@Composable
+private fun SaveModeRadio(mode: SaveMode, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = Spacing.Sm),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        androidx.compose.material3.RadioButton(
+            selected = selected,
+            onClick = onClick,
+            colors = androidx.compose.material3.RadioButtonDefaults.colors(
+                selectedColor = BrandColor.Brand500,
+                unselectedColor = BrandColor.TextSecondary,
+            ),
+        )
+        Spacer(modifier = Modifier.width(Spacing.Sm))
+        Column {
+            Text(
+                text = when (mode) {
+                    SaveMode.LOCAL -> stringResource(R.string.settings_save_mode_local)
+                    SaveMode.CLOUD -> stringResource(R.string.settings_save_mode_cloud)
+                    SaveMode.BOTH -> stringResource(R.string.settings_save_mode_both)
+                },
+                fontSize = FontSize.body(),
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                color = BrandColor.TextPrimary,
+            )
+            Text(
+                text = when (mode) {
+                    SaveMode.LOCAL -> stringResource(R.string.settings_save_mode_summary_local)
+                    SaveMode.CLOUD -> stringResource(R.string.settings_save_mode_summary_cloud)
+                    SaveMode.BOTH -> stringResource(R.string.settings_save_mode_summary_both)
+                },
+                fontSize = FontSize.BodySmallSp.sp,
+                color = BrandColor.TextSecondary,
+            )
+        }
+    }
 }
 
 @Composable
