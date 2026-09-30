@@ -78,4 +78,31 @@ class AndroidPcmSinkDrainTest {
         )
         assertEquals("head > totalSamples 时不应轮询", 0, sleepCount)
     }
+
+    // v0.10.0 §2: 锁定 drain 默认上限 1500ms。避免无意识改回 5000ms 导致尾音停顿体感僵硬。
+    @Test
+    fun `drainBuffer default cap is 1500ms`() {
+        assertEquals(
+            "MAX_DRAIN_MS 默认值必须 = 1_500L（v0.10.0 §2）",
+            1_500L,
+            AndroidPcmSink.MAX_DRAIN_MS,
+        )
+
+        // 校验 HAL 卡住场景下默认上限确实生效：headSupplier 永远 0，应在 ≤1.5s + 调度抖动 内返回
+        var sleepCount = 0
+        val elapsed = measureTimeMillis {
+            AndroidPcmSink.drainBuffer(
+                headSupplier = { 0 },
+                totalSamples = 10_000,
+                sleep = { sleepCount++ },
+                // 不传 maxDrainMs → 走默认值 1_500L
+            )
+        }
+        assertTrue(
+            "HAL 卡住时应在默认 1.5s 内返回（实测 ${elapsed}ms）",
+            elapsed <= 1_500L + 200L,
+        )
+        assertTrue("应至少轮询一次", sleepCount > 0)
+    }
 }
+

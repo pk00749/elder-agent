@@ -67,6 +67,7 @@ import com.elder.android.design.tokens.Spacing
 fun ElderSettingsScreen(
     onBack: () -> Unit,
     onOpenAsr: () -> Unit,
+    onOpenOss: () -> Unit = {},  // v0.10.0 §6 入口卡回调;默认空(便于 preview / 旧测试桩)
     onLoggedOut: () -> Unit,
     vm: ElderSettingsViewModel = viewModel(),
 ) {
@@ -99,6 +100,13 @@ fun ElderSettingsScreen(
                     ttsProviderLabel = state.ttsProviderLabel,
                     llmProviderLabel = state.llmProviderLabel,   // v0.8.1 新增
                     onClick = onOpenAsr,
+                )
+                Divider()
+                // v0.10.0 §6: 同步到云入口卡
+                SettingRowOss(
+                    configured = state.ossConfigured,
+                    bucket = state.ossBucket,
+                    onClick = onOpenOss,
                 )
                 Divider()
                 SettingRow2FontScale(current = state.fontScale, onPick = vm::setFontScale)
@@ -316,5 +324,24 @@ private fun RedDot() {
             .size(Size.WarningDotSize)
             .clip(CircleShape)
             .background(BrandColor.Error500),
+    )
+}
+
+// v0.10.0 §6: 同步到云入口卡;未配置显示红点 + 副文案「未配置」;已配置显示 Bucket 名
+@Composable
+private fun SettingRowOss(
+    configured: Boolean,
+    bucket: String,
+    onClick: () -> Unit,
+) {
+    SettingRow(
+        title = stringResource(R.string.oss_sync_card),
+        subtitle = if (configured) {
+            stringResource(R.string.oss_sync_subtitle_configured, bucket)
+        } else {
+            stringResource(R.string.oss_sync_subtitle_unconfigured)
+        },
+        trailing = if (!configured) { { RedDot() } } else null,
+        onClick = onClick,
     )
 }

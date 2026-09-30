@@ -42,4 +42,14 @@ interface DiaryDao {
 
     @Query("DELETE FROM diary_entry_local")
     suspend fun clearAll()
+
+    // === v0.10.0 §6 OSS 同步查询 ===
+    @Query("SELECT * FROM diary_entry_local WHERE id = :id")
+    suspend fun findById(id: Long): DiaryEntryEntity?
+
+    @Query("SELECT * FROM diary_entry_local WHERE oss_sync_status IN ('pending','failed') AND oss_attempts < 3 AND deleted_at IS NULL ORDER BY created_at ASC LIMIT :limit")
+    suspend fun pendingForSync(limit: Int): List<DiaryEntryEntity>
+
+    @Query("UPDATE diary_entry_local SET oss_sync_status = :status, oss_object_key = :objectKey, oss_synced_at = :syncedAt, oss_last_error = :lastError, oss_attempts = :attempts, updated_at = :now WHERE id = :id")
+    suspend fun updateOssSync(id: Long, status: String, objectKey: String?, syncedAt: Long?, lastError: String?, attempts: Int, now: Long)
 }

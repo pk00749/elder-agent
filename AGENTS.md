@@ -14,6 +14,8 @@
 | v2.2 | 2026-09-14 | Codex | 新增 §A.11 Android 0.5.0 本地 Agent 规范：用户 BYOK 直连千问 ASR/TTS 与 MiniMax M3；APK 内版本化 Prompt；MiniMax tools + Kotlin 本地校验；Room v3 访谈 / 待补做 / 摘要；TTS 失败文字兜底；Kotlin 行为测试 |
 | v2.3 | 2026-09-18 | Codex | 新增 §A.12 MiniMax Realtime ASR（客户端 WebSocket）+ §A.13 MiniMax T2A WebSocket（Cantonese_KindWoman）+ §18 「0.7.0 例外」条款；千问 / MiniMax 双 Provider 可切换；`asr_config` Migration 4→5 DROP+CREATE；MiniMax ASR 与 LLM 共用 Key、MiniMax TTS 独立 Key；`scripts/check_no_hardcoded_tokens.py` 仍绿 |
 | v2.4 | 2026-09-24 | Codex | 新增 §18 PCM sink 收口反向条款：`AndroidPcmSink.drain()/release()` 必须调 `drainBuffer()` 等 `playbackHeadPosition` 追平 `bytesWritten/2` 再 `track.stop()`，避免 AudioTrack 内部 buffer 未播放 PCM 被砍导致 TTS 尾音丢失；配套 `AndroidPcmSinkDrainTest` 4 条回归测试 |
+| v2.5 | 2026-09-27 | Codex | **新增 §A.16 v0.10.0 增量**：(1) §A.16.1 文档拆分规范 — `docs/{version}.md` 命名 + `prd.md §12.5` 索引表;旧 `docs/prd-v2.1-*` / `docs/0.9.0-*` 改名 + `superseded` 注。(2) §A.16.2 PcmSink 收尾 — `MAX_DRAIN_MS` 默认 `1_500L`;新增第 5 条 `AndroidPcmSinkDrainTest.drainBuffer default cap is 1500ms` 锁定数值。(3) §A.16.3 OSS 同步 — Room `oss_config` 单行表(Migration 6→7)+ `diary_entry_local` 5 列 `ALTER` 增量(`oss_object_key / oss_sync_status / oss_synced_at / oss_last_error / oss_attempts`,§5.10 锁定列表 → 仅追加);`OssKeyCipher`(独立 prefs file `elder_oss_keys`)+ `OssSyncClient` 接口 + `AliyunOssSyncClient`(反射 lazy init `com.aliyun.oss:aliyun-sdk-oss`,prod SDK 缺失时抛 `OSS_AUTH_FAILED`)+ `OssSyncRepository`(syncDiary / retryPending(limit=20) / enqueueDebounced 60s 节流)+ `OssSyncWorker`(CoroutineWorker + `UNMETERED` Constraints + 指数 backoff 1h/8h/24h);**唯一新上游 SDK**:`aliyun-sdk-oss:3.17.4+`(本节记录;不通过 §A.x 通用封装,0.10.0 直接依赖);WorkManager dep `androidx.work:work-runtime-ktx:2.9.1`。(4) §A.16.4 第一句粤语 — `SafetyAgent.greetingFallback()` 改粤语静态兜底(早晨,今日想去边度? / 中午,食咗饭未呀? / 今晚,今日过得点呀?);`chat_v2.txt` 软指令 OPEN 段首句必含 ≥3 个粤语词 + 鼓励引导老人讲今天;RESPOND 段允许铺垫 1 句场景,总和 ≤25 字仍受 A2 硬约束;`chat_v1.txt` 保留只读。(5) §A.16.5 不限轮数 — 删 `MAX_TURNS = 8` 硬上限;`ChatAgent` / `InterviewAgent` 删 `maxTurns` 字段 + 早退分支 + `shouldFinalize` 硬截断分支;新增 `SOFT_TURN_HINT = 20`(仅供 UI 进度提示,不参与最终化判定);`MAX_TOOL_ROUNDS = 3` 保留防工具 loop;§3.1.4 A1/A2/B/D 硬约束保留(单段 ≤25 字 / 急救 save_diary / 长度截断等同);`§18` 反向条款不变。配套:`InterviewAgentTest` 改写 `hard turn cap never creates a ninth turn` → `no hard turn cap beyond 8 rounds runs main LLM loop`(12 轮后仍走主循环);`SafetyAgentTest` +3 粤语断言;`ChatAgentOpenTest` 3 处 assertEquals 期望更新到粤语。**不动**:§5 数据模型既有字段定义 / §3.1.4 A/B/D 硬约束 / §3.1.2 录音规格 / §4.2 最小 24sp 起步硬约束 / 既有 migration / 既有 prompt 文件(`system_v1/v2/v3.txt` + `save_v1/v2/v3.txt` + `chat_v1.txt` + `memory_v1.txt` + `safety_v1.txt` 全部保留只读,新增 `chat_v2.txt` + `system_v4.txt`)/ §18 反向条款。详细设计见 [`docs/v0.10.0.md`](docs/v0.10.0.md)。 |
+| v2.6 | 2026-09-30 | Codex | **新增 §A.16.6 日志详情 DiaryDetailScreen(浅色 / 暗色 token 联动)**:`DiaryColorScheme` 数据类(14 字段,含 surfaceShadowAlpha / textMaskEnd / iconStroke 3 处翻牌关键字段)+ `DiaryColor.Light / Dark`;`ElderTheme.forceDarkMode` 跟随系统;`LocalIsDarkMode` compositionLocalOf;`DiaryDetailScreen` + `DiaryDetailComponents` + `DiaryDetailViewModel`(单文件 ≤400 行 AGENTS.md §3);`ElderOssConfig` 同级 `ElderDiaryDetail("elder/diary/detail/{diaryId}")` 路由;`ElderDiaryRecentScreen` 列表项 `clickable` 进详情 + `onOpenDiary: (Long) -> Unit` 回调;`DiaryRepository.findById` 暴露;`strings.xml` +15 `diary_detail_*`。4 处翻牌关键(对照 1-4):次要色 onSurfaceVariant 浅于正文 / 图标描边 strokeWidth=1.8 不准半透明灰 / 遮罩终点跟卡片底色走 / 阴影 0.05f 封顶。**不动**:间距 / 字号 / 圆角 / 组件树 全部不动;`BrandColor` 13 字段全部保留原值;既有页面未迁暗色;§5 / §3.1.4 / §18 不动。详细设计见 [`docs/v0.10.0.md`](docs/v0.10.0.md) §7。 |
 
 ---
 
@@ -891,3 +893,115 @@ companion object {
 - **UI 入口**：Settings → AI 服务 → 两个入口卡（语音识别 / 语音播报）→ 点击进入对应 Provider 子页（Provider 选项 + Key 输入 + 测试）。
 - **不暴露字段**：endpoint / model / voice_id 在 UI 不暴露；Provider 切换后字段从客户端硬编码常量同步到 `asr_config` 表。
 - **回滚路径**：千问 / 百炼作为可选 Provider 保留，老人切到 MiniMax 出问题时可在 Settings 切回。
+
+---
+
+### §A.16 App 0.10.0 增量（v2.5 / 2026-09-27）
+
+> 对应 PRD §3.1.4 v0.10.0 修订 + [`docs/v0.10.0.md`](docs/v0.10.0.md)。本节定义 0.10.0 阶段新增的代码约束,产品决策回 prd.md / docs/v0.10.0.md。
+
+**§A.16.1 文档拆分规范**
+
+- 命名:`docs/v{X}.{Y}.{Z}-{slug}.md`(无 Z 时 `v{X}.{Y}-{slug}.md`);prd.md ≤ 700 行目标
+- prd.md §12.5 「版本文档索引」表列每个版本 → 文件 → 一句话目的;新增版本必先在 `docs/` 创建 md 再于表追加
+- 旧 `docs/prd-v2.1-*` / `docs/0.9.0-*` 改名 `docs/vX.Y.*` + `<!-- superseded by ... -->` 注保留只读;git blame 审计可继续走
+- 修订记录表所有历史条目**保留**(审计要求);只新增「`详细设计`」列指向 `docs/{version}.md`
+- 跨版本仍生效章节(§5 / §6 / §7 / §8 / §9 / §10 / §A.x)留在 prd.md / AGENTS.md
+
+**§A.16.2 PcmSink 收尾**
+
+- `MAX_DRAIN_MS` 默认值锁定 `1_500L`(`app/src/main/java/com/elder/data/tts/PcmSink.kt`)
+- `POLL_INTERVAL_MS = 10L` 不变;`drainBuffer()` 主循环 + 入参契约不变;`release()` 走同一 `drainBuffer()` 自动收紧
+- 测试:`AndroidPcmSinkDrainTest` 第 5 条 `drainBuffer default cap is 1500ms` 锁定数值;HAL 卡住时 ≤ 1.5s + 200ms 抖动 内返回
+- §18 反向条款不变(`drain()/release()` 必须先 `drainBuffer()` 等 `playbackHeadPosition` 追平 `bytesWritten/2` 再 `track.stop()`)
+
+**§A.16.3 OSS 同步(阿里云)**
+
+- **唯一新上游 SDK**:`com.aliyun.oss:aliyun-sdk-oss:3.17.4+`(0.10.0 commit 5 直接依赖;不通过 §A.x 通用封装,沿用 0.7.0 例外条款 §18)
+- **WorkManager 依赖**:`androidx.work:work-runtime-ktx:2.9.1`(CoroutineWorker + Constraints + BackoffPolicy)
+- Room `oss_config` 单行表(id=1):
+  - `endpoint` / `bucket` / `region` / `prefix`(默认 `elder/local/`) / `sync_on_wifi_only`(默认 1)
+  - `access_key_id_enc` / `access_key_secret_enc` / `sts_token_enc?`(Keystore-wrapped 密文,独立 prefs file `elder_oss_keys`)
+  - `last_sync_at` / `last_sync_result`(JSON) / `updated_at`
+- `OssKeyCipher`(`app/src/main/java/com/elder/data/crypto/OssKeyCipher.kt`)与 `ApiKeyCipher` 同模式:`EncryptedSharedPreferences` + `MasterKey.AES256_GCM`;Keystore 不可用时内存兜底
+- `OssSyncClient` 接口 + `AliyunOssSyncClient` 实现:
+  - `putObject(prefix, key, file, contentType, ...)` → `OssUploadResult(objectKey, syncedAtMs)`
+  - `putText(prefix, key, body, ...)` → 走临时文件 → `putObject`
+  - `OssOps` 抽接口(测试桩用);prod 实现走反射 `Class.forName("com.aliyun.oss.OSSClient")` lazy init
+  - 错误码:`OSS_AUTH_FAILED` / `OSS_NETWORK_ERROR` / `OSS_BUCKET_NOT_FOUND` / `OSS_BAD_REQUEST`(OssSyncException)
+- `OssSyncRepository`:
+  - `syncDiary(diaryId): SyncOutcome` 上传音频 + 文本 JSON 双写;写回 `oss_sync_status='synced'`
+  - `retryPending(limit=20): Int` 扫 `status IN ('pending','failed') AND oss_attempts < 3`
+  - `enqueueDebounced(now): Boolean` 60 秒节流,首次(`lastEnqueueMs == 0L`)永远 true
+- `OssSyncWorker`(CoroutineWorker):
+  - `Constraints.Builder().setRequiredNetworkType(NetworkType.UNMETERED)` 实现 Wi-Fi Only
+  - `setBackoffCriteria(EXPONENTIAL, 60_000L, MILLISECONDS)` → 指数 backoff(1h / 8h / 24h)
+  - `WorkManager.enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.REPLACE, request)`
+- `diary_entry_local` §5.10 锁定列表 → 仅允许 ALTER 追加;增量 5 列:`oss_object_key` / `oss_sync_status`(默认 `'pending'`) / `oss_synced_at` / `oss_last_error` / `oss_attempts`(默认 0)
+- Migration 6→7:`ALTER TABLE diary_entry_local ADD COLUMN ...` × 5 + `CREATE TABLE oss_config` + `CREATE INDEX oss_config_updated_at`
+- UI:`OssConfigScreen` 6 字段输入 + 测试 + 保存 + 立即同步;`ElderSettingsScreen` 加 `SettingRowOss` 入口卡;Route `elder/settings/oss`
+- **不动**:§3.1.4 / §3.1.5 / §3.1.6 / §3.2 不引用 OSS;服务端 / 家属端不动;`oss_object_key` 仅给未来 v2.x 服务端读的指针;本地永远保留副本(text 在 Room / audio 在 cacheDir);OSS 成功 ≠ 本地删除
+
+**§A.16.4 第一句粤语 + Agent 多说**
+
+- `SafetyAgent.greetingFallback(timeOfDay)` 返回粤语静态兜底:
+  - `TimeOfDay.MORNING → "早晨,今日想去边度?"`
+  - `TimeOfDay.NOON    → "中午,食咗饭未呀?"`
+  - `TimeOfDay.EVENING → "今晚,今日过得点呀?"`
+- 任一字符串必须包含 ≥1 个粤语口语词(`嘅 / 嗰 / 啲 / 咗 / 咩 / 㗎 / 喔 / 啦 / 冇 / 早 / 食 / 点 / 边 / 呀`);不再出现「早上好,今天想聊什么」普通话短语
+- `chat_v2.txt` 软指令(`app/src/main/assets/agent/chat_v2.txt`,旧 `chat_v1.txt` 保留只读):
+  - §OPEN 段:首句**必须粤语**(口语词 ≥ 3 个);3 个粤语 OPEN 范例
+  - §OPEN 段:鼓励引导老人主动讲**今天**的事(事件 + 上下文锚点)
+  - §RESPOND 段:Agent 可主动铺垫 1 句场景(总和 ≤25 字仍受 A2 硬约束)
+- `AgentPrompts.CHAT_PROMPT = "agent/chat_v2.txt"`;`VERSION = "v4"`;`SYSTEM_PROMPT_V1`(占位)= `"agent/system_v4.txt"`(`system_v4.txt` 由 `system_v3.txt` 复制 + §C2 标记删除 8 轮硬上限)
+- §3.1.4 A1(一次一问)/ A2(单段 ≤25 字)/ B/D 硬约束**保留**;Agent 多说靠 prompt 软指令,不修硬约束
+- §18 反向条款不变
+
+**§A.16.5 不限轮数**
+
+- 删 `MAX_TURNS = 8` 硬上限(`ChatAgent` / `InterviewAgent` companion object 删除)
+- `ChatAgent`:删 `private val maxTurns` 构造参数 + 删 `respond()` 内 `if (session.turns.size >= maxTurns)` 早退分支 + 删 `shouldFinalize` 内 `session.turns.size + 1 >= maxTurns` 分支
+- `InterviewAgent`:同步删除 `maxTurns` 参数 + 构造 ChatAgent 不传 `maxTurns`
+- 新增 `SOFT_TURN_HINT = 20`(仅供 UI 进度提示,不参与最终化判定)
+- `InterviewUiState.maxTurns` getter 改 `SOFT_TURN_HINT`;`canRevise` 改由 `session.status == SAVED` 判定
+- `InterviewViewModel.willFinalize` 删 `MAX_TURNS` 硬截断分支(仅保留 `isExplicitClose`);`revise()` 删 `MAX_TURNS` 守卫
+- `MAX_TOOL_ROUNDS = 3` 保留(防工具 loop)
+- 软上限 20 轮软指令由 `chat_v2.txt` §C 末尾承担(`mark_dimension_covered` 已含 `feeling` 时倾向 `MOVE_ON(closing)`;非硬限)
+- `§11.5` 默认值改为「软上限 20 轮(无硬截断)」;原「硬上限 MAX_TURNS=8」删除
+- `InterviewAgentTest` 改写:`hard turn cap never creates a ninth turn` → `no hard turn cap beyond 8 rounds runs main LLM loop`(12 轮后仍走主循环 → `AgentTurnResult.Reply`,turn 数 + 1)
+- `SafetyAgentTest` 3 处 `greetingFallback` 断言改粤语 + 扩 regex 覆盖 `早晨/食咗/点/边度/呀`
+- `ChatAgentOpenTest` 3 处 `assertEquals` 期望更新到粤语
+- `ElderHomeViewModelTest.elderHomeUiState_exposesOnlyFourFields` 期望更新:4 字段(无 `upgradeToast`,详见 §A.16 之前的 commit 3)
+
+**§A.16.6 日志详情 DiaryDetailScreen(浅色 / 暗色 token 联动)**
+
+- 对应 PRD §3.1.7 「今日记录」/ [`docs/v0.10.0.md`](docs/v0.10.0.md) §7。新增 `DiaryDetailScreen` 屏幕,用户从时间轴列表项点击进详情(列表项 ↔ 改写按钮解耦)。
+- **Token 表(只列改动;间距 / 字号 / 圆角 / 组件树全部不动)**:
+  - 页面背景 `#F4F4F6` / `#000000`(浅色别用纯白,卡片没层次)
+  - 卡片表面 `#FFFFFF` + 1px `#ECECEF` 描边 + 0.05 阴影 / `#26262A` 无描边无投影
+  - 标题 / 正文 `#1A1A1C` / `#FFFFFF`
+  - 次要(元信息 / 时间码)`#8A8A8E` / `#8E8E93`(对照 1:必须浅于正文)
+  - 转写文本 `#5A5A5E` / `#C7C7CC`
+  - 圆形按钮底 `#F0F0F2` / `#3A3A3C`;播放三角 `#1A1A1C` / `#FFF`
+  - 录音红点 `#FF3B30` / `#FF453A`(唯一高饱和,跨主题保持)
+  - 进度轨道 `#E6E6EA` / `#3A3A3C`;已播 `#1A1A1C` / `#FFF`;滑块 `#1A1A1C` / `#FFF`
+  - 文字截断遮罩终点 `#FFFFFF` / `transparent`(对照 3:跟着卡片底色走)
+  - 图标描边(strokeWidth=1.8)`#1A1A1C` / `#FFFFFF`(对照 2:不准半透明灰)
+  - 卡片投影透明度 ≤ 0.05f / `0f`(对照 4:封顶)
+- **代码层**:
+  - `app/design/src/main/java/com/elder/design/tokens/Dimens.kt`:新增 `data class DiaryColorScheme(14 字段)` + `object DiaryColor { Light / Dark }` + `val LocalIsDarkMode = compositionLocalOf<Boolean>`
+  - `app/src/main/java/com/elder/ui/theme/ElderTheme.kt`:新增 `forceDarkMode: Boolean? = null` 参数;`null` 时跟随 `isSystemInDarkTheme()`;`CompositionLocalProvider` 新增 `LocalIsDarkMode provides isDark`
+  - 既有页面无感:`MaterialTheme.colorScheme` 仍为 `ElderColorScheme`(light);只有 `DiaryDetailScreen` 通过 `DiaryColor.current()` 读主题对照表
+- **屏幕组件**(单文件 ≤ 400 行 AGENTS.md §3):
+  - `app/src/main/java/com/elder/screen/diary/DiaryDetailViewModel.kt`(137 行)
+  - `app/src/main/java/com/elder/screen/diary/DiaryDetailScreen.kt`(208 行)
+  - `app/src/main/java/com/elder/screen/diary/DiaryDetailComponents.kt`(318 行)
+- **路由 & 文件清单**:
+  - `app/src/main/java/com/elder/nav/Routes.kt`:新增 `ElderDiaryDetail("elder/diary/detail/{diaryId}")` + `build(diaryId)` helper
+  - `app/src/main/java/com/elder/nav/AppNavGraph.kt`:注册 `navArgument(diaryId LongType)` + composable
+  - `app/src/main/java/com/elder/screen/elder/ElderDiaryRecentScreen.kt`:新增 `onOpenDiary: (Long) -> Unit = {}` 参数 + DiaryRow Surface 加 `clickable(onClick = onClick)`
+  - `app/src/main/java/com/elder/data/DiaryRepository.kt`:新增 `findById(id)` 暴露给 VM
+  - `app/src/main/res/values/strings.xml`:+15 `diary_detail_*`
+- **交互**:MediaPlayer 播放 existing audio + 200ms ticker;录音 / 展开收起 / 底部 5 图标走 Toast「功能开发中」(避免 UI 假动作)
+- **不动**:`BrandColor` 既有 13 字段全部保留原值;既有所有页面未迁暗色;§5 数据模型既有字段定义 / §3.1.4 Agent 行为约束 / 既有 migration / 既有 prompt 文件 / §18 反向条款 不动
+

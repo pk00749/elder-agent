@@ -265,8 +265,9 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         val turnsWithCurrent = session.turns.map(InterviewTurn::elderText) + text
         // v0.6.0：willFinalize 仅基于 isExplicitClose + turn 数（dimensionCount 已 deprecated）；
         // C1 维度判定由 InterviewAgent.respond() 内部 coveredDimensions 控制。
-        val willFinalize = com.elder.android.agent.AgentSafety.isExplicitClose(text) ||
-            session.turns.size + 1 >= InterviewAgent.MAX_TURNS
+        // v0.10.0 §5: 删除 session.turns.size + 1 >= MAX_TURNS 硬截断;willFinalize 仅基于 isExplicitClose
+        // 维度判定由 ChatAgent.respond() 内部 coveredDimensions 控制(此处不下判定)
+        val willFinalize = com.elder.android.agent.AgentSafety.isExplicitClose(text)
         val speech = StreamingSpeechBuffer(
             // Bug fix：TTS 走 ttsKey()（按 cfg.ttsProvider 选 apiKey / ttsMinimaxApiKey），
             // 而不是 credentials.apiKey（千问 Key），否则 MiniMax TTS 用千问 Key 永远 401。
@@ -424,7 +425,7 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
 
     fun revise() {
         val session = _state.value.session ?: return
-        if (session.turns.size >= InterviewAgent.MAX_TURNS) return
+        // v0.10.0 §5: 删除 session.turns.size >= MAX_TURNS 硬截断;UiState.canRevise 已限 SAVED 状态
         viewModelScope.launch {
             val updated = session.copy(
                 status = InterviewStatus.ACTIVE,

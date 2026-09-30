@@ -3,9 +3,13 @@ package com.elder.android.agent
 import android.content.Context
 
 /**
- * 对应 prd.md §3.1.4 v0.6.0 + v0.7.0 修订；v0.9.0 拆为 4 个 prompt 接口。
+ * 对应 prd.md §3.1.4 v0.6.0 + v0.7.0 + v0.10.0 修订；v0.9.0 拆为 4 个 prompt 接口。
  * v0.7.0 修订（system_v3 / save_v3）：A3 明确"用粤语回答"，对齐 §A.13 MiniMax Cantonese_KindWoman TTS 音色。
  * v0.9.0 拆分：ChatPrompts / SafetyPrompts / MemoryPrompts / SavePrompts；老 PromptProvider 保留兼容层。
+ * v0.10.0 修订（chat_v2 / system_v4）：
+ *  - CHAT_PROMPT 升 v1 → v2：OPEN 段首句强化粵語(≥3 词),鼓励引导老人讲今天;RESPOND 段允许铺垫场景(总和 ≤25 字仍受 A2)
+ *  - C 收尾删除 8 轮硬上限,改软上限 20 轮软指令
+ *  - 静态兜底 SafetyAgent.greetingFallback() 改粵語(由 SafetyAgent.kt 独立 commit 处理)
  */
 
 /** v0.5.0 / v0.6.0 / v0.7.0 / v0.8.x 兼容接口。v0.9.0 由 [ChatPrompts] 替代。 */
@@ -127,13 +131,14 @@ class AgentPrompts(private val context: Context) : PromptProvider, ChatPrompts, 
         context.assets.open(path).bufferedReader(Charsets.UTF_8).use { it.readText() }
 
     companion object {
-        const val VERSION = "v3"
+        const val VERSION = "v4"  // v0.10.0 §4 / §5: chat_v1→v2, system_v3→v4
 
-        // 旧版本文件保留（AGENTS.md §11 prompt 版本化要求）：v1 = 0.5.0 基础 / v2 = 0.6.0 加记忆层 / v3 = 0.7.0+ 加粤语
-        private const val SYSTEM_PROMPT_V1 = "agent/system_v1.txt"
+        // 旧版本文件保留（AGENTS.md §11 prompt 版本化要求）：v1 = 0.5.0 基础 / v2 = 0.6.0 加记忆层 / v3 = 0.7.0+ 加粤语 / v4 = 0.10.0+ 删 8 轮硬上限 + 软铺垫场景
+        // 注意 SYSTEM_PROMPT_V1 常量名仅是占位（v0.9.0 兼容层用），运行时 main path 走 CHAT_PROMPT (v2)
+        private const val SYSTEM_PROMPT_V1 = "agent/system_v4.txt"  // v0.10.0 §5: 兼容层也指向 v4,旧 system_v1/v2/v3 文件保留只读
 
         // v0.9.0 新增：拆分后的 4 个 prompt 文件
-        private const val CHAT_PROMPT = "agent/chat_v1.txt"
+        private const val CHAT_PROMPT = "agent/chat_v2.txt"  // v0.10.0 §4: 粵語強化 + 引導老人說今天
         private const val SAFETY_PROMPT = "agent/safety_v1.txt"
         private const val MEMORY_PROMPT = "agent/memory_v1.txt"
         private const val SAVE_PROMPT = "agent/save_v3.txt"  // SaveAgent 仍用 save_v3（保持兼容）

@@ -10,6 +10,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elder.android.BuildConfig
 import com.elder.android.data.AsrConfigRepository
+import com.elder.android.data.db.ElderDatabase
 import com.elder.android.data.DeviceMetaRepository
 import com.elder.android.data.db.AsrProvider
 import com.elder.android.data.db.FontScale
@@ -29,6 +30,8 @@ data class ElderSettingsUiState(
     val asrProviderLabel: String = "",
     val ttsProviderLabel: String = "",
     val llmProviderLabel: String = "",   // v0.8.1 新增
+    val ossConfigured: Boolean = false, // v0.10.0 §6 同步到云
+    val ossBucket: String = "",          // v0.10.0 §6 已配置时显示 Bucket
     val showLogoutConfirm: Boolean = false,
     val loggedOut: Boolean = false,
     val versionName: String = BuildConfig.VERSION_NAME,
@@ -60,6 +63,19 @@ class ElderSettingsViewModel(app: Application) : AndroidViewModel(app) {
                         asrProviderLabel = asrLabel(cfg?.asrProvider, AsrProvider.MINIMAX_REALTIME),
                         ttsProviderLabel = ttsLabel(cfg?.ttsProvider, TtsProvider.MINIMAX),
                         llmProviderLabel = llmLabel(cfg?.llmProvider, LlmProvider.MINIMAX),   // v0.8.1
+                    )
+                }
+            }
+        }
+        // v0.10.0 §6: 读 oss_config 单行表;暴露给 SettingRowOss
+        viewModelScope.launch {
+            ElderDatabase.get(app).ossConfigDao().let { dao ->
+                // 一次性读,不 observe(oss_config 写入频率低;简化 UI 同步)
+                val cfg = dao.get()
+                _uiState.update {
+                    it.copy(
+                        ossConfigured = cfg != null,
+                        ossBucket = cfg?.bucket.orEmpty(),
                     )
                 }
             }

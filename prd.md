@@ -2,8 +2,8 @@
 
 > 文档版本：v3.0
 > 文档状态：定稿
-> 当前已交付基线：v3.0.1 / App 0.4.0
-> 当前目标发布版本：0.7.0
+> 当前已交付基线：v0.9.1 / App 0.9.1
+> 当前目标发布版本：0.10.0
 > 品牌：老友
 > 平台：Android App（不再做微信小程序）
 > 目标读者：产品 / 工程 / 测试
@@ -13,6 +13,7 @@
 
 | 版本 | 日期       | 作者  | 主要变更 |
 |------|------------|-------|----------|
+| v0.10.0 | 2026-09-27 | Codex | **设定 App 0.10.0 目标**：(1) 文档瘦身 — prd.md 加 `§12.5 版本文档索引`,11 份 `docs/{version}.md` 命名规范,旧 `docs/prd-v2.1-*` / `docs/0.9.0-*` 改名 + `superseded` 注保留只读;详细设计见 [`docs/v0.10.0.md`](docs/v0.10.0.md) §1。(2) TTS 收尾 — `PcmSink.MAX_DRAIN_MS` 5_000L → 1_500L;AndroidPcmSinkDrainTest 新增第 5 条 `drainBuffer default cap is 1500ms` 锁定数值;§18 反向条款不变 (`drain()/release()` 必须先 `drainBuffer()`)。详见 [`docs/v0.10.0.md`](docs/v0.10.0.md) §2。(3) 删 v0.7.0 一次性升级 Toast — `ServiceLocator.detectUpgradeToast()` / `_upgradeToast` / `upgradeToast` getter / `consumeUpgradeToast()` 全删;`ElderHomeViewModel` 删 `upgradeToast` 字段 + 监听 + `dismissUpgradeToast()`;`ElderHomeScreen` 删 `uiState.upgradeToast?.let` + 死 import;`strings.xml` 删 `home_upgrade_0_7_0`;全新安装不再弹「0.7.0 升级」Toast。详见 [`docs/v0.10.0.md`](docs/v0.10.0.md) §3。(4) 第一句粤语 + Agent 多说 — `SafetyAgent.greetingFallback()` 改粤语(早晨,今日想去边度? / 中午,食咗饭未呀? / 今晚,今日过得点呀?);新增 `chat_v2.txt`(OPEN 段首句必含 ≥3 个粤语词;鼓励引导老人讲今天;RESPOND 段允许铺垫 1 句,总和 ≤25 字仍受 A2);新增 `system_v4.txt`;`AgentPrompts.CHAT_PROMPT` v1→v2 / `VERSION` v3→v4 / `SYSTEM_PROMPT_V1` 占位指向 v4;`SafetyAgentTest` +3 粤语断言;`ChatAgentOpenTest` 期望更新。详见 [`docs/v0.10.0.md`](docs/v0.10.0.md) §4。(5) 不限轮数 — `MAX_TURNS=8` 硬上限删除;`ChatAgent` / `InterviewAgent` 删 `maxTurns` 字段 + 早退分支 + `shouldFinalize` 硬截断分支;新增 `SOFT_TURN_HINT=20`(仅供 UI 进度提示,不参与最终化判定);`InterviewUiState.maxTurns` 改 `SOFT_TURN_HINT`;`canRevise` 改由 `session.status == SAVED` 判定;`InterviewViewModel.willFinalize` / `revise()` 删 `MAX_TURNS` 守卫;`InterviewAgentTest` 改写 `hard turn cap never creates a ninth turn` → `no hard turn cap beyond 8 rounds runs main LLM loop`(12 轮后仍走主循环)。详见 [`docs/v0.10.0.md`](docs/v0.10.0.md) §5。(6) 阿里云 OSS 同步(本地 + 云双保存) — 新增 `OssConfigEntity` 单行表 + `OssConfigDao` + 增量 5 列 `oss_object_key` / `oss_sync_status` / `oss_synced_at` / `oss_last_error` / `oss_attempts`(§5.10 锁定列表 → 仅 ALTER 追加)+ Migration 6→7;`OssKeyCipher`(独立 prefs file `elder_oss_keys`)+ `OssSyncClient` 接口 + `AliyunOssSyncClient`(反射 lazy init aliyun-sdk-oss,prod SDK 缺失时 `OssSyncException`)+ `OssSyncRepository`(syncDiary / retryPending / enqueueDebounced 60s 节流)+ `OssSyncWorker`(CoroutineWorker + `UNMETERED` Constraints + 指数 backoff)+ `OssConfigScreen` + `OssConfigViewModel`;ElderSettings 新增「同步到云」入口卡;`ServiceLocator` 注入 ossKeyCipher / ossSyncClient / ossSyncRepo;`Routes` 新增 `ElderOssConfig`;`strings.xml` +20 `oss_*` 字符串;`app/build.gradle.kts` + `androidx.work:work-runtime-ktx:2.9.1`(AGENTS.md §A.16.3 记录为 0.10.0 唯一新上游 SDK)。详见 [`docs/v0.10.0.md`](docs/v0.10.0.md) §6。(7) 日志详情 DiaryDetailScreen(浅色 / 暗色 token 联动) — 新增 `data class DiaryColorScheme` + `object DiaryColor { Light / Dark }` + `LocalIsDarkMode` compositionLocalOf;`ElderTheme` 加 `forceDarkMode` 参数;新增 `DiaryDetailScreen` + `DiaryDetailComponents` + `DiaryDetailViewModel`;新增 `ElderOssConfig` 同级 `ElderDiaryDetail("elder/diary/detail/{diaryId}")` 路由;`ElderDiaryRecentScreen` 列表项点击进详情;`DiaryRepository.findById(id)` 暴露给 VM;4 处必须翻(次要色 / 图标描边 / 遮罩终点 / 阴影);间距 / 字号 / 圆角 / 组件树全部不动;详见 [`docs/v0.10.0.md`](docs/v0.10.0.md) §7。**不动**:§5 数据模型既有字段定义 / §3.1.4 A1/A2/B/D 硬约束 / §3.1.2 录音规格 / §4.2 最小 24sp 起步硬约束 / 既有 migration / 既有 prompt 文件(`system_v1/v2/v3.txt` + `save_v1/v2/v3.txt` + `chat_v1.txt` + `memory_v1.txt` + `safety_v1.txt` 全部保留只读,新增 `chat_v2.txt` + `system_v4.txt`)/ AGENTS.md §18 反向条款。 |
 | v1.0 | 2026-08-23 | Codex | 推倒重来：平台改为 Android；功能缩到 MVP 三功能；引入 DeepSeek Harness + 腾讯云 Agent + COS |
 | v2.0 | 2026-08-24 | Codex | PRD/AGENT.md 分工重排：所有需求迁移到 PRD；AGENT.md 只留实施规范；新增 §3.1.4 Agent 行为约束、§7 安全与隐私、§10 系统质量要求；D1–D4 锁定，新增 D5 |
 | v2.1 | 2026-08-27 | Codex | UI 设计 token 系统化：§4 → §4.1-§4.10（色彩 / 字号 / 间距 / 圆角 / 动效 / 声音 / 权限 / 空态 / Toast / 黄条 / 加载）；§3.1 老人端 4 → 8 子节（新增 §3.1.5 主屏 / §3.1.6 访谈总结 / §3.1.7 今日记录 / §3.1.8 设置）；§3.2 家属端 3 → 9 子节重排（主屏 / Tab / 表单 / 日志 / 绑定全部展开）；§6.1 端点 16 → 20（新增 bind/confirm + bind/pending + diary/flush-pending + bind/elder 修订）；§6.2 错误码新增 REMINDER_TIME_PAST / BIND_CODE_EXPIRED / BIND_ATTEMPT_NOT_FOUND；§10.4 兼容 TTS 粤语男声 + ASR 粤语主识别；§11 待澄清 14 → 31 项（11.15-§I.9 全闭环）；§J3 联动 §I-4 剂量枚举 [PILL\|HALF\|SPOON\|CUSTOM] 收紧为 [PILL\|HALF\|SPOON] 走备注 |
@@ -1730,6 +1731,31 @@ pending_diary(
   - 不缩短 8 轮访谈上限(第一句不计 turn)
   - §4.2 最小 24sp 起步硬约束保留(0.9.0 只追加列,不改约束语义)
 - 交付物:10 屏 UI 调整 + 4 系统组件 + 3 个新 prompt + 4 个新 Agent 类 + 32 个新测试 = **46 个 Agent 测试**(从 14 → 46,翻 3 倍)
+
+---
+
+### 12.5 版本文档索引（v0.10.0 拆分；§12.5 §A.16.1）
+
+> v0.10.0 commit 1 拆分 prd.md 1750 行 → 1726 行,把每个版本的设计/行为约束挪到 `docs/{version}.md`;prd.md §5 / §6 / §7 / §8 / §9 / §10 跨版本仍生效的章节保留。版本 md 文件命名规范:`v{X}.{Y}.{Z}-{slug}.md`。
+
+| 版本 | 文件 | 一句话目的 |
+|------|------|-----------|
+| v2.1 | `docs/v2.1-archive.md` | 服务端版本归档（保留只读;git blame 审计） |
+| v2.1.2 | `docs/v2.1.2-mvp-auth.md` | MVP 匿名设备认证（prd.md §5.1 `family_user.device_token` / §6.1 `/v1/auth/anonymous-device`） |
+| v3.0 | `docs/v3.0-mvp.md` | MVP 范围重定（老人端独立运行;服务端/家属端推迟到 v2.x） |
+| v3.0.1 | `docs/v3.0.1-bailian-asr.md` | 阿里百炼 Qwen-Audio-Realtime Android SDK 集成（§A.1.b / §A.8 整体重写） |
+| v0.5.0 | `docs/v0.5.0-local-agent.md` | 本地 Agent 多轮访谈（§3.1.4 / §3.1.6 / §A.11） |
+| v0.6.0 | `docs/v0.6.0-hermes.md` | Hermes 风格记忆层（§F1–F7;`elder_facts` 表 + Room SQL `LIKE '%query%'`） |
+| v0.7.0 | `docs/v0.7.0-dual-provider.md` | ASR/TTS 双 Provider 可切换（§A.13 / §A.14） |
+| v0.8.0 | `docs/v0.8.0-llm-provider.md` | LLM 三 Provider（§A.15;千问 / MiniMax / DeepSeek） |
+| v0.9.0 | `docs/v0.9.0-display-clarity.md` | 10 屏文字清晰度 + Agent 拆分 1→3 + ChatAgent 主动开问（主索引;详见 `docs/v0.9.0-chat-agent.md` + `docs/v0.9.0-chat-agent-opening.md`） |
+| v0.9.1 | `docs/v0.9.1-single-paragraph.md` | 单段回复（取消 v0.6.0 A6 拆段;ack/probe 合并为 assistantText 单字段） |
+| **v0.10.0** | **`docs/v0.10.0.md`** | **本版本：文档瘦身 + TTS 收尾（1500ms）+ 第一句粤语 + 不限轮数 + 阿里云 OSS 同步** |
+
+- **本版本（v0.10.0）新引入**：迁移到 `docs/{version}.md` 命名规范（§A.16.1）
+- **后续 PR 必做**：每个新版本需先在 `docs/` 下创建对应 `vX.Y.Z-*.md`,并在本表追加一行;不再往 `prd.md §12` 写增量（除跨版本章节 §5/§6/§7/§8/§9/§10）
+- **保留旧文件**:`docs/v0.9.0-chat-agent-opening.md` + `docs/v0.9.0-chat-agent.md` 加 `<!-- superseded by v0.9.0-display-clarity.md -->` 注;git blame 审计可继续走
+- **prd.md 目标行数**：≤ 700 行（当前 1736 → 后续按版本逐步瘦身;不在 v0.10.0 一次性切到 700）
 
 ---
 

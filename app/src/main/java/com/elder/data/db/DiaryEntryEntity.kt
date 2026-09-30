@@ -1,4 +1,6 @@
 // 对应 PRD §5.10 diary_entry_local（v3.0 MVP 本地 Room 表）
+// v0.10.0 §6.3: 增量 5 列 oss_object_key / oss_sync_status / oss_synced_at / oss_last_error / oss_attempts
+// §5.10 在锁定列表 → 仅 ALTER 追加,不动既有字段类型/默认值/必填。
 package com.elder.android.data.db
 
 import androidx.room.ColumnInfo
@@ -33,6 +35,13 @@ data class DiaryEntryEntity(
     @ColumnInfo(name = "created_at") val createdAt: Long,           // epoch ms
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
     @ColumnInfo(name = "deleted_at") val deletedAt: Long? = null,   // 软删除（§K.2f 老人端不提供删入口）
+
+    // === v0.10.0 §6.3 增量字段（§5.10 在锁定列表;允许 ALTER TABLE 追加;不动既有字段） ===
+    @ColumnInfo(name = "oss_object_key") val ossObjectKey: String? = null,       // 上传成功后写的对象 key;失败 / 未启用时 NULL
+    @ColumnInfo(name = "oss_sync_status") val ossSyncStatus: String = "pending", // enum pending/syncing/synced/failed
+    @ColumnInfo(name = "oss_synced_at") val ossSyncedAt: Long? = null,           // epoch ms
+    @ColumnInfo(name = "oss_last_error") val ossLastError: String? = null,       // 失败时写错误码(OSS_AUTH_FAILED/OSS_NETWORK_ERROR/OSS_BUCKET_NOT_FOUND)
+    @ColumnInfo(name = "oss_attempts") val ossAttempts: Int = 0,                 // 重试计数(<3 触发 retry,>=3 标 failed)
 ) {
     enum class Source { ASR_ORIGINAL, ASR_EDITED, MANUAL }
 }

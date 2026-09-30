@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Easing
+import androidx.compose.runtime.Composable
 
 object BrandColor {
     val Brand500 = Color(0xFF4A7A4A)
@@ -125,3 +126,90 @@ object Size {
     // 弹窗编辑文本框（§3.1.7 改写弹窗）
     val EditDialogFieldHeight = 160.dp
 }
+
+
+/**
+ * v0.10.0 §7 日志详情页 token 对照表(只列改动)。
+ *
+ * 设计合约:
+ * - 间距 / 字号 / 圆角 / 组件树全部不动(沿用 Spacing / FontSize / Corner / Size)
+ * - 仅本页(DiaryDetailScreen)使用 DiaryColorScheme;既有页面继续走 BrandColor
+ * - 4 处必须翻的(对应浅色版):
+ *   1. 次要文字必须**浅**于正文 → secondary 必须比 onSurface 灰度高
+ *   2. 图标深色描边 strokeWidth=1.8 → 不准半透明灰
+ *   3. 文字截断遮罩终点 → surface 底色(浅色 #FFFFFF;暗色 transparent)
+ *   4. 浅色卡片阴影 0.05 透明度封顶;暗色无投影
+ */
+data class DiaryColorScheme(
+    val background: Color,        // 页面背景
+    val surface: Color,           // 卡片表面
+    val surfaceBorder: Color,     // 卡片 1px 描边(浅色专用)
+    val surfaceShadowAlpha: Float,// 卡片投影透明度(浅色 ≤ 0.05;暗色 0f 无投影)
+    val divider: Color,           // 分隔线
+    val onSurface: Color,         // 标题 / 正文主色
+    val onSurfaceVariant: Color,  // 次要文字(必须比 onSurface 浅——对照 1)
+    val transcriptText: Color,    // 转写文本(比 secondary 还浅一档)
+    val buttonSurface: Color,     // 圆形按钮底
+    val playTriangle: Color,      // 播放三角(在 buttonSurface 上)
+    val recordDot: Color,         // 录音红点(唯一高饱和,跨主题保持)
+    val progressTrack: Color,     // 进度轨道
+    val progressPlayed: Color,    // 已播进度
+    val progressThumb: Color,     // 滑块
+    val textMaskEnd: Color,       // 文字截断遮罩终点色(对照 3:浅色=#FFFFFF;暗色=Transparent)
+    val iconStroke: Color,        // 工具栏图标描边(对照 2:深色 stroke;浅色 #1A1A1C)
+)
+
+object DiaryColor {
+    val Light = DiaryColorScheme(
+        background = Color(0xFFF4F4F6),         // §7 别用纯白,卡片才有层次
+        surface = Color(0xFFFFFFFF),
+        surfaceBorder = Color(0xFFECECEF),       // 1px 描边
+        surfaceShadowAlpha = 0.05f,              // 浅色必须有极淡投影;0.05 封顶
+        divider = Color(0xFFECECEF),
+        onSurface = Color(0xFF1A1A1C),           // 标题 / 正文
+        onSurfaceVariant = Color(0xFF8A8A8E),    // 次要(必须**浅**于正文)
+        transcriptText = Color(0xFF5A5A5E),      // 转写文本(比 secondary 深一档)
+        buttonSurface = Color(0xFFF0F0F2),       // 圆形按钮底
+        playTriangle = Color(0xFF1A1A1C),        // 播放三角
+        recordDot = Color(0xFFFF3B30),           // 录音红点(跨主题一致)
+        progressTrack = Color(0xFFE6E6EA),
+        progressPlayed = Color(0xFF1A1A1C),
+        progressThumb = Color(0xFF1A1A1C),
+        textMaskEnd = Color(0xFFFFFFFF),         // 终点=卡片底色(对照 3)
+        iconStroke = Color(0xFF1A1A1C),          // 深色描边(strokeWidth=1.8)
+    )
+
+    val Dark = DiaryColorScheme(
+        background = Color(0xFF000000),
+        surface = Color(0xFF26262A),
+        surfaceBorder = Color(0xFF000000),       // 暗色无描边(对比靠亮度)
+        surfaceShadowAlpha = 0f,                  // 暗色无投影(对照 4)
+        divider = Color(0xFF3A3A3C),
+        onSurface = Color(0xFFFFFFFF),
+        onSurfaceVariant = Color(0xFF8E8E93),    // 次要
+        transcriptText = Color(0xFFC7C7CC),
+        buttonSurface = Color(0xFF3A3A3C),
+        playTriangle = Color(0xFFFFFFFF),
+        recordDot = Color(0xFFFF453A),
+        progressTrack = Color(0xFF3A3A3C),
+        progressPlayed = Color(0xFFFFFFFF),
+        progressThumb = Color(0xFFFFFFFF),
+        textMaskEnd = Color(0x00000000),          // transparent(对照 3)
+        iconStroke = Color(0xFFFFFFFF),
+    )
+
+    /**
+     * v0.10.0 §7:DiaryDetailScreen 顶层调用拿当前主题的对照表。
+     * 既有页面继续用 BrandColor(不受影响)。
+     */
+    @Composable
+    fun current(): DiaryColorScheme = current(LocalIsDarkMode.current)
+
+    fun current(isDark: Boolean): DiaryColorScheme = if (isDark) Dark else Light
+}
+
+/**
+ * v0.10.0 §7 主题开关 Composable(ElderTheme 内 provide;DiaryDetail 顶层 LocalIsDarkMode.current 读)。
+ * 既有页面不读这个,完全无感。
+ */
+val LocalIsDarkMode = androidx.compose.runtime.compositionLocalOf<Boolean> { error("LocalIsDarkMode 未提供;请在 ElderTheme 内嵌套") }

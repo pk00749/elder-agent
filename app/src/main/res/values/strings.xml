@@ -68,6 +68,22 @@
     <string name="diary_list_filter_7d">近7天</string>
     <string name="diary_detail_play">▶ 听</string>
     <string name="diary_detail_play_failed">听不了，请稍后再试</string>
+    <!-- v0.10.0 §7 日记详情 -->
+    <string name="diary_detail_back">返回</string>
+    <string name="diary_detail_share">分享</string>
+    <string name="diary_detail_search">搜索</string>
+    <string name="diary_detail_overflow">更多</string>
+    <string name="diary_detail_audio_label">录音 %1$d</string>
+    <string name="diary_detail_audio_play">播放录音</string>
+    <string name="diary_detail_audio_record">重新录音</string>
+    <string name="diary_detail_transcript_expand">展开</string>
+    <string name="diary_detail_transcript_collapse">收起</string>
+    <string name="diary_detail_bottom_ai">AI 魔法棒</string>
+    <string name="diary_detail_bottom_done">完成</string>
+    <string name="diary_detail_bottom_image">图片</string>
+    <string name="diary_detail_bottom_add">添加</string>
+    <string name="diary_detail_bottom_voice">语音</string>
+    <string name="diary_detail_feature_wip">功能开发中</string>
 
     <!-- §3.2.7 / §3.2.8 绑定 -->
     <string name="bind_qr_scan_title">扫爸妈手机上的二维码</string>
@@ -237,8 +253,6 @@
     <!-- v0.8.1 新增：含 LLM 的完整摘要 -->
     <string name="settings_asr_summary_v2">ASR: %1$s · TTS: %2$s · LLM: %3$s</string>
 
-    <!-- §3.1.5 主屏升级提示（v0.7.0） -->
-    <string name="home_upgrade_0_7_0">0.7.0 升级：请到 AI 服务 重新配置 ASR 与 TTS</string>
 
     <!-- 空态 / 加载 / 网络 -->
     <string name="empty_no_reminders">还没有提醒，点上面的 + 加一个</string>
@@ -253,4 +267,26 @@
     <string name="toast_save_error">保存失败，再试一次</string>
     <string name="toast_server_busy">服务器忙，过会儿再试</string>
     <string name="toast_unbound_no_diary">未绑定家人，写好的日记会丢失</string>
+
+    <!-- v0.10.0 §6 OSS 同步入口卡 -->
+    <string name="oss_sync_card">同步到云</string>
+    <string name="oss_sync_subtitle_unconfigured">未配置</string>
+    <string name="oss_sync_subtitle_configured">已配置 (Bucket: %1$s)</string>
+    <string name="oss_sync_title">同步到云设置</string>
+    <string name="oss_sync_summary">把日记同步到阿里云 OSS,本地永远保留一份。需要 Endpoint、Bucket、Region、AccessKey。</string>
+    <string name="oss_endpoint">Endpoint</string>
+    <string name="oss_bucket">Bucket</string>
+    <string name="oss_region">Region</string>
+    <string name="oss_access_key_id">AccessKey ID</string>
+    <string name="oss_access_key_secret">AccessKey Secret</string>
+    <string name="oss_sts_token">STS Token</string>
+    <string name="oss_prefix">对象前缀</string>
+    <string name="oss_test_button">测试一下</string>
+    <string name="oss_test_ok">连通成功</string>
+    <string name="oss_test_fail">连通失败,检查凭据</string>
+    <string name="oss_save_ok">已保存</string>
+    <string name="oss_sync_now">立即同步</string>
+    <string name="oss_sync_triggered">后台已触发,Wi-Fi 下会跑</string>
+    <string name="oss_last_sync">最近同步:%1$s</string>
+    <string name="oss_synced_badge">已同步</string>
 </resources>

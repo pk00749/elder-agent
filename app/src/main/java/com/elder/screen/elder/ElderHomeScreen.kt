@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elder.android.R
-import com.elder.android.ui.component.ElderToast
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontLevel
@@ -243,7 +242,4 @@ fun ElderHomeScreen(
         }
     }
 
-    uiState.upgradeToast?.let { msg ->
-        ElderToast(message = msg, onDismiss = vm::dismissUpgradeToast)
-    }
 }

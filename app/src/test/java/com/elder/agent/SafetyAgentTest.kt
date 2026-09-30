@@ -1,11 +1,15 @@
 package com.elder.android.agent
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
  * v0.9.0 SafetyAgent 测试：纯本地判定，**不调 LLM**。
  * 对应 prd.md §3.1.4 B1-B4 + §A.16。
+ *
+ * v0.10.0 §4: greetingFallback 改为粵語;新增 3 条断言 + 1 条锁定不再用普通话。
  */
 class SafetyAgentTest {
 
@@ -50,10 +54,30 @@ class SafetyAgentTest {
         assertEquals(SafetyAgent.Verdict.SAFE, SafetyAgent.check("   "))
     }
 
+    // v0.10.0 §4: greetingFallback 改为粵語静态口語;每条必须包含 ≥1 个粵語词
     @Test
-    fun `greetingFallback returns time-of-day specific Chinese`() {
-        assertEquals("早上好，今天想聊什么？", SafetyAgent.greetingFallback(TimeOfDay.MORNING))
-        assertEquals("中午好，今天过得怎样？", SafetyAgent.greetingFallback(TimeOfDay.NOON))
-        assertEquals("晚上好，今天有什么想说的？", SafetyAgent.greetingFallback(TimeOfDay.EVENING))
+    fun `greetingFallback returns Cantonese greeting for MORNING`() {
+        val s = SafetyAgent.greetingFallback(TimeOfDay.MORNING)
+        assertEquals("早晨,今日想去边度?", s)
+        // 含粵語词(早晨/食咗/点/边度/啦/嘅/咩/冇 等任一)
+        assertTrue("MORNING greeting 必须包含粵語词; actual=$s", s.matches(Regex(".*[嘅嗰啲咗咩㗎喔啦冇早晨点边度呀].*")))
+        // 不再含普通话短语
+        assertFalse("MORNING greeting 不再含『今天想聊什么』普通话短语", s.contains("今天想聊什么"))
+    }
+
+    @Test
+    fun `greetingFallback returns Cantonese greeting for NOON`() {
+        val s = SafetyAgent.greetingFallback(TimeOfDay.NOON)
+        assertEquals("中午,食咗饭未呀?", s)
+        assertTrue("NOON greeting 必须包含粵語词; actual=$s", s.matches(Regex(".*[嘅嗰啲咗咩㗎喔啦冇早晨点边度呀].*")))
+        assertFalse("NOON greeting 不再含『今天过得怎样』普通话短语", s.contains("今天过得怎样"))
+    }
+
+    @Test
+    fun `greetingFallback returns Cantonese greeting for EVENING`() {
+        val s = SafetyAgent.greetingFallback(TimeOfDay.EVENING)
+        assertEquals("今晚,今日过得点呀?", s)
+        assertTrue("EVENING greeting 必须包含粵語词; actual=$s", s.matches(Regex(".*[嘅嗰啲咗咩㗎喔啦冇早晨点边度呀].*")))
+        assertFalse("EVENING greeting 不再含『今天有什么想说的』普通话短语", s.contains("今天有什么想说的"))
     }
 }

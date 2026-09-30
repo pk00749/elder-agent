@@ -28,6 +28,10 @@ import com.elder.android.data.llm.MiniMaxClient
 import com.elder.android.data.tts.MiniMaxTtsClient
 import com.elder.android.data.tts.QwenTtsClient
 import com.elder.android.data.tts.TtsClient
+import com.elder.android.data.crypto.OssKeyCipher
+import com.elder.android.data.oss.AliyunOssSyncClient
+import com.elder.android.data.oss.OssSyncClient
+import com.elder.android.data.oss.OssSyncRepository
 import com.elder.android.data.tts.TtsProviderCatalog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -74,17 +78,13 @@ object ServiceLocator {
     lateinit var llmClientFactory: LlmClientFactory
         private set
 
-    /**
-     * v0.7.0 一次性 Toast 信号：Migration 4→5 升级后由 ServiceLocator.init 触发，
-     * ElderHomeViewModel 监听后弹「0.7.0 升级：请到 AI 服务 重新配置 ASR 与 TTS」。
-     * emit 一次后置 null。
-     */
-    private val _upgradeToast = MutableStateFlow<String?>(null)
-    val upgradeToast: StateFlow<String?> = _upgradeToast.asStateFlow()
-
-    fun consumeUpgradeToast() {
-        _upgradeToast.value = null
-    }
+    // ===== v0.10.0 §6 OSS 同步 =====
+    lateinit var ossKeyCipher: OssKeyCipher
+        private set
+    lateinit var ossSyncClient: OssSyncClient
+        private set
+    lateinit var ossSyncRepo: OssSyncRepository
+        private set
 
     fun init(context: Context) {
         if (inited) return
@@ -106,6 +106,14 @@ object ServiceLocator {
             minimaxApi = MiniMaxClient()
             // v0.8.0 §A.15：注入 LLM 客户端工厂；InterviewAgent 通过工厂按 cfg.llmProvider 路由
             llmClientFactory = LlmClientFactory()
+            // v0.10.0 §6: OSS 同步依赖(独立 cipher + 独立 repo + WorkManager UNMETERED 触发见 OssSyncWorker)
+            ossKeyCipher = OssKeyCipher(app)
+            ossSyncClient = AliyunOssSyncClient()
+            ossSyncRepo = OssSyncRepository(
+                appContext = app,
+                client = ossSyncClient,
+                keyStore = ossKeyCipher,
+            )
             interviewAgent = InterviewAgent(                    // v0.6.0 加 elderFactRepo；v0.8.0 改 llm → llmFactory
                 llmFactory = llmClientFactory,
                 prompts = AgentPrompts(app),
@@ -118,18 +126,7 @@ object ServiceLocator {
                 asr = asrApi,
                 agent = interviewAgent,
             )
-            // v0.7.0：检测到 schema version 4→5 升级路径时弹一次性 Toast。
-            detectUpgradeToast(app)
             inited = true
-        }
-    }
-
-    private fun detectUpgradeToast(context: Context) {
-        val prefs = context.getSharedPreferences("elder_v3_upgrade", Context.MODE_PRIVATE)
-        val currentVersion = prefs.getInt("db_version_seen", 0)
-        if (currentVersion < 5) {
-            prefs.edit().putInt("db_version_seen", 5).apply()
-            _upgradeToast.value = "0.7.0 升级：请到 AI 服务 重新配置 ASR 与 TTS"
         }
     }
 

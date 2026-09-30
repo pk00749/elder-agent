@@ -17,11 +17,14 @@ object SafetyAgent {
 
     enum class Verdict { EMERGENCY, MONEY, MEDICAL, EXPLICIT_CLOSE, SAFE }
 
-    /** v0.9.0 open() LLM 失败兜底；按时段返回静态中文（不调 LLM / 不调 TTS） */
+    /** v0.10.0 §4 修订：open() LLM 失败兜底返回粵語静态口語（不调 LLM / 不调 TTS）。
+     *  每条必须包含 ≥1 个粵語词(早晨/食咗/点/边度/啦/嘅 等);不再出现"早上好/今天想聊什么"普通话短语。
+     *  对齐 §A.13 MiniMax Cantonese_KindWoman TTS 音色。
+     */
     fun greetingFallback(timeOfDay: TimeOfDay): String = when (timeOfDay) {
-        TimeOfDay.MORNING -> "早上好，今天想聊什么？"
-        TimeOfDay.NOON -> "中午好，今天过得怎样？"
-        TimeOfDay.EVENING -> "晚上好，今天有什么想说的？"
+        TimeOfDay.MORNING -> "早晨,今日想去边度?"
+        TimeOfDay.NOON -> "中午,食咗饭未呀?"
+        TimeOfDay.EVENING -> "今晚,今日过得点呀?"
     }
 
     /**

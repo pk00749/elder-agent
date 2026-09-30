@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -60,6 +61,8 @@ import java.util.Locale
 @Composable
 fun ElderDiaryRecentScreen(
     onBack: () -> Unit,
+    /** v0.10.0 §7: 列表项点击跳转日记详情;默认空(便于 preview / 测试桩)。 */
+    onOpenDiary: (Long) -> Unit = {},
     vm: ElderDiaryRecentViewModel = viewModel(),
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
@@ -132,6 +135,7 @@ fun ElderDiaryRecentScreen(
                             entry = entry,
                             range = state.range,
                             onEdit = { vm.startEdit(entry.id, entry.text) },
+                            onClick = { onOpenDiary(entry.id) },  // v0.10.0 §7
                         )
                     }
                 }
@@ -173,9 +177,13 @@ private fun DiaryRow(
     entry: DiaryEntryEntity,
     range: DiaryRecentRange,
     onEdit: () -> Unit,
+    /** v0.10.0 §7: 整行点击跳转详情;与 onEdit「改写」按钮解耦。 */
+    onClick: () -> Unit = {},
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),  // v0.10.0 §7: 整行点击进详情
         color = BrandColor.BgGray,
         shape = RoundedCornerShape(Corner.Card),
     ) {
