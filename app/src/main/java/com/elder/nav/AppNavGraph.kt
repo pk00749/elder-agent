@@ -16,6 +16,7 @@ import com.elder.android.screen.elder.ElderDiaryRecordScreen
 import com.elder.android.screen.elder.ElderHomeScreen
 import com.elder.android.screen.elder.ElderSettingsScreen
 import com.elder.android.screen.interview.InterviewScreen
+import com.elder.android.screen.diary.DiaryDetailScreen
 import com.elder.android.screen.oss.OssConfigScreen
 
 @Composable
@@ -52,7 +53,17 @@ fun AppNavGraph() {
             )
         }
         composable(Route.ElderDiaryRecent.path) {
-            ElderDiaryRecentScreen(onBack = { nav.popBackStack() })
+            ElderDiaryRecentScreen(
+                onBack = { nav.popBackStack() },
+                onOpenDiary = { id -> nav.navigate(Route.ElderDiaryDetail.build(id)) },  // v0.10.0 §7
+            )
+        }
+        composable(
+            route = Route.ElderDiaryDetail.path,
+            arguments = listOf(androidx.navigation.navArgument("diaryId") { type = androidx.navigation.NavType.LongType }),
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("diaryId") ?: 0L
+            DiaryDetailScreen(diaryId = id, onBack = { nav.popBackStack() })
         }
         composable(Route.ElderSettings.path) {
             ElderSettingsScreen(

@@ -68,6 +68,22 @@
     <string name="diary_list_filter_7d">近7天</string>
     <string name="diary_detail_play">▶ 听</string>
     <string name="diary_detail_play_failed">听不了，请稍后再试</string>
+    <!-- v0.10.0 §7 日记详情 -->
+    <string name="diary_detail_back">返回</string>
+    <string name="diary_detail_share">分享</string>
+    <string name="diary_detail_search">搜索</string>
+    <string name="diary_detail_overflow">更多</string>
+    <string name="diary_detail_audio_label">录音 %1$d</string>
+    <string name="diary_detail_audio_play">播放录音</string>
+    <string name="diary_detail_audio_record">重新录音</string>
+    <string name="diary_detail_transcript_expand">展开</string>
+    <string name="diary_detail_transcript_collapse">收起</string>
+    <string name="diary_detail_bottom_ai">AI 魔法棒</string>
+    <string name="diary_detail_bottom_done">完成</string>
+    <string name="diary_detail_bottom_image">图片</string>
+    <string name="diary_detail_bottom_add">添加</string>
+    <string name="diary_detail_bottom_voice">语音</string>
+    <string name="diary_detail_feature_wip">功能开发中</string>
 
     <!-- §3.2.7 / §3.2.8 绑定 -->
     <string name="bind_qr_scan_title">扫爸妈手机上的二维码</string>
