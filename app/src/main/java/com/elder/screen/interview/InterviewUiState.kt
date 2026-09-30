@@ -20,17 +20,21 @@ data class InterviewUiState(
     val session: InterviewSession? = null,
     val elapsedMs: Long = 0,
     val transcript: String? = null,
-    val assistantText: String? = null,           // v0.9.1 起：单段回复 ≤25 字（A2），不再分 ack/probe
+    val assistantText: String? = null,
     val draftText: String? = null,
     val draftSummary: String? = null,
     val ttsFailed: Boolean = false,
     val pendingSaved: Boolean = false,
     val needsConfig: Boolean = false,
     val topError: String? = null,
+    // v0.11.0 §3.3: 顶栏 Toast 当前显示的 LLM 回复文字;null = 不显示
+    val llmReplyToastText: String? = null,
+    // v0.11.0 §3.4: 落幕语文本(走 finalizeViaExplicitEnd 时设置;ViewModel 用来 TTS 播报而非 summary)
+    val farewellText: String? = null,
+    // v0.11.0 §3.4: 语音退出黄条是否需要展示;默认 true,首次关闭后写入 prefs 不再弹
+    val showVoiceEndHint: Boolean = true,
 ) {
     val turnNo: Int get() = (session?.turns?.size ?: 0) + 1
-    // v0.10.0 §5: maxTurns 改为软上限提示(参考值 SOFT_TURN_HINT = 20),不再参与最终化判定
     val maxTurns: Int get() = InterviewAgent.SOFT_TURN_HINT
-    // canRevise 不再受 maxTurns 限制;改由 session.status + 老人主动触发决定
     val canRevise: Boolean get() = session?.status?.let { it == InterviewStatus.SAVED } == true
 }

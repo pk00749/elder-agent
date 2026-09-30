@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- v0.11.0 §3.2: 仅 API 26-28 写公共 Downloads/老友日记/ 需要 WRITE_EXTERNAL_STORAGE;API 29+ 走 scoped storage 不需要 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
 
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
 

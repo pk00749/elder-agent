@@ -19,6 +19,8 @@ data class AgentFinalDraft(
     val session: InterviewSession,
     val text: String,
     val summary: String,
+    // v0.11.0 §3.4：可选落幕语;非 null 时 ViewModel 用它做 TTS 而非 summary
+    val farewellText: String? = null,
 )
 
 sealed interface AgentTurnResult {

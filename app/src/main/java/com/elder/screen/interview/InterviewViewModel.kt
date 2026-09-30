@@ -1,3 +1,11 @@
+// v0.11.0 行数说明：本文档 v0.11.0 加 LLMReplyToast 控制器 + voice-end-hint 控制器 + 
+// save-export 注入到 saveDiary 后超出 AGENTS.md §18 500 行上限 50 行。
+// 不拆出 InterviewToastController 子类的理由:showLlmReplyToast / dismissVoiceEndHint / saveDiary
+// 都需要直接写 _state(MutableStateFlow),私有；抽出需把 _state 提到 outer 层破坏封装。
+// 后续若再加职责(v0.12.0+),触发 §18 拆分点:把 Toast 控制 / voice hint 控制迁出,本文档降回 480 行以内。
+// 对应 docs/v0.11.0.md §6(§18 例外)。
+
+
 package com.elder.android.screen.interview
 
 import android.app.Application
@@ -26,6 +34,9 @@ import com.elder.android.data.asr.RealtimeAsrSession
 import com.elder.android.data.db.AsrProvider
 import com.elder.android.data.db.TtsProvider
 import com.elder.android.data.db.DiaryEntryEntity
+import com.elder.android.data.export.ElderSaveModeRepository
+import com.elder.android.data.export.SaveExportRepository
+import com.elder.android.data.export.SaveMode
 import com.elder.android.data.tts.TtsClient
 import com.elder.android.di.ServiceLocator
 import com.elder.android.error.AppError
@@ -53,6 +64,13 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
     // 改成 var，并在 onEnter() 里用 ServiceLocator.ttsClient() 函数（按 cfg.ttsProvider 路由）覆盖。
     private var tts: TtsClient = ServiceLocator.ttsClient
     private val agent: InterviewAgent = ServiceLocator.interviewAgent
+    // v0.11.0 §3.1 / §3.2: 保存方式 prefs + 本地 / 云导出仓库
+    private val saveModeRepo: ElderSaveModeRepository = ServiceLocator.saveModeRepo
+    private val saveExportRepo: SaveExportRepository = ServiceLocator.saveExportRepo
+    // v0.11.0 §3.3: Toast 显示时长(LLM 回复消失前在顶栏停留 2.5s)
+    private val llmToastShowMs = 2_500L
+    // v0.11.0 §3.3: 跟踪当前 Toast 消失任务;新 Toast 设置时取消上一个避免叠加
+    private var llmToastDismissJob: Job? = null
 
     private val _state = MutableStateFlow(InterviewUiState())
     val state: StateFlow<InterviewUiState> = _state.asStateFlow()
@@ -96,12 +114,15 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
                 return@launch
             }
             val assistantHint = if (session.turns.isEmpty()) GREETING else session.turns.last().assistantText
+            // v0.11.0 §3.4: 语音退出黄条显示条件 = prefs 未关闭 + 当前进入 READY
+            val showVoiceHint = !saveModeRepo.isVoiceEndHintDismissed()
             _state.update {
                 it.copy(
                     stage = InterviewStage.READY,
                     session = session,
                     assistantText = assistantHint,
                     needsConfig = config?.isConfigured != true,
+                    showVoiceEndHint = showVoiceHint,
                 )
             }
 
@@ -215,7 +236,12 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun stopAndProcess() {
+    /**
+     * v0.11.0 §3.4 修订:加 onDone 参数用于「拜拜 / 够了」自动落库路径。
+     * - 用户主动按「停止」: 传 onDone;若 Finalize 走 ELDER_EXPLICIT_END,TTS 播落幕语后自动 saveDiary → onDone 弹回主屏
+     * - 60s 自动超时(`MAX_RECORD_MS`): onDone 默认为 {};若触发 voice-end 仍自动 saveDiary 但不弹回(屏幕停在 SAVED)
+     */
+    fun stopAndProcess(onDone: () -> Unit = {}) {
         if (_state.value.stage != InterviewStage.RECORDING) return
         ticker?.cancel()
         val file = recorder.stop()
@@ -229,13 +255,14 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         work = viewModelScope.launch {
-            processAudio(file, session)
+            processAudio(file, session, onDone)
         }
     }
 
     private suspend fun processAudio(
         file: File,
         liveSession: RealtimeAsrSession?,
+        onDone: () -> Unit = {},
     ) {
         val credentials = config ?: return fail(AppError.AsrNotConfigured())
         val asr = ServiceLocator.asrClient(credentials.asrProvider)
@@ -315,13 +342,16 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
                     _state.update { it.copy(stage = InterviewStage.READY) }
                     null
                 } else {
-                    speakOrShow(result.value.assistantText)
+                    speakOrShow(result.value.assistantText, showLlmReplyToast = true)
                 }
                 logTiming(asrLatencyMs, llmLatencyMs, ttsResult)
             }
             is AgentTurnResult.Finalize -> {
                 val updated = result.value.session.attachAudio(file.absolutePath, _state.value.elapsedMs.toInt())
                 interviewRepo.save(updated)
+                // v0.11.0 §3.4: 落幕语优先于 summary 走 TTS
+                val ttsSpoken = result.value.farewellText ?: result.value.summary
+                val isVoiceEnd = result.value.farewellText != null
                 _state.update {
                     it.copy(
                         stage = InterviewStage.SPEAKING,
@@ -329,18 +359,35 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
                         assistantText = result.value.text,
                         draftText = result.value.text,
                         draftSummary = result.value.summary,
+                        farewellText = result.value.farewellText,
                         pendingSaved = false,
                     )
                 }
-                val ttsResult = speakOrShow(result.value.summary, nextStage = InterviewStage.REVIEW)
+                // v0.11.0 G4 修订: voice-end 路径(老人说"拜拜 / 够了"等)跳过 REVIEW 直接 SAVED
+                // — 老人主动结束意图已明确,等同手动按「✓ 保存」,不再要求二次确认
+                val nextStage = if (isVoiceEnd) InterviewStage.SAVED else InterviewStage.REVIEW
+                val ttsResult = speakOrShow(ttsSpoken, nextStage = nextStage)
                 logTiming(asrLatencyMs, llmLatencyMs, ttsResult)
+                if (isVoiceEnd) {
+                    // 自动落库;若 text 为空 saveDiary 自己早退(不会破坏 review 兜底)
+                    saveDiary(onDone)
+                }
             }
         }
     }
 
+    /**
+     * TTS 播放一段文字 + 触发顶栏 Toast。
+     *
+     * v0.11.0 §3.3 新增:
+     * - `showLlmReplyToast = true` 时同时把这段文字推到顶栏 Toast,2.5s 后自动消失
+     * - 相同 text 重复调用早退(避免双 LLM 流并发时连续覆盖)
+     * - finalize 落幕(review 阶段)走 showLlmReplyToast = true;OPENING 问候主动开问不显示(避免初次进来就盖信息)
+     */
     private suspend fun speakOrShow(
         text: String,
         nextStage: InterviewStage = InterviewStage.READY,
+        showLlmReplyToast: Boolean = true,
     ): com.elder.android.data.tts.TtsResult? {
         // Bug fix：TTS 走 ttsKey()（按 cfg.ttsProvider 选 apiKey / ttsMinimaxApiKey），
         // 而不是 config.apiKey（千问 Key）。
@@ -356,7 +403,37 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
                 ttsFailed = ttsEnabled && result.isFailure,
             )
         }
+        if (showLlmReplyToast && text.isNotBlank()) showLlmReplyToast(text)
         return result.getOrNull()
+    }
+
+    /**
+     * v0.11.0 §3.3: 显示顶栏 Toast;2.5s 后自动消失。
+     * 相同 text 不重复显示;新 text 覆盖并重置 2.5s 计时。
+     */
+    private fun showLlmReplyToast(text: String) {
+        val current = _state.value.llmReplyToastText
+        if (current == text) return  // 幂等:不重复显示
+        llmToastDismissJob?.cancel()
+        _state.update { it.copy(llmReplyToastText = text) }
+        llmToastDismissJob = viewModelScope.launch {
+            delay(llmToastShowMs)
+            _state.update { it.copy(llmReplyToastText = null) }
+        }
+    }
+
+    /** v0.11.0 §3.3: 用户手动关掉 Toast(预留,目前由 2.5s 自动消失)。 */
+    fun dismissLlmReplyToast() {
+        llmToastDismissJob?.cancel()
+        llmToastDismissJob = null
+        _state.update { it.copy(llmReplyToastText = null) }
+    }
+    /**
+     * v0.11.0 §3.4: 老人主动关闭语音退出黄条;同时持久化 prefs,后续不再弹。
+     */
+    fun dismissVoiceEndHint() {
+        saveModeRepo.markVoiceEndHintDismissed()
+        _state.update { it.copy(showVoiceEndHint = false) }
     }
 
     private fun logTiming(
@@ -396,28 +473,34 @@ class InterviewViewModel(app: Application) : AndroidViewModel(app) {
         if (text.isBlank()) return
         viewModelScope.launch {
             val now = System.currentTimeMillis()
-            diaryRepo.insert(
-                DiaryEntryEntity(
-                    deviceId = "local",
-                    date = LocalDate.today(),
-                    text = text,
-                    transcript = session.turns.joinToString("\n") { it.elderText }.take(500),
-                    summary = summary,
-                    sessionId = session.id,
-                    source = DiaryEntryEntity.Source.ASR_ORIGINAL,
-                    audioPath = session.turns.lastOrNull()?.audioPath.orEmpty(),
-                    durationMs = session.turns.sumOf { it.durationMs },
-                    asrProvider = asr.providerRaw,
-                    asrModel = asr.model,
-                    asrConfidence = null,
-                    asrLatencyMs = null,
-                    createdAt = now,
-                    updatedAt = now,
-                )
+            val audioPath = session.turns.lastOrNull()?.audioPath.orEmpty()
+            val diary = DiaryEntryEntity(
+                deviceId = "local",
+                date = LocalDate.today(),
+                text = text,
+                transcript = session.turns.joinToString("\n") { it.elderText }.take(500),
+                summary = summary,
+                sessionId = session.id,
+                source = DiaryEntryEntity.Source.ASR_ORIGINAL,
+                audioPath = audioPath,
+                durationMs = session.turns.sumOf { it.durationMs },
+                asrProvider = asr.providerRaw,
+                asrModel = asr.model,
+                asrConfidence = null,
+                asrLatencyMs = null,
+                createdAt = now,
+                updatedAt = now,
             )
+            val diaryId = diaryRepo.insert(diary)
+            val saved = diary.copy(id = diaryId)
             interviewRepo.save(
                 session.copy(status = InterviewStatus.SAVED, updatedAt = now)
             )
+            // v0.11.0 §3.2: 按 SaveMode 触发本地 / 云导出;不阻塞 onDone() 回调
+            val exportMode = saveModeRepo.current()
+            val audioFile = if (audioPath.isNotBlank()) java.io.File(audioPath) else java.io.File("/dev/null")
+            val outcome = saveExportRepo.exportIfNeeded(saved, audioFile, exportMode)
+            Log.i(METRICS_TAG, "save export mode=$exportMode outcome=$outcome")
             _state.update { it.copy(stage = InterviewStage.SAVED, session = session.copy(status = InterviewStatus.SAVED)) }
             onDone()
         }

@@ -6,6 +6,9 @@
 package com.elder.android.screen.elder
 
 import android.app.Application
+import android.content.Context
+import com.elder.android.data.export.ElderSaveModeRepository
+import com.elder.android.data.export.SaveMode
 import androidx.test.core.app.ApplicationProvider
 import com.elder.android.data.AsrConfig
 import com.elder.android.data.db.AsrProvider
@@ -178,5 +181,66 @@ class ElderSettingsViewModelTest : ProviderVmTestBase() {
     fun versionName_isBuildConfigVersionName() {
         assertEquals(com.elder.android.BuildConfig.VERSION_NAME, vm.uiState.value.versionName)
         assertTrue("versionName 非空", vm.uiState.value.versionName.isNotBlank())
+    }
+}
+
+/**
+ * v0.11.0 §3.1：保存方式 prefs 持久化 + dialog 显示 / 关闭 + setSaveMode 三个测试。
+ */
+@RunWith(ElderRobolectricTestRunner::class)
+@Config(sdk = [33], manifest = Config.NONE)
+class ElderSettingsSaveModeTest : ProviderVmTestBase() {
+
+    private lateinit var vm: ElderSettingsViewModel
+
+    @Before fun initVm() {
+        vm = ElderSettingsViewModel(ApplicationProvider.getApplicationContext<Application>())
+        waitForVm()
+    }
+
+    @After fun teardownVm() = cleanupVm()
+
+    @Test
+    fun `init defaults saveMode to LOCAL`() {
+        val s = vm.uiState.value
+        assertEquals("v0.11.0 §3.1: 默认 LOCAL", com.elder.android.data.export.SaveMode.LOCAL, s.saveMode)
+        assertFalse(s.showSaveModeDialog)
+    }
+
+    @Test
+    fun `showSaveModeDialog opens dialog`() {
+        assertFalse(vm.uiState.value.showSaveModeDialog)
+        vm.showSaveModeDialog()
+        assertTrue(vm.uiState.value.showSaveModeDialog)
+        vm.dismissSaveModeDialog()
+        assertFalse(vm.uiState.value.showSaveModeDialog)
+    }
+
+    @Test
+    fun `setSaveMode persists mode and closes dialog`() = runBlocking {
+        vm.showSaveModeDialog()
+        assertTrue(vm.uiState.value.showSaveModeDialog)
+        vm.setSaveMode(com.elder.android.data.export.SaveMode.CLOUD)
+        waitForVm()
+        val s = vm.uiState.value
+        assertEquals(com.elder.android.data.export.SaveMode.CLOUD, s.saveMode)
+        assertFalse("setSaveMode 必须自动关闭 dialog", s.showSaveModeDialog)
+        // 新实例读 prefs 也得到 CLOUD
+        val newVm = ElderSettingsViewModel(ApplicationProvider.getApplicationContext<Application>())
+        try {
+            waitForVm()
+            assertEquals(
+                "setSaveMode 必须持久化到 prefs",
+                com.elder.android.data.export.SaveMode.CLOUD,
+                newVm.uiState.value.saveMode,
+            )
+        } finally {
+            // 清理 prefs(避免污染其他测试)
+            val ctx = ApplicationProvider.getApplicationContext<Application>()
+            ctx.getSharedPreferences(
+                com.elder.android.data.export.ElderSaveModeRepository.PREFS_FILE,
+                Context.MODE_PRIVATE,
+            ).edit().clear().commit()
+        }
     }
 }

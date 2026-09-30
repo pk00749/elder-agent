@@ -12,4 +12,7 @@
     <string name="safety_greeting_morning">早晨，今日想傾咩？</string>
     <string name="safety_greeting_noon">午安，今日過成點？</string>
     <string name="safety_greeting_evening">晚上好，今日有咩想講？</string>
+    <!-- v0.11.0 §3.4 访谈屏 → 语音退出黄条（粤语口语版） -->
+    <string name="interview_voice_end_hint">想提早收工？可以講「結束」、「夠喇」、「拜拜」</string>
+    <string name="interview_voice_end_hint_close">知道喇</string>
 </resources>

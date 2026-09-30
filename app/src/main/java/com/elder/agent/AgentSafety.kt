@@ -29,6 +29,17 @@ object AgentSafety {
         "就到这", "就到这儿", "不聊了", "今天到这", "今天到这儿", "够了", "就这样吧", "结束吧",
     )
 
+    /** v0.11.0 §3.4：老人主动结束对话的粤语关键词。
+     *  命中即落幕 TTS + finalizeViaSafety + 落库。
+     *  对应 docs/v0.11.0.md §3.4（§18 例外：扩展 §3.1.4 B 关键词表）。
+     */
+    private val elderEnd = setOf(
+        "结束",       // 对应 docs/v0.11.0.md §3.4
+        "够了",       // 对应 docs/v0.11.0.md §3.4
+        "拜拜",       // 对应 docs/v0.11.0.md §3.4
+        "不聊了",     // 对应 docs/v0.11.0.md §3.4
+    )
+
     /** B2 急救关键词判定 */
     fun isEmergency(text: String): Boolean = emergency.any(text::contains)
 
@@ -43,6 +54,9 @@ object AgentSafety {
 
     /** C3 明确收尾判定 */
     fun isExplicitClose(text: String): Boolean = explicitClose.any(text::contains)
+
+    /** v0.11.0 §3.4：老人主动结束对话判定（粤语关键词）。 */
+    fun isElderEnd(text: String): Boolean = elderEnd.any(text::contains)
 
     // v0.6.0 弱化：dimensionCount() 已废弃；维度判定改 LLM 显式 mark_dimension_covered 工具调用。
     // 保留函数以兼容 0.5.0 测试代码，但标记 @Deprecated。
