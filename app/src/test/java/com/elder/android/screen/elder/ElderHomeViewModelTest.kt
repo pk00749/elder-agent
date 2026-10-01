@@ -26,9 +26,10 @@ class ElderHomeViewModelTest {
             .filter { !it.startsWith("$") && !it.startsWith("<") }
             .toSet()
         assertEquals(
-            // v0.10.0 §3: 删除 upgradeToast 字段 → ElderHomeUiState 只剩 4 个业务字段
-            "ElderHomeUiState 必须只剩 greeting / dateLine / todayRecorded / showAsrHint 四个字段",
-            setOf("greeting", "dateLine", "todayRecorded", "showAsrHint"),
+            // v0.10.0 §3: 删除 upgradeToast 字段 → 4 个业务字段
+            // v0.11.x UI agent M-6: 加 networkConnected 字段给 NetworkYellowBar 用 → 5 个
+            "ElderHomeUiState 应只剩 greeting / dateLine / todayRecorded / showAsrHint / networkConnected 五个字段",
+            setOf("greeting", "dateLine", "todayRecorded", "showAsrHint", "networkConnected"),
             fields,
         )
     }

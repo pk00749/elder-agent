@@ -54,6 +54,7 @@ import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
+import com.elder.android.ui.component.NetworkYellowBar
 
 @Composable
 fun ElderHomeScreen(
@@ -78,6 +79,11 @@ fun ElderHomeScreen(
                 .imePadding(),
             verticalArrangement = Arrangement.spacedBy(Spacing.Md),
         ) {
+            // v0.11.x UI agent M-6:网络断开时顶部黄条 + 重试按钮(prd §4.9)
+            NetworkYellowBar(
+                visible = !uiState.networkConnected,
+                onRetry = vm::onRetryNetwork,
+            )
             // 区域 A：问候区（weight 0.4，落在屏幕 ~40% 上半部；§3.1.5 MVP）
             Box(
                 modifier = Modifier

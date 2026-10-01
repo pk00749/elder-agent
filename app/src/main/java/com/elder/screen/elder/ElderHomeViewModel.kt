@@ -43,6 +43,9 @@ data class ElderHomeUiState(
     val dateLine: String = formatToday(),
     val todayRecorded: Boolean = false,
     val showAsrHint: Boolean = false,
+    // v0.11.x UI agent M-6:暴露网络连接状态给 NetworkYellowBar(prd §4.9)
+    // 默认 true,init 时按 ConnectivityManager.activeNetwork 修正
+    val networkConnected: Boolean = true,
 )
 
 class ElderHomeViewModel(app: Application) : AndroidViewModel(app) {
@@ -54,7 +57,12 @@ class ElderHomeViewModel(app: Application) : AndroidViewModel(app) {
         app.getSystemService(ConnectivityManager::class.java)
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
+            _uiState.update { it.copy(networkConnected = true) }
             viewModelScope.launch { ServiceLocator.pendingBackfill.run() }
+        }
+        // v0.11.x UI agent M-6:onLost 翻 networkConnected = false(显示黄条)
+        override fun onLost(network: Network) {
+            _uiState.update { it.copy(networkConnected = false) }
         }
     }
 
@@ -68,6 +76,9 @@ class ElderHomeViewModel(app: Application) : AndroidViewModel(app) {
             NetworkRequest.Builder().build(),
             networkCallback,
         )
+        // v0.11.x UI agent M-6:init 时按 activeNetwork 校正初始 networkConnected 状态
+        val initialConnected = connectivityManager?.activeNetwork != null
+        _uiState.update { it.copy(networkConnected = initialConnected) }
     }
 
 
@@ -89,5 +100,17 @@ class ElderHomeViewModel(app: Application) : AndroidViewModel(app) {
     override fun onCleared() {
         runCatching { connectivityManager?.unregisterNetworkCallback(networkCallback) }
         super.onCleared()
+    }
+
+    /**
+     * v0.11.x UI agent M-6:NetworkYellowBar 重试回调。
+     * 重新读 ConnectivityManager.activeNetwork + 触发 pendingBackfill(如有 pending 上传)。
+     */
+    fun onRetryNetwork() {
+        val connected = connectivityManager?.activeNetwork != null
+        _uiState.update { it.copy(networkConnected = connected) }
+        if (connected) {
+            viewModelScope.launch { ServiceLocator.pendingBackfill.run() }
+        }
     }
 }
