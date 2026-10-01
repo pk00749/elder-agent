@@ -1,7 +1,6 @@
 // 对应 docs/v0.10.0.md §7:DiaryDetailScreen 的子组件(提取以保持单文件 ≤400 行,AGENTS.md §3)。
 package com.elder.android.screen.diary
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
 
@@ -240,7 +239,12 @@ internal fun ProgressBar3dp(
 }
 
 @Composable
-internal fun BottomToolbar(c: com.elder.android.design.tokens.DiaryColorScheme, context: android.content.Context) {
+// v0.11.x UI agent M-4:WIP 点击通过回调写 toastMessage(由 DiaryDetailScreen 渲染 ElderToast)
+// 替代原本 5 处 android.widget.Toast;context 参数删除(无其他用法)
+internal fun BottomToolbar(
+    c: com.elder.android.design.tokens.DiaryColorScheme,
+    onWipClick: (String) -> Unit,
+) {
     Column {
         Box(
             modifier = Modifier
@@ -256,18 +260,20 @@ internal fun BottomToolbar(c: com.elder.android.design.tokens.DiaryColorScheme, 
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround,
         ) {
+            // v0.11.x UI agent M-4:hoist stringResource 到 @Composable 上下文
+            val wipMsg = stringResource(R.string.diary_detail_feature_wip)
             // AI 魔法棒（紫粉青渐变填充）
             BottomIcon(
                 icon = Icons.Default.Add,  // 占位：项目无 Sparkle 图标
                 tint = Brush.verticalGradient(listOf(Color(0xFF9D5CFF), Color(0xFFFF6FB5), Color(0xFF4FC3F7))),
                 contentDesc = stringResource(R.string.diary_detail_bottom_ai),
-                onClick = { Toast.makeText(context, R.string.diary_detail_feature_wip, Toast.LENGTH_SHORT).show() },
+                onClick = { onWipClick(wipMsg) },
                 isGradient = true,
             )
-            BottomIcon(icon = Icons.Default.Check, tint = c.iconStroke, contentDesc = stringResource(R.string.diary_detail_bottom_done), onClick = { Toast.makeText(context, R.string.diary_detail_feature_wip, Toast.LENGTH_SHORT).show() })
-            BottomIcon(icon = Icons.Default.AddCircle, tint = c.iconStroke, contentDesc = stringResource(R.string.diary_detail_bottom_image), onClick = { Toast.makeText(context, R.string.diary_detail_feature_wip, Toast.LENGTH_SHORT).show() })
-            BottomIcon(icon = Icons.Default.Add, tint = c.iconStroke, contentDesc = stringResource(R.string.diary_detail_bottom_add), onClick = { Toast.makeText(context, R.string.diary_detail_feature_wip, Toast.LENGTH_SHORT).show() })
-            BottomIcon(icon = Icons.AutoMirrored.Filled.KeyboardArrowRight, tint = c.iconStroke, contentDesc = stringResource(R.string.diary_detail_bottom_voice), onClick = { Toast.makeText(context, R.string.diary_detail_feature_wip, Toast.LENGTH_SHORT).show() })
+            BottomIcon(icon = Icons.Default.Check, tint = c.iconStroke, contentDesc = stringResource(R.string.diary_detail_bottom_done), onClick = { onWipClick(wipMsg) })
+            BottomIcon(icon = Icons.Default.AddCircle, tint = c.iconStroke, contentDesc = stringResource(R.string.diary_detail_bottom_image), onClick = { onWipClick(wipMsg) })
+            BottomIcon(icon = Icons.Default.Add, tint = c.iconStroke, contentDesc = stringResource(R.string.diary_detail_bottom_add), onClick = { onWipClick(wipMsg) })
+            BottomIcon(icon = Icons.AutoMirrored.Filled.KeyboardArrowRight, tint = c.iconStroke, contentDesc = stringResource(R.string.diary_detail_bottom_voice), onClick = { onWipClick(wipMsg) })
         }
         Spacer(modifier = Modifier.height(Spacing.Sm))
     }
