@@ -8,7 +8,6 @@ package com.elder.android.screen.elder
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.provider.Settings
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -46,6 +47,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -77,6 +81,10 @@ fun ElderSettingsScreen(
     val ctx = LocalContext.current
     val state by vm.uiState.collectAsStateWithLifecycle()
 
+    // v0.11.x UI agent M-1:音量跳转失败用 ElderToast 替代 android.widget.Toast
+    // 用本地 remember state(而非 VM state.topError),保持本 commit 只动 Screen
+    var volumeError by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(state.loggedOut) {
         if (state.loggedOut) onLoggedOut()
     }
@@ -96,7 +104,12 @@ fun ElderSettingsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BrandColor.CardWhite),
             )
 
-            Column(modifier = Modifier.fillMaxSize()) {
+            // v0.11.x bugfix: 10 settings rows + dividers 超出视口,无 verticalScroll 让 退出登录 按钮被截掉
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+            ) {
                 SettingRow1Asr(
                     configured = state.asrConfigured,
                     asrProviderLabel = state.asrProviderLabel,
@@ -124,13 +137,14 @@ fun ElderSettingsScreen(
                 Divider()
                 SettingRow4Volume(onClick = {
                     // v0.8.1 整改：try-catch 包装（MIUI / ColorOS 部分版本无 ACTION_SOUND_SETTINGS）
+                    // v0.11.x UI agent M-1:失败提示走 ElderToast(prd §4.8),不再用 android.widget.Toast
                     runCatching {
                         ctx.startActivity(
                             Intent(Settings.ACTION_SOUND_SETTINGS)
                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         )
                     }.onFailure {
-                        Toast.makeText(ctx, R.string.settings_volume_no_app, Toast.LENGTH_SHORT).show()
+                        volumeError = ctx.getString(R.string.settings_volume_no_app)
                     }
                 })
                 Divider()
@@ -145,6 +159,11 @@ fun ElderSettingsScreen(
     // v0.8.1 整改：退出登录失败等异常通过 ElderToast 兜底（之前会被吞掉）
     if (!state.topError.isNullOrBlank()) {
         ElderToast(message = state.topError, onDismiss = vm::dismissError)
+    }
+
+    // v0.11.x UI agent M-1:音量跳转失败的本地 ElderToast
+    if (!volumeError.isNullOrBlank()) {
+        ElderToast(message = volumeError, onDismiss = { volumeError = null })
     }
 
     if (state.showSaveModeDialog) {

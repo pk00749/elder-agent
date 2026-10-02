@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elder.android.R
 import com.elder.android.data.oss.OssSyncWorker
+import com.elder.android.ui.component.ElderToast
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.FontSize
@@ -56,6 +57,10 @@ fun OssConfigScreen(
     val context = LocalContext.current
     val state by vm.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+
+    // v0.11.x UI agent M-2:测试连接失败用 ElderToast(§4.8 错误 Toast)
+    // 成功 / 保存成功 / 触发同步保留 android.widget.Toast(非错误,符合 prd §4.8 不应走 ElderToast)
+    var testError by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -100,7 +105,13 @@ fun OssConfigScreen(
                 onClick = {
                     scope.launch {
                         val ok = vm.testConnection()
-                        Toast.makeText(context, if (ok) R.string.oss_test_ok else R.string.oss_test_fail, Toast.LENGTH_SHORT).show()
+                        if (ok) {
+                            // 成功 → 短暂 android.widget.Toast(非错误,prd §4.8)
+                            Toast.makeText(context, R.string.oss_test_ok, Toast.LENGTH_SHORT).show()
+                        } else {
+                            // 失败 → ElderToast(§4.8 错误 Toast,4s 底部 Error500)
+                            testError = context.getString(R.string.oss_test_fail)
+                        }
                     }
                 },
                 enabled = !state.busy && state.isValid,
@@ -144,6 +155,11 @@ fun OssConfigScreen(
             Spacer(modifier = Modifier.height(Spacing.Lg))
 
             // 最近同步结果(读 OssConfigEntity.last_sync_result JSON 简化展示)
+            // v0.11.x UI agent M-2:测试失败的 ElderToast
+            if (!testError.isNullOrBlank()) {
+                ElderToast(message = testError, onDismiss = { testError = null })
+            }
+
             state.lastSyncResult?.let { result ->
                 Text(text = stringResource(R.string.oss_last_sync, result), fontSize = FontSize.caption(), color = BrandColor.TextSecondary)
             }

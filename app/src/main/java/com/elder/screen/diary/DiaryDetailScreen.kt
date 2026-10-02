@@ -31,7 +31,6 @@
 // 不动：间距 / 字号 / 圆角 / 组件树（沿用 Spacing / FontSize / Corner）。
 package com.elder.android.screen.diary
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -71,6 +70,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -90,6 +92,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elder.android.R
+import com.elder.android.ui.component.ElderToast
 import com.elder.android.design.tokens.Corner
 import com.elder.android.design.tokens.DiaryColor
 import com.elder.android.design.tokens.FontSize
@@ -109,10 +112,17 @@ fun DiaryDetailScreen(
 
     LaunchedEffect(diaryId) { vm.load(diaryId) }
 
+    // v0.11.x UI agent M-4:统一用本地 toastMessage state + ElderToast 渲染
+    // 涵盖 playError(真错误) + WIP 占位(8 处);替换全部 9 个 android.widget.Toast
+    var toastMessage by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(state.playError) {
-        state.playError?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-        }
+        state.playError?.let { toastMessage = it }
+    }
+
+    // v0.11.x UI agent M-4:统一 ElderToast 渲染(playError + WIP 占位共用 state)
+    if (!toastMessage.isNullOrBlank()) {
+        ElderToast(message = toastMessage, onDismiss = { toastMessage = null })
     }
 
     Scaffold(
@@ -133,13 +143,15 @@ fun DiaryDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { Toast.makeText(context, R.string.diary_detail_feature_wip, Toast.LENGTH_SHORT).show() }) {
+                    // v0.11.x UI agent M-4:stringResource 必须在 @Composable 上下文,提到函数顶部
+                    val wipMsg = stringResource(R.string.diary_detail_feature_wip)
+                    IconButton(onClick = { toastMessage = wipMsg }) {
                         Icon(Icons.Default.Share, contentDescription = stringResource(R.string.diary_detail_share), tint = c.iconStroke)
                     }
-                    IconButton(onClick = { Toast.makeText(context, R.string.diary_detail_feature_wip, Toast.LENGTH_SHORT).show() }) {
+                    IconButton(onClick = { toastMessage = wipMsg }) {
                         Icon(Icons.Default.Search, contentDescription = stringResource(R.string.diary_detail_search), tint = c.iconStroke)
                     }
-                    IconButton(onClick = { Toast.makeText(context, R.string.diary_detail_feature_wip, Toast.LENGTH_SHORT).show() }) {
+                    IconButton(onClick = { toastMessage = wipMsg }) {
                         Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.diary_detail_overflow), tint = c.iconStroke)
                     }
                 },
@@ -147,7 +159,8 @@ fun DiaryDetailScreen(
             )
         },
         bottomBar = {
-            BottomToolbar(c = c, context = context)
+            // v0.11.x UI agent M-4:BottomToolbar WIP 点击通过 onWipClick 回调写 toastMessage
+            BottomToolbar(c = c, onWipClick = { toastMessage = it })
         },
     ) { padding ->
         Column(

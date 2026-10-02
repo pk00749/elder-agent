@@ -110,6 +110,8 @@ fun ProviderSelectorScreen(
     var keyVisible by rememberSaveable { mutableStateOf(false) }
     var pendingSwitchRaw by remember { mutableStateOf<String?>(null) }
     var showExitConfirm by remember { mutableStateOf(false) }
+    // v0.11.x UI agent M-3:打开 key 指南链接失败用本地 ElderToast
+    var keyGuideError by remember { mutableStateOf<String?>(null) }
     val initialKey = rememberSaveable { apiKey }
     val isDirty = apiKey != initialKey
 
@@ -224,7 +226,8 @@ fun ProviderSelectorScreen(
                                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     )
                                 }.onFailure {
-                                    android.widget.Toast.makeText(ctx, R.string.asr_config_open_link_failed, android.widget.Toast.LENGTH_SHORT).show()
+                                    // v0.11.x UI agent M-3:失败用本地 ElderToast(§4.8),不再用 android.widget.Toast
+                                    keyGuideError = ctx.getString(R.string.asr_config_open_link_failed)
                                 }
                             },
                         ) {
@@ -323,6 +326,11 @@ fun ProviderSelectorScreen(
 
     if (!topError.isNullOrBlank()) {
         ElderToast(message = topError, onDismiss = onDismissError)
+    }
+
+    // v0.11.x UI agent M-3:key 指南链接打开失败的本地 ElderToast
+    if (!keyGuideError.isNullOrBlank()) {
+        ElderToast(message = keyGuideError, onDismiss = { keyGuideError = null })
     }
 
     if (showExitConfirm) {
