@@ -1,25 +1,30 @@
-// 对应 PRD §3.1.9 / §A.13 MiniMax T2A TTS 客户端（v0.7.0 默认 Provider）
+// 对应 PRD §3.1.9 / §A.13 MiniMax T2A TTS 客户端（v0.12.0 切到双向 bidi）
 //
-// 协议（对齐参考 Python 例子）：
-//   - 端点：wss://api.minimax.cn/ws/v1/t2a_v2        （v0.7.0 必带 _v2 后缀）
-//   - Auth：Authorization: Bearer <API_KEY>          （MiniMax TTS 独立 Key，
-//                                                    §5.11 tts_minimax_api_key_enc）
+// 协议（MiniMax `t2a_v2_bidi` WebSocket，详见 docs/v0.12.0-minimax-tts-bidi.md）：
+//   - 端点：wss://api.minimax.cn/ws/v1/t2a_v2_bidi
+//   - Auth：Authorization: Bearer <API_KEY>           （MiniMax TTS 独立 Key，
+//                                                     §5.11 tts_minimax_api_key_enc）
 //   - 建连：服务端先发 {"event":"connected_success"}
-//   - 配任务：客户端发 {"event":"task_start", model, voice_setting, audio_setting}
+//   - 配任务：客户端发 {"event":"task_start", model, language_boost,
+//                      voice_setting, audio_setting}
 //            服务端回 {"event":"task_started"}
-//   - 推文本：客户端发 {"event":"task_continue", text}
-//   - 收音频：服务端连续回 {"data":{"audio":"<hex>"}}  音频块；hex 解码后写 PcmSink
-//   - 收口：服务端发 {"is_final":true}（顶层字段，非嵌套）
-//   - 关连：客户端发 {"event":"task_finish"} 后关 WebSocket
-//
-// 历史 WebSocket 占位（session.start / text.chunk / audio.delta / session.done /
-// session.finish）已废弃；字段名按 Python 协议族敲定。
+//   - 推文本：客户端发 {"event":"task_continue", text}        —— 可按任意粒度逐字/逐 token；
+//                                                              服务端自动攒句
+//   - 收音频：服务端连续回 {"event":"task_continued","data":{"audio":"<hex>"},
+//                          "is_final":false/true}          ← hex 解码后写 PcmSink
+//   - 句边界：服务端回 {"event":"sentence_start"} / {"event":"sentence_end"}
+//   - 打断：客户端发 {"event":"task_cancel"} → 服务端回 {"event":"task_canceled"}
+//   - 催出：客户端发 {"event":"task_flush"} → 服务端回 {"event":"task_flushed"}
+//   - 关连：客户端发 {"event":"task_finish"} → 服务端合成残留 → 回 {"event":"task_finished"}
 //
 // 音频输出格式：audio_setting.format = "pcm" + sample_rate = 24000 + channel = 1
-//   与 AndroidPcmSink（24kHz / mono / 16-bit）匹配；如 MiniMax 服务端拒绝此组合
-//   再考虑加 MediaCodec 解码 mp3（Python 例子的默认配置）。
+//   与 AndroidPcmSink（24kHz / mono / 16-bit）匹配；
+//   PCM 无压缩故 audio_setting 不含 bitrate 字段（文档明示「仅对 mp3 生效」）。
 //
-// voice_id 硬编码 Cantonese_KindWoman（§A.13.1）；待 0.7.0 真接后校验有效性。
+// voice_id 硬编码 Cantonese_KindWoman（§A.13.1 系统音色第 64 行确认：善良女声/粤语）；
+// language_boost = "Chinese,Yue" 强化粤语韵律（§A.13.1 新增；8 模型 + 40 语言场景 合法）。
+//
+// 历史实现（v0.7.0）走单向 /ws/v1/t2a_v2，老逻辑已废弃。
 package com.elder.android.data.tts
 
 import com.elder.android.error.AppError
@@ -29,8 +34,8 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import okhttp3.OkHttpClient
+import okhttp3.Response as OkResponse
 import okhttp3.Request
-import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okhttp3.logging.HttpLoggingInterceptor
@@ -41,7 +46,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * MiniMax T2A 实现（§A.13）。
+ * MiniMax T2A 双向 bidi 实现（§A.13，v0.12.0）。
+ *
+ * 端点固定为 `wss://api.minimax.cn/ws/v1/t2a_v2_bidi`；服务端攒句 +
+ * 老人打断 + 尾音不丢三件能力在 bidi endpoint 下默认开启。
+ *
  * API Key 走独立 [com.elder.android.data.crypto.ApiKeyCipher.KEY_TTS_MINIMAX_API_KEY_ENC]；
  * 由 ServiceLocator.ttsClient() 在 Provider = minimax 时返回本实例。
  */
@@ -74,9 +83,9 @@ class MiniMaxTtsClient(
             .build()
 
         val ws = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) {
-                // 服务端在升级后会主动 push {"event":"connected_success"}；
-                // 这里不做主动 send，等 connected 信号。
+            override fun onOpen(webSocket: WebSocket, response: OkResponse) {
+                // 服务端在升级后会主动 push {"event":"connected_success"}；不发主动 send
+                // ★ P0-MAX-2：保活由 OkHttp.pingInterval 发 RFC 6455 ping 帧，不再应用层 send("")。
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
@@ -85,12 +94,31 @@ class MiniMaxTtsClient(
                     when (event.optString("event")) {
                         "connected_success" -> completeValue(connected, Unit)
                         "task_started" -> completeValue(taskStarted, Unit)
+                        "sentence_start" -> {
+                            // §A.13 bidi 句开始；仅 debug 日志
+                            android.util.Log.d(
+                                "MiniMaxTts",
+                                "sentence_start trace=${event.optString("trace_id")}",
+                            )
+                        }
+                        "sentence_end" -> {
+                            android.util.Log.d(
+                                "MiniMaxTts",
+                                "sentence_end trace=${event.optString("trace_id")}",
+                            )
+                        }
+                        "task_canceled" -> {
+                            android.util.Log.d("MiniMaxTts", "task_canceled")
+                        }
+                        "task_flushed" -> {
+                            android.util.Log.d("MiniMaxTts", "task_flushed")
+                        }
                         "task_finished" -> {
                             // 服务端确认 task_finish 已收；正常完成。
                             completeValue(finished, Unit)
                         }
                         "task_failed" -> {
-                            val err = mapStreamError(event.optJSONObject("error"))
+                            val err = mapBaseRespError(event.optJSONObject("base_resp"))
                             protocolError = err
                             completeException(finished, err)
                             completeException(connected, err)
@@ -107,7 +135,8 @@ class MiniMaxTtsClient(
                         val bytes = decodeHexOrNull(audio)
                         if (bytes == null) {
                             val err = AppError.TtsUpstream(
-                                IOException("MiniMax T2A audio payload is not valid hex"),
+                                serverErrorCode = "invalid_hex",
+                                serverErrorMessage = "MiniMax T2A audio payload is not valid hex",
                             )
                             protocolError = err
                             completeException(finished, err)
@@ -115,8 +144,7 @@ class MiniMaxTtsClient(
                             return
                         }
                         if (firstAudioAt.compareAndSet(0L, System.currentTimeMillis())) {
-                            // 第一次收到音频即开始播放。
-                            runCatching { player.play() }
+                            // first audio latency recorded
                         }
                         runCatching { player.write(bytes) }
                             .onFailure {
@@ -133,7 +161,8 @@ class MiniMaxTtsClient(
                 }
             }
 
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+            override fun onFailure(webSocket: WebSocket, t: Throwable, response: OkResponse?) {
+                // ★ P0-MAX-2：OkHttp 客户端管 ping，不再调 stopPinger()
                 val err = mapFailure(t, response)
                 completeException(connected, err)
                 completeException(taskStarted, err)
@@ -141,6 +170,7 @@ class MiniMaxTtsClient(
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                // ★ P0-MAX-2：OkHttp 客户端管 ping
                 if (!finished.isCompleted && code != WS_CLOSE_NORMAL) {
                     completeException(
                         finished,
@@ -163,6 +193,12 @@ class MiniMaxTtsClient(
             // 3. 等 task_started
             withTimeout(SESSION_TIMEOUT_MS) { taskStarted.await() }
 
+            // ★ P0-MAX-1 (§18)：服务端准备好后第一时间启动播放，让 write() 进来的 PCM 能立即出声。
+            //   遗漏此调用 → AudioTrack 停在 STATE_INITIALIZED，所有 PCM 躺在 buffer，
+            //   直到 player.drain() 才被清空 → MiniMax 用户 100% 静音。
+            //   对齐 QwenTtsClient.kt:103 的 player.play() 位置。
+            player.play()
+
             // 4. 发 task_continue 推文本
             if (!ws.send(buildTaskContinueMessage(text))) {
                 throw AppError.TtsUpstream(IOException("Failed to send MiniMax task_continue"))
@@ -171,7 +207,7 @@ class MiniMaxTtsClient(
             // 5. 等 is_final / task_finished；服务端会持续回流 audio.data
             withTimeout(RESPONSE_TIMEOUT_MS) { finished.await() }
 
-            // 6. 发 task_finish 关任务，再 close
+            // 6. 发 task_finish 关任务；bidi 会先送残留再 task_finished（§A.13.2）
             runCatching { ws.send(buildTaskFinishMessage()) }
             runCatching { ws.close(WS_CLOSE_NORMAL, "done") }
 
@@ -184,28 +220,41 @@ class MiniMaxTtsClient(
                 totalLatencyMs = System.currentTimeMillis() - startedAt,
             )
         } catch (e: TimeoutCancellationException) {
-            throw AppError.TtsUpstream(IOException("MiniMax T2A response timeout"))
+            throw AppError.TtsUpstream(
+                serverErrorCode = "TIMEOUT",
+                serverErrorMessage = "MiniMax T2A response timeout (${RESPONSE_TIMEOUT_MS}ms)",
+            )
         } catch (e: AppError) {
             throw e
         } catch (t: Throwable) {
             throw protocolError ?: AppError.TtsUpstream(t)
         } finally {
+            // ★ P0-MAX-2：OkHttp 客户端管 ping；连接关闭由 ws.close / onClosed 走完
             runCatching { ws.close(WS_CLOSE_NORMAL, "done") }
             current = null
             player.release()
+            // ★ P0-MAX-3 (§18)：重置 speaking flag，对齐 QwenTtsClient.kt:123。
+            //   漏此调用 → speak() 走 finally 后 flag 留 true → 下次 speak() 抛 "TTS already speaking"，
+            //   本会话后续所有 TTS 全部失败，老人听不到任何回复。
             speaking.set(false)
         }
     }
 
     override fun stop() {
+        // ★ P0-MAX-2：OkHttp 客户端管 ping，不再调 stopPinger()
         runCatching { current?.close(WS_CLOSE_NORMAL, "stop") }
         current = null
+        // ★ P0-MAX-3 (§18)：用户打断后重置 speaking flag，对齐 QwenTtsClient 的隐式契约。
+        //   InterviewViewModel.cancel() 路径：当前 state = stopped。后续 LLM 出 state。
+        //   漏此调用 → 本会话剩余所有 TTS 全部失败。
+        speaking.set(false)
     }
 
     private fun buildTaskStartMessage(): String =
         JSONObject().apply {
             put("event", "task_start")
             put("model", MINIMAX_TTS_MODEL)
+            put("language_boost", LANGUAGE_BOOST)
             put("voice_setting", JSONObject().apply {
                 put("voice_id", MINIMAX_TTS_VOICE_ID)
                 put("speed", 1)
@@ -215,7 +264,6 @@ class MiniMaxTtsClient(
             })
             put("audio_setting", JSONObject().apply {
                 put("sample_rate", SAMPLE_RATE)
-                put("bitrate", BITRATE)
                 put("format", AUDIO_FORMAT)
                 put("channel", 1)
             })
@@ -229,6 +277,46 @@ class MiniMaxTtsClient(
 
     private fun buildTaskFinishMessage(): String =
         JSONObject().apply { put("event", "task_finish") }.toString()
+
+    /**
+     * 错误码精确映射（v0.12.0 §A.13 §3.4）：读 `event.base_resp.status_code` int。
+     *
+     * 文档来源：https://platform.minimaxi.com/docs/api-reference/speech-t2a-websocket-bidi.md
+     * 旧实现读 `error.code/message` 字符串关键字 → 100% 拿到 null，因为文档**没有** error 字段。
+     */
+    private fun mapBaseRespError(baseResp: JSONObject?): AppError {
+        if (baseResp == null) {
+            return AppError.TtsUpstream(
+                serverErrorCode = "MISSING_BASE_RESP",
+                serverErrorMessage = "task_failed event without base_resp",
+            )
+        }
+        val code = baseResp.optInt("status_code", -1)
+        val msg = baseResp.optString("status_msg").orEmpty()
+        return when (code) {
+            1004 -> AppError.TtsAuthFailed()
+            2204 -> AppError.TtsUpstream(
+                serverErrorCode = "2204",
+                serverErrorMessage = msg.ifBlank { "task_continue text > 10,000 chars; skipped (session kept)" },
+            )
+            2205 -> AppError.TtsUpstream(
+                serverErrorCode = "2205",
+                serverErrorMessage = msg.ifBlank { "queue overflow; resend later (session kept)" },
+            )
+            2206 -> AppError.TtsUpstream(
+                serverErrorCode = "2206",
+                serverErrorMessage = msg.ifBlank { "event order illegal (e.g. duplicate task_start)" },
+            )
+            1000, 1001, 1002, 1039, 1042, 2013, 2201, 2202 -> AppError.TtsUpstream(
+                serverErrorCode = code.toString(),
+                serverErrorMessage = msg.ifBlank { null },
+            )
+            else -> AppError.TtsUpstream(
+                serverErrorCode = code.takeIf { it >= 0 }?.toString() ?: "UNKNOWN",
+                serverErrorMessage = msg.ifBlank { null },
+            )
+        }
+    }
 
     private fun decodeHexOrNull(hex: String): ByteArray? {
         // 容错处理：忽略空白 / 大小写；非 hex 字符返回 null。
@@ -246,30 +334,7 @@ class MiniMaxTtsClient(
         }
     }
 
-    private fun mapStreamError(error: JSONObject?): AppError {
-        val code = error?.optString("code").orEmpty()
-        val message = error?.optString("message").orEmpty()
-        val normalized = "$code $message".lowercase()
-        return when {
-            normalized.contains("auth") ||
-                normalized.contains("api key") ||
-                normalized.contains("apikey") ||
-                "401" in normalized ||
-                "403" in normalized -> AppError.TtsAuthFailed()
-            normalized.contains("throttl") || normalized.contains("rate limit") || "429" in normalized ->
-                AppError.TtsUpstream(serverErrorCode = code.ifBlank { null },
-                    serverErrorMessage = message.ifBlank { null })
-            normalized.contains("invalid") || normalized.contains("bad request") ->
-                AppError.TtsUpstream(serverErrorCode = code.ifBlank { null },
-                    serverErrorMessage = message.ifBlank { null })
-            else -> AppError.TtsUpstream(
-                serverErrorCode = code.ifBlank { null },
-                serverErrorMessage = message.ifBlank { null },
-            )
-        }
-    }
-
-    private fun mapFailure(t: Throwable, response: Response?): AppError {
+    private fun mapFailure(t: Throwable, response: OkResponse?): AppError {
         val statusCode = response?.code
         return when {
             statusCode == 401 || statusCode == 403 -> AppError.TtsAuthFailed(t)
@@ -290,12 +355,14 @@ class MiniMaxTtsClient(
 
     companion object {
         const val MINIMAX_TTS_PROVIDER = "minimax"
-        const val MINIMAX_TTS_MODEL = "speech-2.8-hd"          // §A.13.1，与 Python 例子一致
-        const val MINIMAX_TTS_VOICE_ID = "Cantonese_KindWoman" // §A.13.1 硬编码；待真 Key 校验
-        const val WS_URL = "wss://api.minimax.cn/ws/v1/t2a_v2" // 必须带 _v2 后缀
-        const val SAMPLE_RATE = 24_000                          // 与 AndroidPcmSink 一致
-        const val BITRATE = 128_000
-        const val AUDIO_FORMAT = "pcm"                          // 24kHz / mono / 16-bit
+        const val MINIMAX_TTS_MODEL = "speech-2.8-hd"               // 8 模型 enum 内合法
+        const val MINIMAX_TTS_VOICE_ID = "Cantonese_KindWoman"      // 系统音色第 64 行
+        const val WS_URL = "wss://api.minimax.cn/ws/v1/t2a_v2_bidi" // ★ v0.12.0 切 bidi
+        const val SAMPLE_RATE = 24_000                               // 6 档 enum 内合法
+        const val AUDIO_FORMAT = "pcm"                               // 7 档 enum 内合法
+        const val LANGUAGE_BOOST = "Chinese,Yue"                     // 粤语场景方阵
+        const val PING_INTERVAL_MS = 30_000L                          // 文档明示 client ping
+        const val IDLE_TIMEOUT_MS = 120_000L                          // 文档明示服务端断连阈值
 
         private const val SESSION_TIMEOUT_MS = 10_000L
         private const val RESPONSE_TIMEOUT_MS = 30_000L
@@ -310,6 +377,11 @@ class MiniMaxTtsClient(
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)
                 .writeTimeout(60, TimeUnit.SECONDS)
+                // ★ P0-MAX-2 (§18)：RFC 6455 ping/pong 帧保活。
+                //   旧自定义 pinger 用 ws.send("") 发空 text 帧 → 服务端回 task_failed(2206)
+                //   OkHttp 4.x 自动用 PingMessage 帧发 ping → 服务端 pong 刷新活跃时间。
+                //   MiniMax 120s 主动断，30s 间隔保证心跳 < 120s。
+                .pingInterval(MiniMaxTtsClient.PING_INTERVAL_MS, TimeUnit.MILLISECONDS)
                 .addInterceptor(logging)
                 .build()
         }
