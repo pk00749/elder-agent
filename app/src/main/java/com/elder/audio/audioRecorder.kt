@@ -20,10 +20,15 @@ class AudioRecorder(private val context: Context) {
     private var readThread: Thread? = null
     private val recording = AtomicBoolean(false)
     @Volatile private var onAudioFrame: ((ByteArray) -> Unit)? = null
+    @Volatile private var onLevelFrame: ((Float) -> Unit)? = null
 
-    fun start(frameListener: ((ByteArray) -> Unit)? = null): File {
+    fun start(
+        frameListener: ((ByteArray) -> Unit)? = null,
+        levelListener: ((Float) -> Unit)? = null,
+    ): File {
         stop()
         onAudioFrame = frameListener
+        onLevelFrame = levelListener
         val out = File(context.cacheDir, "elder_${System.currentTimeMillis()}.wav")
         val minBuf = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNELS, AUDIO_FORMAT_PCM)
         val bufSize = maxOf(minBuf, 4096)
@@ -60,6 +65,21 @@ class AudioRecorder(private val context: Context) {
             while (recording.get()) {
                 val n = ar.read(buf, 0, buf.size)
                 if (n > 0) {
+                    // 计算 RMS（均方根）→ 归一化 0..1；用作 UI 录音音量弧度
+                    var sumSq = 0.0
+                    for (i in 0 until n) {
+                        val s = buf[i].toInt()
+                        sumSq += (s * s).toDouble()
+                    }
+                    val rms = (Math.sqrt(sumSq / n) / 32768.0).toFloat().coerceIn(0f, 1f)
+                    val lvl = onLevelFrame
+                    if (lvl != null) {
+                        try {
+                            lvl.invoke(rms)
+                        } catch (_: Throwable) {
+                            // 音量回调异常不打断录音；与 frameListener 异常处理对齐
+                        }
+                    }
                     val bytes = ByteArray(n * BYTES_PER_SAMPLE)
                     for (i in 0 until n) {
                         val s = buf[i].toInt()
@@ -99,6 +119,7 @@ class AudioRecorder(private val context: Context) {
         try { outputStream?.close() } catch (_: Throwable) {}
         outputStream = null
         onAudioFrame = null
+        onLevelFrame = null
         f?.let { updateWavHeader(it, dataSize) }
         return f
     }
@@ -113,6 +134,7 @@ class AudioRecorder(private val context: Context) {
         try { outputStream?.close() } catch (_: Throwable) {}
         outputStream = null
         onAudioFrame = null
+        onLevelFrame = null
         currentFile?.delete()
         currentFile = null
     }

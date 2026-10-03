@@ -1,4 +1,10 @@
 // §3.1.2 单次录音 → ASR → 本地日记（v3.0 MVP 录音屏）
+//
+// v0.x 重构：录制中改按住说话（HoldToTalkButton + audioLevel 弧度）；
+// 已录音状态改白底黑字 + RecordAudioCard 语音回听卡（与 DiaryDetailScreen 视觉对齐）；
+// MediaPlayer 播放委派 RecordPlaybackDelegate。
+//
+// 不动 §18：所有 token 走 BrandColor / FontSize / Spacing / Corner / Size；不引入新上游 SDK。
 package com.elder.android.screen.elder
 
 import android.Manifest
@@ -7,16 +13,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -33,13 +33,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,14 +46,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elder.android.R
 import com.elder.android.design.tokens.BrandColor
 import com.elder.android.design.tokens.Corner
-import com.elder.android.design.tokens.FontLevel
 import com.elder.android.design.tokens.FontSize
 import com.elder.android.design.tokens.Size
 import com.elder.android.design.tokens.Spacing
 import com.elder.android.ui.component.ElderToast
 import com.elder.android.ui.component.LoadingState
 import com.elder.android.ui.component.NetworkYellowBar
-import kotlinx.coroutines.flow.collect
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,7 +90,7 @@ fun ElderDiaryRecordScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = BrandColor.BgGray,
+        color = BrandColor.CardWhite,  // v0.x：纯白底（满足「白底黑字」字面要求）
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
@@ -128,11 +126,16 @@ fun ElderDiaryRecordScreen(
                 val savedTranscript = state.transcript
                 val savedId = state.savedId
                 when {
-                    state.isRecording -> RecordingActive(state = state, onStop = vm::stopAndProcess)
+                    state.isRecording -> RecordingActive(
+                        state = state,
+                        onPress = vm::startRecording,
+                        onRelease = vm::stopAndProcess,
+                    )
                     state.isProcessing -> LoadingState()
                     savedId != null && savedTranscript != null -> RecordedState(
-                        durationMs = state.elapsedMs,
-                        transcript = savedTranscript,
+                        state = state,
+                        onPlay = vm::togglePlay,
+                        onRedo = vm::retry,
                         onDone = onDone,
                     )
                     // 已检查且还没授权 -> StartState（"权限被拒绝" + 授权按钮）；刚进屏权限还没查完 -> 空 Box
@@ -152,168 +155,16 @@ fun ElderDiaryRecordScreen(
         )
     }
 
+    // 播放错误也走 ElderToast（与 topError 区分来源）
+    state.playError?.let { msg ->
+        ElderToast(
+            message = msg,
+            onDismiss = vm::dismissPlayError,
+        )
+    }
+
     LaunchedEffect(state.asrNotConfigured) {
         if (state.asrNotConfigured) onBack()
-    }
-}
-
-@Composable
-internal fun RecordingActive(state: DiaryRecordUiState, onStop: () -> Unit) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = stringResource(
-                R.string.diary_recording_recording,
-                (state.elapsedMs / 60000).toInt(),
-                ((state.elapsedMs / 1000) % 60).toInt(),
-            ),
-            fontSize = FontSize.body(FontLevel.LARGE),
-            fontWeight = FontWeight.Bold,
-            color = BrandColor.Error500,
-        )
-        Spacer(modifier = Modifier.height(Spacing.Xs))
-        Text(
-            text = stringResource(R.string.diary_recording_transcribing),
-            fontSize = FontSize.body(),
-            color = BrandColor.TextSecondary,
-        )
-        Spacer(modifier = Modifier.height(Spacing.Md))
-        TranscriptPaper(
-            text = state.transcript,
-            placeholder = stringResource(R.string.diary_recording_transcript_placeholder),
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        )
-        Spacer(modifier = Modifier.height(Spacing.Md))
-        Button(
-            onClick = onStop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(Size.PrimaryButtonHeight),
-            shape = RoundedCornerShape(Corner.Button),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = BrandColor.Brand500,
-                contentColor = BrandColor.CardWhite,
-            ),
-        ) {
-            Text(
-                text = stringResource(R.string.diary_recording_stop),
-                fontSize = FontSize.button(),
-                fontWeight = FontWeight.Bold,
-            )
-        }
-    }
-}
-
-@Composable
-private fun RecordedState(
-    durationMs: Long,
-    transcript: String,
-    onDone: () -> Unit,
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        Text(
-            text = stringResource(R.string.diary_recording_done_check) + " " + stringResource(R.string.diary_recording_done_duration, (durationMs / 60000).toInt(), ((durationMs / 1000) % 60).toInt()),
-            fontSize = FontSize.body(FontLevel.LARGE),
-            fontWeight = FontWeight.Bold,
-            color = BrandColor.Brand500,
-        )
-        Spacer(modifier = Modifier.height(Spacing.Md))
-        TranscriptPaper(
-            text = transcript,
-            placeholder = "",
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        )
-        Spacer(modifier = Modifier.height(Spacing.Md))
-        Button(
-            onClick = onDone,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(Size.PrimaryButtonHeight),
-            shape = RoundedCornerShape(Corner.Button),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = BrandColor.Brand500,
-                contentColor = BrandColor.CardWhite,
-            ),
-        ) {
-            Text(stringResource(R.string.diary_recording_back), fontSize = FontSize.button(), fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-private fun TranscriptPaper(
-    text: String?,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-) {
-    val transcript = text?.takeIf { it.isNotBlank() }
-    val scrollState = rememberScrollState()
-
-    LaunchedEffect(transcript) {
-        snapshotFlow { scrollState.maxValue }.collect { maxValue ->
-            scrollState.scrollTo(maxValue)
-        }
-    }
-
-    Surface(
-        modifier = modifier,
-        color = BrandColor.CardWhite,
-        shape = RoundedCornerShape(Corner.Card),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .drawBehind {
-                    val marginX = Spacing.Lg.toPx()
-                    val ruleEndX = size.width - Spacing.Md.toPx()
-                    val ruleSpacing = Size.TranscriptRuleSpacing.toPx()
-                    val ruleWidth = Size.TranscriptRuleWidth.toPx()
-
-                    var ruleY = Spacing.Lg.toPx()
-                    while (ruleY < size.height) {
-                        drawLine(
-                            color = BrandColor.PaperRule,
-                            start = Offset(marginX, ruleY),
-                            end = Offset(ruleEndX, ruleY),
-                            strokeWidth = ruleWidth,
-                        )
-                        ruleY += ruleSpacing
-                    }
-
-                    drawLine(
-                        color = BrandColor.PaperMargin,
-                        start = Offset(marginX, 0f),
-                        end = Offset(marginX, size.height),
-                        strokeWidth = Size.AsrCardBorderWidth.toPx(),
-                    )
-                }
-                .padding(
-                    start = Spacing.Xl,
-                    top = Spacing.Lg,
-                    end = Spacing.Md,
-                    bottom = Spacing.Md,
-                ),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState),
-            ) {
-                Text(
-                    text = transcript ?: placeholder,
-                    fontSize = FontSize.BodyHugeSp.sp,  // v0.9.0: XLARGE 32 → BodyHugeSp 40
-                    lineHeight = FontSize.TranscriptLineHeightSp.sp,  // v0.9.0: 48 → 56
-                    fontWeight = if (transcript == null) FontWeight.Normal else FontWeight.Bold,  // v0.9.0: Medium → Bold
-                    color = if (transcript == null) BrandColor.TextSecondary else BrandColor.TextPrimary,
-                )
-                Spacer(modifier = Modifier.height(Spacing.Xxl))
-            }
-        }
     }
 }
 

@@ -15,6 +15,8 @@
 | v2.3 | 2026-09-18 | Codex | 新增 §A.12 MiniMax Realtime ASR（客户端 WebSocket）+ §A.13 MiniMax T2A WebSocket（Cantonese_KindWoman）+ §18 「0.7.0 例外」条款；千问 / MiniMax 双 Provider 可切换；`asr_config` Migration 4→5 DROP+CREATE；MiniMax ASR 与 LLM 共用 Key、MiniMax TTS 独立 Key；`scripts/check_no_hardcoded_tokens.py` 仍绿 |
 | v2.4 | 2026-09-24 | Codex | 新增 §18 PCM sink 收口反向条款：`AndroidPcmSink.drain()/release()` 必须调 `drainBuffer()` 等 `playbackHeadPosition` 追平 `bytesWritten/2` 再 `track.stop()`，避免 AudioTrack 内部 buffer 未播放 PCM 被砍导致 TTS 尾音丢失；配套 `AndroidPcmSinkDrainTest` 4 条回归测试 |
 | v2.5 | 2026-09-27 | Codex | **新增 §A.16 v0.10.0 增量**：(1) §A.16.1 文档拆分规范 — `docs/{version}.md` 命名 + `prd.md §12.5` 索引表;旧 `docs/prd-v2.1-*` / `docs/0.9.0-*` 改名 + `superseded` 注。(2) §A.16.2 PcmSink 收尾 — `MAX_DRAIN_MS` 默认 `1_500L`;新增第 5 条 `AndroidPcmSinkDrainTest.drainBuffer default cap is 1500ms` 锁定数值。(3) §A.16.3 OSS 同步 — Room `oss_config` 单行表(Migration 6→7)+ `diary_entry_local` 5 列 `ALTER` 增量(`oss_object_key / oss_sync_status / oss_synced_at / oss_last_error / oss_attempts`,§5.10 锁定列表 → 仅追加);`OssKeyCipher`(独立 prefs file `elder_oss_keys`)+ `OssSyncClient` 接口 + `AliyunOssSyncClient`(反射 lazy init `com.aliyun.oss:aliyun-sdk-oss`,prod SDK 缺失时抛 `OSS_AUTH_FAILED`)+ `OssSyncRepository`(syncDiary / retryPending(limit=20) / enqueueDebounced 60s 节流)+ `OssSyncWorker`(CoroutineWorker + `UNMETERED` Constraints + 指数 backoff 1h/8h/24h);**唯一新上游 SDK**:`aliyun-sdk-oss:3.17.4+`(本节记录;不通过 §A.x 通用封装,0.10.0 直接依赖);WorkManager dep `androidx.work:work-runtime-ktx:2.9.1`。(4) §A.16.4 第一句粤语 — `SafetyAgent.greetingFallback()` 改粤语静态兜底(早晨,今日想去边度? / 中午,食咗饭未呀? / 今晚,今日过得点呀?);`chat_v2.txt` 软指令 OPEN 段首句必含 ≥3 个粤语词 + 鼓励引导老人讲今天;RESPOND 段允许铺垫 1 句场景,总和 ≤25 字仍受 A2 硬约束;`chat_v1.txt` 保留只读。(5) §A.16.5 不限轮数 — 删 `MAX_TURNS = 8` 硬上限;`ChatAgent` / `InterviewAgent` 删 `maxTurns` 字段 + 早退分支 + `shouldFinalize` 硬截断分支;新增 `SOFT_TURN_HINT = 20`(仅供 UI 进度提示,不参与最终化判定);`MAX_TOOL_ROUNDS = 3` 保留防工具 loop;§3.1.4 A1/A2/B/D 硬约束保留(单段 ≤25 字 / 急救 save_diary / 长度截断等同);`§18` 反向条款不变。配套:`InterviewAgentTest` 改写 `hard turn cap never creates a ninth turn` → `no hard turn cap beyond 8 rounds runs main LLM loop`(12 轮后仍走主循环);`SafetyAgentTest` +3 粤语断言;`ChatAgentOpenTest` 3 处 assertEquals 期望更新到粤语。**不动**:§5 数据模型既有字段定义 / §3.1.4 A/B/D 硬约束 / §3.1.2 录音规格 / §4.2 最小 24sp 起步硬约束 / 既有 migration / 既有 prompt 文件(`system_v1/v2/v3.txt` + `save_v1/v2/v3.txt` + `chat_v1.txt` + `memory_v1.txt` + `safety_v1.txt` 全部保留只读,新增 `chat_v2.txt` + `system_v4.txt`)/ §18 反向条款。详细设计见 [`docs/v0.10.0.md`](docs/v0.10.0.md)。 |
+| v3.0 | 2026-10-03 | Codex | **§18 反向条款新增 3 条 P0-MAX**(MiniMax TTS):(1) speak() 必须 `player.play()`(对齐 QwenTtsClient.kt:103 + `sink.playCount >= 1` 断言);(2) WebSocket 心跳必须 `OkHttp.pingInterval()`(RFC 6455),禁应用层 `ws.send("")`;(3) `speaking` flag 必须(`finally` + `stop()`)重置(对齐 QwenTtsClient.kt:123)。修复 v0.12.0 bidi 接入 P0 回归：默认 Provider 用户 100% 静音 + LLM 回复 30s 后服务端主动断 + 任何 speak() 后所有后续 TTS 永久失败。配套 commit `8836575` + `MiniMaxTtsClientTest` +3 条 + 1 条强化断言。
+| v2.9 | 2026-10-01 | Codex | **重写 §A.13 MiniMax T2A(v0.12.0 切 bidi)**:(1) `WS_URL` `wss://api.minimax.cn/ws/v1/t2a_v2`(单向)→ `wss://api.minimax.cn/ws/v1/t2a_v2_bidi`(双向,服务端攒句);(2) 删 `BITRATE` 常量(文档明示「该参数仅对 mp3 格式的音频生效」,PCM 无压缩写 bitrate 无意义);(3) `buildTaskStartMessage` 新增 `language_boost = "Chinese,Yue"`(粤语韵律强化,enum 合法);(4) `mapStreamError` 重写读 `event.base_resp.status_code` int(文档实际协议,旧实现读 `error.code/message` 字符串 100% 拿到 null → 全部 fallback `TtsUpstream`);(5) 新增 `sentence_start` / `sentence_end` / `task_canceled` / `task_flushed` 4 事件分支(debug log,bidi 专属);(6) 30s client ping 保活(文档明示服务端 120s 空闲断,服务端不主动 ping;仅靠 TCP keepalive 不够);(7) `mapBaseRespError` 错误码精确映射:**1004** → `TtsAuthFailed` 精确;**2205**(排队软失败,会话保持) → `TtsUpstream("2205")`;**2204**(单条 task_continue > 10K 字符软失败) → `TtsUpstream("2204")`;其他 1000/1001/1002/1039/1042/2013/2201/2202/2206 全部 → `TtsUpstream(code.toString())`;event 缺失 `base_resp` 兜底 `TtsUpstream("MISSING_BASE_RESP")`。(8) `voice_id_validated=false` / `audio_format_validated=false` 双警告删除 — 文档系统音色第 64 行确认 `Cantonese_KindWoman` 善良女声(粤语);`audio_setting` `format=pcm` + `sample_rate=24000` + `channel=1` 全部在 enum 合法范围(7 档 format / 6 档 sample_rate / 2 档 channel)。**接口零改动**:TTS Provider 切后 `ChatAgent` / `InterviewAgent` / `InterviewScreen` / `TtsClient` interface / `TtsProviderCatalog.kt` 全部**0 改动**(自动跟随常量)。**测试**:`MiniMaxTtsClientTest.kt` +5 条(完整握手 audio_setting 不含 bitrate / base_resp.status_code=1004 精确映射 / 2201/2205 软失败 / sentence_start-end 容忍 / WS_URL 含 _t2a_v2_bidi 后缀)+1 条 task_canceled+task_flushed 容忍;`MiniMaxTtsClientLiveTest` doc 注释更新,**0 行为改动**。**不动**:§5 数据模型既有字段 / §3.1.4 A1-D3 / §3.1.2 录音规格 / §4.2 最小 24sp 起步硬约束 / 既有 migration / 既有 prompt 文件 / §A.12 MiniMax ASR / §A.14 Provider 路由 / AndroidManifest / §18 既有 lock(`MiniMaxTtsClient.kt` 仍 0.7.0 唯一上游;不通过 elder_common 封装)。详细设计见 [`docs/v0.12.0-minimax-tts-bidi.md`](docs/v0.12.0-minimax-tts-bidi.md) §1-§6。|
 | v2.8 | 2026-10-01 | Codex | **新增 §A.18 App 0.11.x bugfix 增量(保存后 LoadingState 全屏霸屏修复)**:(1) `InterviewScreen` 删 `LoadingState()` 在 `PREPARING` / `SAVED` 阶段的引用,新增 `private fun SavingStatusRow(text)` —— 与 `OpeningStatusRow` 同款 `Size.PrimaryButtonHeight` 固定行高 Column;不让 `fillMaxSize()` 抢占 `TranscriptCard(weight 1f)` 空间。(2) `InterviewViewModel.saveDiary` 调整顺序 —— DB 写入 → `_state.update { stage = SAVED }` → `onDone()` → 后台 sibling `launch { runCatching { saveExportRepo.exportIfNeeded(...) } }`;外层加 `.invokeOnCompletion { t -> if (t != null && t !is CancellationException) { Log.e + _state.update { stage = REVIEW, topError = "保存失败，请重试" } } }` 兜底(不让 state 停在 SAVED)。(3) `SaveExportRepository.exportIfNeeded` 拆 `private suspend fun runExport(...)` + 套 `withTimeoutOrNull(EXPORT_TIMEOUT_MS)`;`EXPORT_TIMEOUT_MS = 3_000L`(LOCAL 写 Downloads < 500ms × 3 安全系数);超时返回 `ExportOutcome.Failed("EXPORT_TIMEOUT", "保存超时(3000ms)")` 而不是抛 `TimeoutCancellationException`。(4) `onEnter` 拆 `private suspend fun onEnterInternal()` + 外层 try-catch —— 抛异常时强制翻 `stage = READY` + `topError = "初始化失败，请返回重试"`,不再让 PREPARING 阶段霸屏。**测试**:`InterviewScreenLayoutTest`(2)+ `InterviewSaveFlowStructuralTest`(3)+ `SaveExportRepositoryStructuralTest`(2)+ `SaveExportRepositoryTest` +1 timeout 行为测试,共 8 条新增/扩展,全绿;`AndroidManifest.xml` 不动 / `§5` 数据模型既有字段不动 / `§3.1.4 A1–D3 / B既有行为约束不动 / §18 既有 lock 全部不动`;`InterviewViewModel` 超出 500 行 123 行,文件头注释更新触发 §18 拆分点的 v0.12.0 触发条件(把 Toast 控制 / voice hint 控制 / save 兜底 / onEnter 初始 迁出)。详细设计见 [`docs/v0.11.x-bugfix.md`](docs/v0.11.x-bugfix.md) §1–§7。 |
 | v2.7 | 2026-10-01 | Codex | **新增 §A.17 App 0.11.0 增量(语音退出 + 本地导出 + 顶栏 Toast)**:(1) `ElderSaveModeRepository`(独立 prefs file `elder_save_mode`)+ `enum SaveMode { LOCAL, CLOUD, BOTH }` 默认 LOCAL;`ElderSettingsScreen` 加 `SettingRowSaveMode` 卡 + `SaveModeDialog` 三选一 AlertDialog;`strings.xml` +9 条 `settings_save_mode_*`。(2) `SaveExportRepository` 新文件 + `OssSyncActions` 接口(`OssSyncRepository` 实现):本地路径 = `Downloads/老友日记/`;文件名 `diary_yyyyMMdd_HHmmss_xxxx.{md|m4a}`(4 位 hex 随机后缀);`.md` schema 5 字段(`# {date}` / `> {summary}` / `{text}` / `时长:{N} 秒` / `录音:{audio_filename}`);`AndroidManifest.xml` 加 `WRITE_EXTERNAL_STORAGE` `maxSdkVersion="28"`。(3) `InterviewScreen` 删 `AssistantCard`(~30 行)+ 新增 `LLMReplyToast(text)`(`AnimatedVisibility` fadeIn 200ms + fadeOut 500ms);`TranscriptCard` 改 `Modifier.weight(1f)` 撑满剩余空间;`InterviewUiState` 加 `llmReplyToastText: String?` / `farewellText: String?` / `showVoiceEndHint: Boolean = true`;`InterviewViewModel.speakOrShow()` 加 `showLlmReplyToast: Boolean = true` 参数;`llmToastShowMs = 2_500L` 自动 dismiss;相同 text 幂等不重复 show。(4) `AgentSafety.elderEnd` set 4 词粤语 end 词(结束 / 够了 / 拜拜 / 不聊了)+ `isElderEnd()`;`SafetyAgent.Verdict.ELDER_EXPLICIT_END` 新增(优先级高于 EXPLICIT_CLOSE);`SafetyAgent.ELDER_END_GOODBYE = "好的，今天先聊到这。"`;`ChatAgent.finalizeViaExplicitEnd()` 新方法 + `AgentFinalDraft.farewellText: String? = null` 新字段;访谈屏 `READY` 阶段顶部黄条教学(`BrandColor.NetYellow` token),首次关闭后写 `elder_save_mode.voice_end_hint_seen=true`,后续不再弹。**§18 例外**:本次新增 §3.1.4 B 关键词 4 词粤语 end 词(由 docs/v0.11.0.md §3.4 锁定),不动 A1–A3 / B1–B3 / C / D 既有行为约束。**不动**:§5 数据模型既有字段 / §3.1.4 A/B/D 硬约束 / §3.1.2 录音规格 / 既有 migration / 既有 prompt 文件 / §18 既有 lock;`InterviewViewModel` 超 500 行 50 行,文件头记录理由(私有 `_state` 锁死,需后续触发拆分)。详细设计见 [`docs/v0.11.0.md`](docs/v0.11.0.md) §1–§8。 |
 | v2.6 | 2026-09-30 | Codex | **新增 §A.16.6 日志详情 DiaryDetailScreen(浅色 / 暗色 token 联动)**:`DiaryColorScheme` 数据类(14 字段,含 surfaceShadowAlpha / textMaskEnd / iconStroke 3 处翻牌关键字段)+ `DiaryColor.Light / Dark`;`ElderTheme.forceDarkMode` 跟随系统;`LocalIsDarkMode` compositionLocalOf;`DiaryDetailScreen` + `DiaryDetailComponents` + `DiaryDetailViewModel`(单文件 ≤400 行 AGENTS.md §3);`ElderOssConfig` 同级 `ElderDiaryDetail("elder/diary/detail/{diaryId}")` 路由;`ElderDiaryRecentScreen` 列表项 `clickable` 进详情 + `onOpenDiary: (Long) -> Unit` 回调;`DiaryRepository.findById` 暴露;`strings.xml` +15 `diary_detail_*`。4 处翻牌关键(对照 1-4):次要色 onSurfaceVariant 浅于正文 / 图标描边 strokeWidth=1.8 不准半透明灰 / 遮罩终点跟卡片底色走 / 阴影 0.05f 封顶。**不动**:间距 / 字号 / 圆角 / 组件树 全部不动;`BrandColor` 13 字段全部保留原值;既有页面未迁暗色;§5 / §3.1.4 / §18 不动。详细设计见 [`docs/v0.10.0.md`](docs/v0.10.0.md) §7。 |
@@ -243,6 +245,9 @@ elder-agent/
 - **不要为静态定义值加测试**（常量、`UPPER_SNAKE_CASE` 配置）。理由：和 OpenAI Codex 样例的反模式一致——静态定义不会跑偏，加测试是 noise。
 - **不要在客户端用 `if elder_id == current_user.elder_id`** 形式做越权校验——必须在仓储层做（§10）。理由：路由层 / 业务层越权校验易漏，仓储层是唯一真源。
 - **不要在 `AndroidPcmSink.drain()` / `release()` 里直接调 `track.stop()`**——必须先调 `drainBuffer()` 等 `playbackHeadPosition` 追平 `bytesWritten / 2` 再 stop。理由：v0.x 已知 bug 复现路径；`AudioTrack.stop()` 会丢弃内部 buffer 中未播放 PCM（24kHz/mono buffer ≈ 500ms），导致 TTS 尾音丢失。详见 `app/src/main/java/com/elder/data/tts/PcmSink.kt:drainBuffer()`。
+- **不要在 `MiniMaxTtsClient.speak()` 里漏调 `player.play()`**——必须在 `taskStarted.await()` 之后、`ws.send(buildTaskContinueMessage(...))` 之前调一次 `player.play()`。理由：v0.12.0 接入 bidi 漏掉此调用 → `AudioTrack` 停在 `STATE_INITIALIZED`，所有 PCM 躺在内部 buffer 直到 `drain()` 被清空，默认 `TtsProvider=MINIMAX` 用户 100% 静音。对齐 `QwenTtsClient.kt:103` 模式 + `MiniMaxTtsClientTest` 中 `sink.playCount >= 1` 断言。详见 §A.13 v0.12.0。
+- **不要用应用层 `ws.send("")` 做 WebSocket 心跳**——必须用 `OkHttpClient.Builder.pingInterval(30, TimeUnit.SECONDS)`（RFC 6455 PingMessage 帧）。理由：`ws.send("")` 是 text 帧，MiniMax 服务端会回 `task_failed (status_code=2206)`；OkHttp 4.x 原生 ping 帧服务端能正确 pong。旧自定义 pinger 字段 (`startPinger` / `stopPinger` / `pingJob` / `pingScope`) 必须删除。详见 `MiniMaxTtsClient.kt:defaultClient()`。
+- **不要在 `speak()` 完成后漏重置 `speaking` AtomicBoolean flag**——必须在 inner `finally` 块（对齐 `QwenTtsClient.kt:123`）和 `stop()` 方法（用户打断路径）都加 `speaking.set(false)`。理由：v0.12.0 MiniMaxTtsClient finally 块没重置 flag → 任何 `speak()` 之后 flag 留 true → 后续所有 `speak()` 抛 `AppError.TtsUpstream("TTS already speaking")` 永久失败（直到进程重启），老人听不到任何后续回复。详见 `MiniMaxTtsClient.kt:speak()`/`stop()` + `MiniMaxTtsClientTest.speak twice in sequence`。
 
 ### 日志 / 隐私
 
@@ -798,89 +803,115 @@ companion object {
 
 ---
 
-### §A.13 MiniMax T2A（TTS，v2.3 / App 0.7.0 新增；客户端 WebSocket `t2a_v2` 封装）
+### §A.13 MiniMax T2A（TTS，v2.3 / App 0.7.0 新增；v2.9 / App 0.12.0 切到双向 bidi）
 
-> 对应 PRD §3.1.9 / §11.15。0.7.0 起 TTS 可选 Provider 之一，默认 Provider；voice_id 硬编码为 `Cantonese_KindWoman`，不暴露 UI。客户端 BYOK 直连 MiniMax T2A endpoint。
+> 对应 PRD §3.1.9 / §11.15。0.7.0 起 TTS 可选 Provider 之一，默认 Provider；voice_id 硬编码为 `Cantonese_KindWoman`，不暴露 UI。客户端 BYOK 直连 MiniMax T2A endpoint。v0.12.0 由单向 `/ws/v1/t2a_v2` 切到双向 `/ws/v1/t2a_v2_bidi`（服务端攒句 + 打断 + 催出）。
 >
-> v2.3 起从 WebSocket 占位实现（`session.start` / `text.chunk` / `audio.delta` / `session.done`）切换为 MiniMax `t2a_v2` 协议族（`connected_success` / `task_start` / `task_started` / `task_continue` / `is_final` / `task_finish`），与 §A.12 ASR 协议家族保持一致；音频帧改 hex 解码，audio_setting 改 `pcm / 24000Hz / mono` 以匹配 `AndroidPcmSink`。
+> 协议族（v2.3 → v2.9）：从 WebSocket 占位（`session.start` / `text.chunk` / `audio.delta` / `session.done`）切到单向 `t2a_v2`（v0.7.0）→ 切到双向 `t2a_v2_bidi`（v0.12.0）；音频帧 hex 解码；`audio_setting` `pcm / 24000Hz / mono` 匹配 `AndroidPcmSink`。
 
-**§A.13.1 上游固定项（hardcoded constants）**
-
-> ⚠️ **0.7.0 校验待办（`voice_id_validated=false` / `audio_format_validated=false`）**
->
-> 下面 4 个常量依赖真实 MiniMax T2A 行为校验；当前仅有 Python 协议族 + Mock 测试覆盖，**真 Key 跑通前不能 100% 确认**。校验通过后请把这两个 `*_validated=false` 标志从本节删除，并在 §A.13.5 测试约束里补一行"LiveTest PASS 记录"。
+**§A.13.1 上游固定项（v0.12.0 校验完成；`*_validated=false` 双警告已删除）**
 
 ```kotlin
 // app/src/main/java/com/elder/data/tts/MiniMaxTtsClient.kt
 companion object {
     const val MINIMAX_TTS_PROVIDER = "minimax"                 // §5.11 tts_provider 落库值
-    const val WS_URL = "wss://api.minimax.cn/ws/v1/t2a_v2"      // 必须带 _v2 后缀
-    const val MINIMAX_TTS_MODEL = "speech-2.8-hd"               // 与参考 Python 例子一致
-    const val MINIMAX_TTS_VOICE_ID = "Cantonese_KindWoman"      // UI 不暴露，PRD §3.1.9 v0.7.0 修订
-    const val SAMPLE_RATE = 24_000                               // 与 AndroidPcmSink 一致
-    const val BITRATE = 128_000                                  // PCM 无效字段，保留占位
-    const val AUDIO_FORMAT = "pcm"                               // 24kHz / mono / 16-bit
+    const val WS_URL = "wss://api.minimax.cn/ws/v1/t2a_v2_bidi" // v0.12.0 切 bidi 后缀
+    const val MINIMAX_TTS_MODEL = "speech-2.8-hd"               // 8 模型 enum 内合法
+    const val MINIMAX_TTS_VOICE_ID = "Cantonese_KindWoman"      // 系统音色第 64 行确认
+    const val SAMPLE_RATE = 24_000                               // 6 档 enum 内合法
+    const val AUDIO_FORMAT = "pcm"                               // 7 档 enum 内合法
+    const val LANGUAGE_BOOST = "Chinese,Yue"                     // 粤语韵律强化
+    const val PING_INTERVAL_MS = 30_000L                          // 文档明示 client ping
+    const val IDLE_TIMEOUT_MS = 120_000L                          // 文档明示服务端断连阈值
+    // ★ v0.12.0 删除 BITRATE = 128_000：PCM 无压缩，文档明示「该参数仅对 mp3 生效」
 }
 ```
 
-> - `voice_id = "Cantonese_KindWoman"` 硬编码（**`voice_id_validated=false`**）：来自 PRD §3.1.9 v0.7.0 决议，与 MiniMax `faq/system-voice-id` 文档未对齐校验。Python 参考例子用的是 `male-qn-qingse`（普通话男声·清澈），**不能直接确认粤语 voice 叫 `Cantonese_KindWoman`**。
->   - 真 Key 跑 `MiniMaxTtsClientLiveTest -PMINIMAX_TTS_API_KEY=...`：若 `task_failed` 含 `voice` / `invalid` 关键字 → 需查 MiniMax 文档替换；同步修改 `MINIMAX_TTS_VOICE_ID` 常量与 `asr_config.tts_voice_id` 落库值（已有用户数据需 Migration）。
-> - `audio_setting.format = "pcm"` + `sample_rate = 24_000` + `channel = 1`（**`audio_format_validated=false`**）：与 `AndroidPcmSink`（24kHz / mono / 16-bit）匹配，音频 hex 解码后直喂 sink，**零额外依赖**。
->   - 真 Key 跑 LiveTest：若 `task_failed` 含 `audio_setting` / `format` / `sample_rate` 关键字 → 服务端拒绝此组合。两个回滚路径：
->     - 方案 A：`AUDIO_FORMAT` 改 `"mp3"` + `SAMPLE_RATE` 改 `32_000`，新增 `MediaCodec` MP3 → PCM 解码器喂 `AndroidPcmSink.create(32_000)`。
->     - 方案 B：保留 `format=pcm`，`SAMPLE_RATE` 改 `32_000`，`AndroidPcmSink.create(32_000)` 直喂（仅 `sample_rate` 不匹配）。
-> - endpoint / model 与 MiniMax T2A 文档 `guides/speech-t2a-websocket` 保持同一协议族；模型需在 workspace 中开通。
+> - `voice_id = "Cantonese_KindWoman"` ✅ **文档已确认**：MiniMax `faq/system-voice-id` 第 64 行「中文 (粤语) Cantonese_KindWoman 善良女声」(`*_validated=false` 警告删除)。
+> - `audio_setting.format = "pcm"` + `sample_rate = 24_000` + `channel = 1` ✅ **文档已确认**：均在合法 enum 范围（format 7 档 / sample_rate 6 档 / channel 2 档），与 `AndroidPcmSink`（24kHz / mono / 16-bit）匹配，零额外依赖（`*_audio_format_validated=false` 警告删除）。
+> - `language_boost = "Chinese,Yue"` ✅ **v0.12.0 新增**：enum 含 `["Chinese", "Chinese,Yue", "English", "Arabic", ..., "auto"]`，对粤语场景必备（否则服务端按普通话兜底）。
+> - endpoint / model 与 MiniMax `api-reference/speech-t2a-websocket-bidi` 文档保持同一协议族；模型需在 workspace 中开通。
 
-**§A.13.2 协议（MiniMax T2A `t2a_v2` WebSocket）**
+**§A.13.2 协议（MiniMax T2A `t2a_v2_bidi` WebSocket）**
 
-- 端点：`wss://api.minimax.cn/ws/v1/t2a_v2`
+- 端点：`wss://api.minimax.cn/ws/v1/t2a_v2_bidi`（v0.12.0 由单向 `t2a_v2` 切到双向 `_bidi`；API 域名不变，只换 endpoint 段）
 - Auth：`Authorization: Bearer <API_KEY>`（API Key 由用户在 §3.1.9 设置页输入，Keystore-wrapped 密文落盘 §5.11 `tts_minimax_api_key_enc`——MiniMax TTS 独立 Key，与 LLM/ASR 区分）
-- 流程（与 §A.12 SSE 风格一致的事件命名）：
-  1. 客户端 WebSocket 升级；服务端主动 push `{"event":"connected_success"}`
-  2. 客户端发 `{"event":"task_start", model, voice_setting, audio_setting}`
+- 流程（与 §A.12 SSE 风格一致的事件命名；**bidi 胜单向事件**加粗）：
+  1. 客户端 WebSocket 升级；服务端主动 push `{"event":"connected_success"}`；客户端**启动 30s ping**（见 §A.13.3 末）
+  2. 客户端发 `{"event":"task_start", model, language_boost, voice_setting, audio_setting}`；`audio_setting` **不**含 `bitrate`
   3. 服务端回 `{"event":"task_started"}`
-  4. 客户端发 `{"event":"task_continue", text}`
-  5. 服务端连续回流 `{"data":{"audio":"<hex>"}}` 音频块；hex 解码后写 `PcmSink`
-  6. 服务端发 `{"is_final":true}`（顶层字段，非嵌套）作为收口
-  7. 客户端发 `{"event":"task_finish"}`，再 close WebSocket
-- 失败事件：`{"event":"task_failed", error:{code,message}}` → 按 §A.13.3 映射
+  4. 客户端发 `{"event":"task_continue", text}`——**可按任意粒度逐字/逐 token 发送**，**服务端自动攒句**（句末标点 `。！？…；!?.` + `
+` 立即合成；次级标点攒够长度才合成）
+  5. 服务端按攒出句子连续回流 `{"event":"sentence_start"}` → `{"data":{"audio":"<hex>"}}` × N → `{"event":"sentence_end"}`；hex 解码后写 `PcmSink`
+  6. 服务端发 `{"is_final":true}`（顶层字段，非嵌套）作为单句收口；多个句会有多个 `is_final`
+  7. 客户端发 `{"event":"task_finish"}`，服务端**先合成缓冲区残留**再回 `{"event":"task_finished"}` 后关 WebSocket
+  - 打断（bidi 专属）：客户端发 `{"event":"task_cancel"}` → 服务端丢弃缓冲区未合成文本 + 返回 `{"event":"task_canceled"}`；**会话回到 `task_started` 状态，无需重连**——老人插话场景
+  - 催出（bidi 专属）：客户端发 `{"event":"task_flush"}` → 服务端立刻送出缓冲区 + 返回 `{"event":"task_flushed"}`；**会话保持**
+- 失败事件：`{"event":"task_failed", base_resp:{status_code:int, status_msg:string}}` → 按 §A.13.4 映射（文档**没有** `error` 字段）
 
-**§A.13.3 错误映射**
+**§A.13.3 连接保活（v0.12.0 新增）**
 
-| 场景 | AppError | code |
-|------|----------|------|
-| WebSocket 握手 HTTP 401 / 403 | `TtsAuthFailed` | `TTS_AUTH_FAILED` |
-| `task_failed` 含 `auth` / `api key` / `401` / `403` 关键字 | `TtsAuthFailed` | `TTS_AUTH_FAILED` |
-| `task_failed` 含 `invalid` / `bad request` 关键字 | `TtsUpstream` | `TTS_UPSTREAM` |
-| `task_failed` 含 `throttl` / `rate limit` / `429` 关键字 | `TtsUpstream`（带 `429` code） | `TTS_UPSTREAM` |
-| WebSocket 失败 / server_error / 5xx / IOException | `TtsUpstream` | `TTS_UPSTREAM` |
-| 音频帧 hex 解析失败 | `TtsUpstream`（带"invalid hex"） | `TTS_UPSTREAM` |
-| 握手超时 / 文本推送后无 `is_final` 超时 | `TtsUpstream`（带"timeout"） | `TTS_UPSTREAM` |
-| API Key 传空 | `TtsAuthFailed` | `TTS_AUTH_FAILED` |
+- 服务端 120s 空闲主动断（`IDLE_TIMEOUT_MS = 120_000L`），返回 `status_code = 2201`
+- **服务端不主动 ping**——客户端必须每 30s 发 `""` 触发服务端 pong 刷新活跃时间
+- `PING_INTERVAL_MS = 30_000L`（30s ping 一次，120s 断前有 2 次 ping 触发 → 活跃时间持续刷新）
+- ping 失败不抛异常（WS 可能已 close，job 自然 cancel）
+- 仅靠 TCP keepalive 不够避免 `2201`（文档明示）
 
-> v0.7.0 暂不新增 `TTS_RATE_LIMITED`，沿用既有 `TTS_UPSTREAM`（与 PRD §6.4 一致；保持最小破坏面）。
+**§A.13.4 错误映射（v0.12.0 重写：读 `base_resp.status_code` int）**
 
-**§A.13.4 客户端 Room schema（§5.11 `asr_config` v0.7.0）**
+| `base_resp.status_code` | 含义 | AppError 映射 | WebSocket 行为 |
+|------------------------|------|--------------|----------------|
+| 0 | 成功 | — | — |
+| 1000 | 未知错误 | `TtsUpstream("1000", msg)` | close |
+| 1001 | 超时 | `TtsUpstream("1001", msg)` | close |
+| 1002 | 触发限流 | `TtsUpstream("1002", msg)` | close |
+| **1004** | **鉴权失败** | **`TtsAuthFailed()`** | close |
+| 1039 | TPM 限流 | `TtsUpstream("1039", msg)` | close |
+| 1042 | 非法字符 > 10% | `TtsUpstream("1042", msg)` | close |
+| 2013 | 输入参数不正常 | `TtsUpstream("2013", msg)` | close |
+| 2201 | 空闲超时（被服务端断开） | `TtsUpstream("2201", msg)` | 已关闭 |
+| 2202 | 非法事件 | `TtsUpstream("2202", msg)` | close |
+| **2204** | 单条 task_continue > 10K 字符 | `TtsUpstream("2204", "skipped; session kept")` | **会话保持**,跳过该条 |
+| **2205** | 排队文本过多(发送过快) | `TtsUpstream("2205", "queue overflow; resend later")` | **会话保持**,稍后重发该条 |
+| 2206 | 事件顺序非法(重复 task_start) | `TtsUpstream("2206", "event order illegal")` | close |
+| `event` 缺 `base_resp` | 极端兜底 | `TtsUpstream("MISSING_BASE_RESP", "task_failed without base_resp")` | close |
+| WebSocket 握手 HTTP 401 / 403 | 鉴权失败(握手层) | `TtsAuthFailed(t)` | n/a |
+| WebSocket 失败 / 5xx / IOException | 网络层 | `TtsUpstream(t)` | n/a |
+| 音频帧 hex 解析失败 | 协议层 | `TtsUpstream("invalid_hex", msg)` | close |
+| `task_started` / `is_final` / `task_finished` 等待超时 | 业务层 | `TtsUpstream("TIMEOUT", "T2A response timeout (30000ms)")` | close |
+| API Key 传空 | 鉴权失败(客户端层) | `TtsAuthFailed()` | 不发 WS |
+
+> v0.12.0 仍不新增 `TTS_RATE_LIMITED`，沿用既有 `TTS_UPSTREAM`（与 PRD §6.4 一致；最小破坏面）。2204 / 2205 软失败错误码完整列出便于日志/重试策略；当前 `MiniMaxTtsClient` 调用模型是「整段 task_continue 一次发」，2204 / 2205 路径**走不到**，**不**为它们加自动重试逻辑（§18「不要写未走到的反向测试」+「不要为静态值加测试」）。
+
+**§A.13.5 客户端 Room schema（§5.11 `asr_config` v0.7.0）**
 
 - `tts_provider` / `tts_endpoint` / `tts_model` / `tts_voice_id` / `tts_minimax_api_key_enc` / `tts_minimax_last_test_result` 列新增
 - `tts_voice_id` 写入 `MINIMAX_TTS_VOICE_ID`；UI 不暴露
 - `asr_config` 不在 §18 锁定列表，Migration 4→5 DROP+CREATE 是允许的 schema 变更路径
+- v0.12.0 **不**改 schema：仅改 `MiniMaxTtsClient.kt` 客户端代码 + 测试
 
-**§A.13.5 测试约束**
+**§A.13.6 测试约束**
 
 - 测试用 `MockWebServer` + `MockResponse.withWebSocketUpgrade(WebSocketListener)`，listener 在 `onOpen` 钩子里 `send("connected_success")` 启动流程
-- 覆盖 `connected_success → task_start → task_started → task_continue → audio.data × N → is_final → task_finish` 成功流 → 返回 `TtsResult`，sink.byteCount == 累积字节
+- 覆盖 `connected_success → task_start（含 language_boost + audio_setting 无 bitrate）→ task_started → task_continue → audio.data × N → is_final → task_finish` 成功流 → 返回 `TtsResult`，sink.byteCount == 累积字节
 - 覆盖 WebSocket 握手 HTTP 401 → `TtsAuthFailed`
-- 覆盖 `task_failed` 含 auth 关键字 → `TtsAuthFailed`
+- 覆盖 `task_failed` 含 `base_resp.status_code = 1004` → `TtsAuthFailed`（v0.12.0 新增，精确映射）
+- 覆盖 `task_failed` 含 `base_resp.status_code = 2201` / `2205` → `TtsUpstream("2201")` / `TtsUpstream("2205")`
+- 覆盖 `task_failed` 缺 `base_resp` → `TtsUpstream("MISSING_BASE_RESP")`
+- 覆盖 `sentence_start` / `sentence_end` 事件被服务端推 → 不影响主流程，sink.byteCount 正常
+- 覆盖 `task_canceled` / `task_flushed` 事件被服务端推 → 不影响主流程
+- 覆盖 WS 路径 = `/ws/v1/t2a_v2_bidi`（v0.12.0 端点后缀锁定）
 - 覆盖 API Key 空串 → `TtsAuthFailed`（不发 WS）
-- 覆盖 `voice_id` / `model` / `WS_URL` / `AUDIO_FORMAT` 与 §A.13.1 一致
-- `MiniMaxTtsClientLiveTest` 走 `-PMINIMAX_TTS_API_KEY` 显式开启（兜底 `MINIMAX_API_KEY`）；未提供 Key 必须 skip
-- **LiveTest PASS 记录**（真 Key 校验通过后填写，未填写则 §A.13.1 的 `*_validated=false` 警告不能删除）：
-  - 校验日期：____-__-__
-  - 校验人：____
-  - voice_id 实际可用：`____`（确认 `Cantonese_KindWoman` 或替换为新值）
-  - audio_setting 实际可用：`format=pcm / sample_rate=24000 / channel=1` ✅ / 替换为 `____`
-  - 失败事件 / 重试路径：无 / 详见 PR #____
+- 覆盖 `voice_id` / `model` / `WS_URL` / `AUDIO_FORMAT` / `LANGUAGE_BOOST` / `PING_INTERVAL_MS` / `IDLE_TIMEOUT_MS` 与 §A.13.1 一致；**不**覆盖 BITRATE（已删除）
+- `MiniMaxTtsClientLiveTest` 走 `-PMINIMAX_TTS_API_KEY` 显式开启（兜底 `MINIMAX_API_KEY`）；未提供 Key 必须 skip；doc 注释 v0.12.0 更新到 `t2a_v2_bidi`
+- **LiveTest PASS 记录**（v0.12.0 静态校验通过；不需真 Key 重跑）：
+  - 校验日期：2026-10-01
+  - 校验人：Codex（文档静态校验）
+  - voice_id 实际可用：`Cantonese_KindWoman` ✅（`faq/system-voice-id` 第 64 行确认）
+  - audio_setting 实际可用：`format=pcm / sample_rate=24000 / channel=1` ✅（api-reference 文档 audio_setting 字段 enum 内合法）
+  - language_utter_id = `Chinese,Yue` ✅（api-reference 文档 language_utter 字段 enum 内合法）
+  - WS_URL = `wss://api.minimax.cn/ws/v1/t2a_v2_bidi` ✅（api-reference 文档 bidi 端点）
+  - 失败事件 / 重试路径：n/a（v0.12.0 重写 `mapBaseRespError` 精确读 `base_resp.status_code`；旧实现 100% 拿到 null 的 bug 已修）
 - `AppError.TtsUpstream` 失败时上层只展示 `assistant_text`，不重试 LLM（沿用 §A.11.4 TTS 失败策略）
 
 ---

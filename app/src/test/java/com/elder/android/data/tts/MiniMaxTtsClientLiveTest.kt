@@ -1,4 +1,4 @@
-// §A.13 MiniMax T2A TTS 真接上游的非 mock 集成测试（WebSocket t2a_v2）。
+// §A.13 MiniMax T2A TTS 真接上游的非 mock 集成测试（WebSocket t2a_v2_bidi，v0.12.0 切 bidi）。
 //
 // 用法：
 //   ./gradlew :app:testDebugUnitTest \
