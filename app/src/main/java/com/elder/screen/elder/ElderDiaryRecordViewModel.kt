@@ -2,7 +2,6 @@
 package com.elder.android.screen.elder
 
 import android.app.Application
-import android.media.MediaPlayer
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elder.android.audio.AudioRecorder
@@ -10,7 +9,6 @@ import com.elder.android.data.AsrConfigRepository
 import com.elder.android.data.DeviceMetaRepository
 import com.elder.android.data.DiaryRepository
 import com.elder.android.data.asr.AsrApiClient
-import com.elder.android.data.asr.AsrClient
 import com.elder.android.data.asr.RealtimeAsrSession
 import com.elder.android.data.db.DiaryEntryEntity
 import com.elder.android.di.ServiceLocator
@@ -35,6 +33,12 @@ data class DiaryRecordUiState(
     val topError: String? = null,
     val asrNotConfigured: Boolean = false,
     val networkFailed: Boolean = false,
+    // 录音音量（readLoop 回调）;已录音状态下回听进度
+    val audioLevel: Float = 0f,
+    val isPlaying: Boolean = false,
+    val playheadMs: Long = 0L,
+    val totalMs: Long = 0L,
+    val playError: String? = null,
 )
 
 class ElderDiaryRecordViewModel(app: Application) : AndroidViewModel(app) {
@@ -47,6 +51,7 @@ class ElderDiaryRecordViewModel(app: Application) : AndroidViewModel(app) {
     private var asrSession: RealtimeAsrSession? = null
     private var tickerJob: Job? = null
     private var startJob: Job? = null
+    private val playback = RecordPlaybackDelegate()
 
     private val _uiState = MutableStateFlow(DiaryRecordUiState())
     val uiState: StateFlow<DiaryRecordUiState> = _uiState.asStateFlow()
@@ -100,7 +105,10 @@ class ElderDiaryRecordViewModel(app: Application) : AndroidViewModel(app) {
             asrSession = session
 
             try {
-                recorder.start { frame -> session.appendAudio(frame) }
+                recorder.start(
+                    frameListener = { frame -> session.appendAudio(frame) },
+                    levelListener = { level -> _uiState.update { it.copy(audioLevel = level) } },
+                )
             } catch (t: CancellationException) {
                 session.close()
                 throw t
@@ -253,6 +261,7 @@ class ElderDiaryRecordViewModel(app: Application) : AndroidViewModel(app) {
                 transcript = text,
                 savedId = id,
                 networkFailed = false,
+                audioLevel = 0f,
             )
         }
     }
@@ -333,11 +342,17 @@ class ElderDiaryRecordViewModel(app: Application) : AndroidViewModel(app) {
         recorder.cancel()
         asrSession?.close()
         asrSession = null
+        playback.release()
         _uiState.update {
             it.copy(
                 isRecording = false,
                 isProcessing = false,
                 networkFailed = false,
+                audioLevel = 0f,
+                isPlaying = false,
+                playheadMs = 0L,
+                totalMs = 0L,
+                playError = null,
             )
         }
     }
@@ -350,26 +365,41 @@ class ElderDiaryRecordViewModel(app: Application) : AndroidViewModel(app) {
         recorder.cancel()
         asrSession?.close()
         asrSession = null
+        playback.release()
     }
 
-    fun playRecording(onStop: () -> Unit) {
+    /** 「已录音」状态下播放/暂停回听录音；委派 RecordPlaybackDelegate。
+     *  设计 lock：MediaPlayer listener 主线程 + tickerActive 替代 mp.isPlaying + stopInternal 三步
+     *  （沿用 docs/v0.11.x-bugfix.md §A.18 既有 lock） */
+    fun togglePlay() {
+        val s = _uiState.value
+        val id = s.savedId ?: return
         viewModelScope.launch {
-            val id = _uiState.value.savedId ?: return@launch
-            val path = diaryRepo.audioPath(id) ?: return@launch
-            val file = File(path)
-            if (!file.exists()) return@launch
-            try {
-                val player = MediaPlayer()
-                player.setDataSource(path)
-                player.setOnCompletionListener {
-                    it.release()
-                    onStop()
-                }
-                player.prepare()
-                player.start()
-            } catch (_: Throwable) {
-                onStop()
+            val path = diaryRepo.audioPath(id) ?: run {
+                _uiState.update { it.copy(playError = "找不到录音文件") }
+                return@launch
             }
+            val file = File(path)
+            if (!file.exists()) {
+                _uiState.update { it.copy(playError = "录音文件已丢失") }
+                return@launch
+            }
+            playback.togglePlay(
+                path = path,
+                isCurrentlyPlaying = s.isPlaying,
+                onState = { playing, head, total ->
+                    _uiState.update { it.copy(isPlaying = playing, playheadMs = head, totalMs = total, playError = null) }
+                },
+                onError = { msg ->
+                    _uiState.update { it.copy(isPlaying = false, playError = msg) }
+                },
+                tickerScope = viewModelScope,
+            )
         }
+    }
+
+    /** 清除播放错误 Toast；与 dismissError() 区分（text 错误 vs 播放错误） */
+    fun dismissPlayError() {
+        _uiState.update { it.copy(playError = null) }
     }
 }

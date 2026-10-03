@@ -118,14 +118,17 @@
     <string name="diary_recording_retry">没听清，再说一次</string>
     <string name="diary_recording_network_failed">网络好像断了，正在重试</string>
     <string name="diary_recording_mic_denied">需要麦克风权限才能写日记</string>
-    <!-- PR-A 新增，MVP 录音闭环专用（不动既有字段，AGENTS.md §18） -->
-    <string name="diary_recording_stop">点击停止</string>
     <string name="diary_recording_title">写日志</string>
     <string name="diary_recording_transcribing">转写中…</string>
     <string name="diary_recording_transcript_placeholder">正在听，您说的话会显示在这里…</string>
     <string name="diary_recording_auth_and_start">授权并开始</string>
     <string name="diary_recording_done_check">✓ 已录音</string>
     <string name="diary_recording_done_duration">%1$02d:%2$02d</string>
+    <string name="diary_recording_hold_hint">按住下方按钮开始说话</string>
+    <string name="diary_recording_redo">再录一条</string>
+    <string name="diary_recording_audio_label">录音 1</string>
+    <string name="diary_recording_audio_play">播放录音</string>
+    <string name="diary_recording_audio_record">重新录音</string>
     <string name="diary_recording_back">返回主页</string>
 
     <!-- §3.1.6 访谈总结 -->
