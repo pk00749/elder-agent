@@ -8,6 +8,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import com.elder.android.di.ServiceLocator
 import com.elder.android.testing.ElderRobolectricTestRunner
@@ -34,16 +35,21 @@ class ElderDiaryRecordScreenTest {
     }
 
     @Test
-    fun recordingActive_hasOnlyOneStopAction() {
+    fun recordingActive_showsHoldToTalkHint() {
+        // v0.x：录音中改按住说话，原 "点击停止" 已删除（strings.xml）
         composeRule.setContent {
             RecordingActive(
                 state = DiaryRecordUiState(isRecording = true, elapsedMs = 5_000),
-                onStop = {},
+                onPress = {},
+                onRelease = {},
             )
         }
 
-        composeRule.onNodeWithText("点击停止").assertIsDisplayed()
-        composeRule.onAllNodesWithText("停止录音").assertCountEquals(0)
+        composeRule.onNodeWithText("按住说话").assertIsDisplayed()
+        // 旧 tap-to-stop 文案已删除，应不可见
+        composeRule.onAllNodesWithText("点击停止").assertCountEquals(0)
+        // 提示行：按住下方按钮开始说话
+        composeRule.onNodeWithText("按住下方按钮开始说话").assertIsDisplayed()
     }
 
     @Test
@@ -55,7 +61,8 @@ class ElderDiaryRecordScreenTest {
                     elapsedMs = 2_000,
                     transcript = "今天天气很好",
                 ),
-                onStop = {},
+                onPress = {},
+                onRelease = {},
             )
         }
 
@@ -68,7 +75,8 @@ class ElderDiaryRecordScreenTest {
         composeRule.setContent {
             RecordingActive(
                 state = DiaryRecordUiState(isRecording = true, elapsedMs = 1_000),
-                onStop = {},
+                onPress = {},
+                onRelease = {},
             )
         }
 
@@ -89,5 +97,74 @@ class ElderDiaryRecordScreenTest {
         composeRule.waitForIdle()
 
         composeRule.onAllNodesWithText("需要麦克风权限才能写日记").assertCountEquals(0)
+    }
+
+    // v0.x 新增：「已录音」状态 = RecordedState（白底黑字 + 语音回听卡 + 转写）
+
+    @Test
+    fun recordedState_rendersPlayButtonAndTranscript() {
+        composeRule.setContent {
+            RecordedState(
+                state = DiaryRecordUiState(
+                    transcript = "今天天气很好",
+                    savedId = 1L,
+                    elapsedMs = 34_000,
+                ),
+                onPlay = {},
+                onRedo = {},
+                onDone = {},
+            )
+        }
+
+        // 顶部「✓ 已录音」+ 时长（substring 避免 Unicode「✓」与断言器互动）
+        composeRule.onNodeWithText("已录音", substring = true).assertIsDisplayed()
+        // 「录音 1」音频卡标题
+        composeRule.onNodeWithText("录音 1", substring = true).assertIsDisplayed()
+        // 完整转写正文
+        composeRule.onNodeWithText("今天天气很好", substring = true).assertIsDisplayed()
+        // 「再录一条」+「返回主页」按钮
+        composeRule.onNodeWithText("再录一条", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("返回主页", substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun recordedState_redoClearsSavedState() {
+        var redoCount = 0
+        composeRule.setContent {
+            RecordedState(
+                state = DiaryRecordUiState(
+                    transcript = "今天天气很好",
+                    savedId = 1L,
+                    elapsedMs = 34_000,
+                ),
+                onPlay = {},
+                onRedo = { redoCount++ },
+                onDone = {},
+            )
+        }
+
+        // 点「再录一条」 → onRedo 触发（VM.retry 后续会清空 savedId/transcript）
+        composeRule.onNodeWithText("再录一条").performClick()
+        org.junit.Assert.assertEquals(1, redoCount)
+    }
+
+    @Test
+    fun recordedState_backCallbackInvoked() {
+        var doneCount = 0
+        composeRule.setContent {
+            RecordedState(
+                state = DiaryRecordUiState(
+                    transcript = "今天天气很好",
+                    savedId = 1L,
+                    elapsedMs = 34_000,
+                ),
+                onPlay = {},
+                onRedo = {},
+                onDone = { doneCount++ },
+            )
+        }
+
+        composeRule.onNodeWithText("返回主页").performClick()
+        org.junit.Assert.assertEquals(1, doneCount)
     }
 }
